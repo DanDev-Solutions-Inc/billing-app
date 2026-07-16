@@ -75,6 +75,13 @@ const IconRepeat = ({ className }: IconProps) => (
     <path d="M21 13v2a4 4 0 0 1-4 4H3" />
   </svg>
 );
+const IconTeam = ({ className }: IconProps) => (
+  <svg {...base} className={className}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: IconGrid },
@@ -84,6 +91,7 @@ const NAV = [
   { href: "/receipts", label: "Receipts", icon: IconReceipt },
   { href: "/transactions", label: "Transactions", icon: IconLedger },
   { href: "/customers", label: "Customers", icon: IconUsers },
+  { href: "/team", label: "Team", icon: IconTeam },
   { href: "/settings", label: "Settings", icon: IconCog },
 ];
 

@@ -296,6 +296,26 @@ export interface Database {
           },
         ];
       };
+      profile_access: {
+        Row: {
+          id: string;
+          owner_id: string;
+          member_email: string;
+          role: "viewer" | "editor";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          member_email: string;
+          role?: "viewer" | "editor";
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["profile_access"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
