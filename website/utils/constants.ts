@@ -10,7 +10,8 @@ export const BUSINESS = {
   taxRate: 13, // percent — default applied to new documents
   taxNumber: "733803910 RT0001",
   currency: "CAD",
-  defaultTerms: "Please make check payable to DanDev Solutions Inc.",
+  defaultTerms:
+    "Payment by cheque (payable to DanDev Solutions Inc.) or Interac e-Transfer to karpienia@dandev.solutions.",
   footerNote: "Thank you for your business!",
 } as const;
 

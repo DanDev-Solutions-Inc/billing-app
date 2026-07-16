@@ -37,7 +37,7 @@ export const sendDocumentEmail = async (input: SendDocEmailInput) => {
 
   const resend = new Resend(apiKey);
   const label = input.kind === "invoice" ? "Invoice" : "Estimate";
-  const subject = `${label} ${input.number} from ${BUSINESS.name}`;
+  const subject = `${label} #${input.number} from ${BUSINESS.name}`;
 
   const logo = loadLogo();
   const body = documentEmail(label, input.number, input.total, !!logo);

@@ -19,7 +19,7 @@ export const MobileNav = ({ email }: SidebarProps) => {
             width={1343}
             height={268}
             priority
-            className="h-7 w-auto"
+            className="h-7 w-auto invert"
           />
         </div>
         <button

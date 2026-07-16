@@ -107,7 +107,7 @@ export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
           width={1343}
           height={268}
           priority
-          className="h-8 w-auto"
+          className="h-8 w-auto invert"
         />
       </div>
 

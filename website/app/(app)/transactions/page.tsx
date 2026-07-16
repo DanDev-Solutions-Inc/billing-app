@@ -139,11 +139,18 @@ const TransactionsPage = async ({
             </TableHeader>
             <TableBody>
               {rows.map((t) => {
-                const linked =
-                  t.invoices?.invoice_number ??
-                  (t.invoice_id ? "Invoice" : null) ??
-                  t.receipts?.vendor ??
-                  (t.receipt_id ? "Receipt" : null);
+                const linkLabel = t.invoice_id
+                  ? `Invoice ${t.invoices?.invoice_number ?? ""}`.trim()
+                  : t.receipt_id
+                    ? t.receipts?.vendor
+                      ? `Receipt · ${t.receipts.vendor}`
+                      : "Receipt"
+                    : null;
+                const linkHref = t.invoice_id
+                  ? `/invoices/${t.invoice_id}`
+                  : t.receipt_id
+                    ? `/receipts/${t.receipt_id}`
+                    : null;
                 return (
                   <TableRow key={t.id}>
                     <TableCell className="text-muted-foreground">
@@ -156,10 +163,13 @@ const TransactionsPage = async ({
                       >
                         {t.description || "View transaction"}
                       </Link>
-                      {linked && (
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          · {linked}
-                        </span>
+                      {linkLabel && linkHref && (
+                        <Link
+                          href={linkHref}
+                          className="ml-2 text-xs text-brand-accent hover:underline"
+                        >
+                          · {linkLabel}
+                        </Link>
                       )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
