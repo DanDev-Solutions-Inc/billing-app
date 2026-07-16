@@ -18,12 +18,21 @@ import {
   FilterSelect,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
+import { isOverdue } from "@utils/invoice";
 
 export const metadata: Metadata = { title: "Invoices" };
 
 /* Invoices are a working list, not a time report: no date window here — an
-   unpaid invoice matters regardless of when it was issued. */
+   unpaid invoice matters regardless of when it was issued.
+
+   "overdue" is a derived view (sent + past due_date), not a stored status —
+   `invoice_status` is only draft | sent | paid. */
 const STATUSES = ["sent", "paid", "overdue"] as const;
+
+const matchesStatus = (
+  inv: { status: string; due_date: string | null },
+  status: string,
+) => (status === "overdue" ? isOverdue(inv) : inv.status === status);
 
 const InvoicesPage = async ({
   searchParams,
@@ -40,14 +49,14 @@ const InvoicesPage = async ({
   const supabase = await createClient();
   const all = await listInvoices(supabase);
   const invoices =
-    status === "all" ? all : all.filter((i) => i.status === status);
+    status === "all" ? all : all.filter((i) => matchesStatus(i, status));
 
   const statusOptions = [
     { key: "all", label: "All invoices", count: all.length },
     ...STATUSES.map((s) => ({
       key: s,
       label: s[0].toUpperCase() + s.slice(1),
-      count: all.filter((i) => i.status === s).length,
+      count: all.filter((i) => matchesStatus(i, s)).length,
     })),
   ];
 
@@ -119,11 +128,19 @@ const InvoicesPage = async ({
                   <TableCell className="text-muted-foreground">
                     {formatDate(inv.issue_date)}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell
+                    className={
+                      isOverdue(inv)
+                        ? "font-medium text-brand-red"
+                        : "text-muted-foreground"
+                    }
+                  >
                     {formatDate(inv.due_date)}
                   </TableCell>
                   <TableCell>
-                    <StatusPill status={inv.status} />
+                    <StatusPill
+                      status={isOverdue(inv) ? "overdue" : inv.status}
+                    />
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
                     {formatMoney(inv.total)}

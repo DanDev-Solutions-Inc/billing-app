@@ -186,6 +186,7 @@ export interface Database {
           image_url: string | null;
           image_pathname: string | null;
           source: Database["public"]["Enums"]["receipt_source"];
+          source_message_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -199,6 +200,7 @@ export interface Database {
           image_url?: string | null;
           image_pathname?: string | null;
           source?: Database["public"]["Enums"]["receipt_source"];
+          source_message_id?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["receipts"]["Insert"]>;

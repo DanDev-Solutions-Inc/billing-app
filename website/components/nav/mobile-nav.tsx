@@ -48,16 +48,18 @@ export const MobileNav = ({ email }: SidebarProps) => {
             type="button"
             aria-label="Close menu"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-navy-900/70 backdrop-blur-sm"
           />
-          <div className="absolute left-0 top-0 h-full">
+          {/* Drawer slides in from the right — thumb-reachable next to the
+              trigger, which also lives on the right of the top bar. */}
+          <div className="absolute right-0 top-0 h-full">
             <Sidebar email={email} onNavigate={() => setOpen(false)} />
           </div>
           <button
             type="button"
             aria-label="Close menu"
             onClick={() => setOpen(false)}
-            className="absolute right-4 top-4 rounded-lg bg-surface p-2 text-foreground shadow"
+            className="absolute left-4 top-4 rounded-xl border border-glass-border bg-white/[0.06] p-2 text-foreground backdrop-blur-md"
           >
             <svg
               viewBox="0 0 24 24"

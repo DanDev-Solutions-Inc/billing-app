@@ -17,9 +17,10 @@ export const buttonSizes: Record<ButtonSize, string> = {
 };
 
 export const buttonVariants: Record<ButtonVariant, string> = {
-  /* The brand gradient — the one loud element on a navy page. */
+  /* The brand gradient — the one loud element on a navy page. The inset
+     white ring gives it a crisp lit edge instead of a flat plastic slab. */
   primary:
-    "vui-grad text-white shadow-[0_4px_20px_-4px_rgba(47,111,196,0.6)] hover:shadow-[0_6px_26px_-4px_rgba(92,155,245,0.75)] hover:brightness-110",
+    "vui-grad text-white font-semibold ring-1 ring-inset ring-white/20 shadow-[0_6px_20px_-6px_rgba(20,71,131,0.9)] hover:shadow-[0_8px_24px_-6px_rgba(47,111,196,0.9)] hover:brightness-115",
   /* Raised glass — the default for secondary actions on a navy canvas. */
   secondary:
     "border border-glass-border bg-white/[0.06] text-foreground backdrop-blur-md hover:bg-white/[0.12]",

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
-import { put } from "@vercel/blob";
 import { createAdminClient } from "@lib/supabase/admin";
-import { analyzeReceipt, isAnalyzable } from "@lib/ai/analyze-receipt";
+import { isAnalyzable } from "@lib/ai/analyze-receipt";
+import { ingestAttachment } from "@services/receipts/ingest-attachment";
 import {
   getProfileByInboundToken,
   getProfileByEmail,
@@ -65,59 +65,23 @@ export const POST = async (request: Request) => {
   const subject = typeof data.subject === "string" ? data.subject : null;
   let created = 0;
 
-  for (const att of attachments) {
+  const messageId = typeof data.message_id === "string" ? data.message_id : null;
+
+  for (const [index, att] of attachments.entries()) {
     const bytes = await attachmentBytes(att);
     if (!bytes) continue;
 
-    const blob = await put(
-      `receipts/${profile.user_id}/${att.filename}`,
+    // Store, AI-read, and file the transaction — shared with the Gmail poller
+    // so both inbound paths behave identically.
+    const result = await ingestAttachment(admin, {
+      userId: profile.user_id,
+      filename: att.filename,
+      contentType: att.contentType,
       bytes,
-      { access: "private", addRandomSuffix: true, contentType: att.contentType },
-    );
-
-    // Read the receipt so it arrives with real values rather than a blank row.
-    // The bytes are already in hand — no need to re-fetch the blob.
-    const analysis = await analyzeReceipt(
-      bytes.toString("base64"),
-      att.contentType,
-    );
-    const usable = analysis?.is_receipt ? analysis : null;
-    const amount = usable?.amount != null ? Math.abs(usable.amount) : 0;
-
-    const { data: receipt } = await admin
-      .from("receipts")
-      .insert({
-        user_id: profile.user_id,
-        vendor: usable?.vendor ?? null,
-        amount,
-        receipt_date: usable?.date ?? undefined,
-        category: usable?.category ?? null,
-        source: "email",
-        notes: subject,
-        image_url: blob.url,
-        image_pathname: blob.pathname,
-      })
-      .select("id")
-      .single();
-
-    // File it in the ledger, pending review. A refund is money coming back, so
-    // it books as income; a $0 receipt moves no money and gets no transaction.
-    if (receipt && amount > 0) {
-      const vendor = usable?.vendor;
-      await admin.from("transactions").insert({
-        user_id: profile.user_id,
-        txn_date: usable?.date ?? new Date().toISOString().slice(0, 10),
-        description: vendor
-          ? `${usable?.is_refund ? "Refund" : "Receipt"} — ${vendor}`
-          : "Emailed receipt",
-        amount,
-        direction: usable?.is_refund ? "income" : "expense",
-        status: "pending",
-        category: usable?.category ?? null,
-        receipt_id: receipt.id,
-      });
-    }
-    created += 1;
+      subject,
+      sourceMessageId: messageId ? `resend:${messageId}:${index}` : null,
+    });
+    if (result) created += 1;
   }
 
   return NextResponse.json({ ok: true, created });

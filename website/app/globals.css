@@ -47,7 +47,9 @@
   --radius: 1.25rem; /* Vision UI's generous 20px card radius */
 
   /* Vision UI signatures */
-  --grad-brand: linear-gradient(135deg, #2f6fc4 0%, #5c9bf5 100%);
+  /* Runs Classic Blue → Interactive Blue. Anchored deep on purpose: a
+     light-blue fill washes out and drops white label text below contrast. */
+  --grad-brand: linear-gradient(135deg, #144783 0%, #2f6fc4 60%, #4a8ae0 100%);
   --grad-card: linear-gradient(
     127deg,
     rgba(16, 28, 56, 0.94) 0%,
