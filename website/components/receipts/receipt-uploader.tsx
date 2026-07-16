@@ -50,7 +50,7 @@ export const ReceiptUploader = () => {
         const formData = new FormData();
         if (file && file.size > 0) {
           const blob = await upload(file.name, file, {
-            access: "public",
+            access: "private",
             handleUploadUrl: "/api/receipts/upload",
           });
           formData.set("image_url", blob.url);

@@ -1,11 +1,11 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { getReceipt } from "@services/supabase/receipt";
 import { PageHeader, Card, Button, StatusPill } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
+import { isPdfReceipt } from "@utils/receipt-file";
 import { deleteReceipt } from "../actions";
 import { DetailProps } from "@interfaces/components/DetailProps";
 
@@ -48,13 +48,27 @@ const ReceiptPage = async ({
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <Card className="overflow-hidden">
-          {receipt.image_url ? (
-            <div className="relative min-h-[24rem] bg-surface-muted">
-              <Image
-                src={receipt.image_url}
+          {receipt.image_url && isPdfReceipt(receipt.image_url) ? (
+            <object
+              data={`/api/receipts/${receipt.id}/file`}
+              type="application/pdf"
+              className="h-[36rem] w-full bg-surface-muted"
+            >
+              <a
+                href={`/api/receipts/${receipt.id}/file`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex h-96 items-center justify-center text-sm text-brand-accent underline"
+              >
+                Open PDF
+              </a>
+            </object>
+          ) : receipt.image_url ? (
+            <div className="min-h-[24rem] bg-surface-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/receipts/${receipt.id}/file`}
                 alt={receipt.vendor ?? "Receipt"}
-                width={800}
-                height={1000}
                 className="mx-auto h-auto w-full object-contain"
               />
             </div>

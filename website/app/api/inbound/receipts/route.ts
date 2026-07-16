@@ -57,7 +57,7 @@ export const POST = async (request: Request) => {
     const blob = await put(
       `receipts/${profile.user_id}/${att.filename}`,
       bytes,
-      { access: "public", addRandomSuffix: true, contentType: att.contentType },
+      { access: "private", addRandomSuffix: true, contentType: att.contentType },
     );
 
     await admin.from("receipts").insert({

@@ -26,7 +26,7 @@ export const BulkReceiptUploader = () => {
       const uploaded: UploadedReceipt[] = [];
       for (const file of files) {
         const blob = await upload(file.name, file, {
-          access: "public",
+          access: "private",
           handleUploadUrl: "/api/receipts/upload",
         });
         uploaded.push({ url: blob.url, pathname: blob.pathname, filename: file.name });
