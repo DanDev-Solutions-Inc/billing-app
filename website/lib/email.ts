@@ -95,7 +95,7 @@ const documentEmail = (
   const lower = label.toLowerCase();
   const address = BUSINESS.addressLines.join(", ");
   const url = BUSINESS.website.replace(/^https?:\/\//, "");
-  const preheader = `Your ${lower} ${number} from ${BUSINESS.name} — total ${total}. PDF attached.`;
+  const preheader = `Your ${lower} #${number} from ${BUSINESS.name} — total ${total}. PDF attached.`;
 
   const brandmark = hasLogo
     ? `<img src="cid:brand-logo" width="168" alt="${BUSINESS.name}" style="display:block;border:0;outline:none;text-decoration:none;width:168px;max-width:60%;height:auto;" />`
@@ -122,7 +122,7 @@ const documentEmail = (
           <tr>
             <td style="padding:28px 32px 6px;">
               ${brandmark}
-              <h1 style="margin:20px 0 0;font-size:22px;line-height:1.2;color:${BLUE};font-weight:bold;">${label} ${number}</h1>
+              <h1 style="margin:20px 0 0;font-size:22px;line-height:1.2;color:${BLUE};font-weight:bold;">${label} #${number}</h1>
             </td>
           </tr>
           <tr>
@@ -144,9 +144,31 @@ const documentEmail = (
             </td>
           </tr>
           <tr>
-            <td style="padding:8px 32px 0;color:${MUTED};font-size:14px;line-height:1.55;">
-              <p style="margin:12px 0;">${BUSINESS.defaultTerms}</p>
-              <p style="margin:12px 0;">${BUSINESS.footerNote}</p>
+            <td style="padding:14px 32px 0;">
+              <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${MUTED};margin-bottom:8px;">Payment options</div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:${INK};line-height:1.5;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                <tr>
+                  <td style="padding:3px 0;width:90px;color:${MUTED};vertical-align:top;">Cheque</td>
+                  <td style="padding:3px 0;">Payable to ${BUSINESS.payment.chequePayableTo}</td>
+                </tr>
+                <tr>
+                  <td style="padding:3px 0;color:${MUTED};vertical-align:top;">e-Transfer</td>
+                  <td style="padding:3px 0;"><a href="mailto:${BUSINESS.payment.etransferEmail}" style="color:${ACCENT};text-decoration:none;">${BUSINESS.payment.etransferEmail}</a></td>
+                </tr>
+                <tr>
+                  <td style="padding:3px 0;color:${MUTED};vertical-align:top;">Wire / EFT</td>
+                  <td style="padding:3px 0;">
+                    ${BUSINESS.bank.name}<br />
+                    Institution ${BUSINESS.bank.institution} &nbsp;·&nbsp; Transit ${BUSINESS.bank.transit} &nbsp;·&nbsp; Account ${BUSINESS.bank.account}<br />
+                    <span style="color:${MUTED};">SWIFT/BIC ${BUSINESS.bank.swift} (international)</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 32px 0;color:${MUTED};font-size:14px;line-height:1.55;">
+              <p style="margin:6px 0;">${BUSINESS.footerNote}</p>
             </td>
           </tr>
           <tr>
@@ -168,7 +190,7 @@ const documentEmail = (
 </html>`;
 
   const text = [
-    `${label} ${number} from ${BUSINESS.name}`,
+    `${label} #${number} from ${BUSINESS.name}`,
     ``,
     `Hi,`,
     ``,
@@ -176,7 +198,13 @@ const documentEmail = (
     ``,
     `Total due: ${total}`,
     ``,
-    BUSINESS.defaultTerms,
+    `Payment options:`,
+    `  Cheque      Payable to ${BUSINESS.payment.chequePayableTo}`,
+    `  e-Transfer  ${BUSINESS.payment.etransferEmail}`,
+    `  Wire / EFT  ${BUSINESS.bank.name}`,
+    `              Institution ${BUSINESS.bank.institution} · Transit ${BUSINESS.bank.transit} · Account ${BUSINESS.bank.account}`,
+    `              SWIFT/BIC ${BUSINESS.bank.swift} (international)`,
+    ``,
     BUSINESS.footerNote,
     ``,
     `—`,

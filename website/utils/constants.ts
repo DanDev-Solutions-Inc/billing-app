@@ -13,6 +13,21 @@ export const BUSINESS = {
   defaultTerms:
     "Payment by cheque (payable to DanDev Solutions Inc.) or Interac e-Transfer to karpienia@dandev.solutions.",
   footerNote: "Thank you for your business!",
+  // How clients can pay. Shown on invoice emails (and available to the PDF).
+  payment: {
+    chequePayableTo: "DanDev Solutions Inc.",
+    etransferEmail: "karpienia@dandev.solutions",
+  },
+  // BMO business account — transit/account transcribed from the void cheque.
+  // These appear on client-facing invoices; verify against the cheque.
+  bank: {
+    name: "BMO Bank of Montreal",
+    address: "3643 Cawthra Road, Mississauga, ON L5A 2Y4",
+    institution: "001", // BMO
+    transit: "28022",
+    account: "1994897",
+    swift: "BOFMCAM2", // for international wires
+  },
 } as const;
 
 /** Full tax row label, e.g. "HST 13% (733803910 RT0001)". */
