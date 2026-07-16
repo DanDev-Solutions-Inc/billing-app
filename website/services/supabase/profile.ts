@@ -26,3 +26,16 @@ export const getProfileByInboundToken = async (
     .maybeSingle();
   return data ?? null;
 };
+
+/** Look up a user by their email — used to match a plain receipts@ sender. */
+export const getProfileByEmail = async (
+  admin: SupabaseClient,
+  email: string,
+): Promise<Profile | null> => {
+  const { data } = await admin
+    .from("profiles")
+    .select("*")
+    .ilike("email", email)
+    .maybeSingle();
+  return data ?? null;
+};

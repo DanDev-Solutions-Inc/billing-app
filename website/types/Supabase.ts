@@ -20,6 +20,7 @@ export interface Database {
           id: string;
           user_id: string;
           business_name: string | null;
+          email: string | null;
           inbound_token: string;
           created_at: string;
         };
@@ -27,6 +28,7 @@ export interface Database {
           id?: string;
           user_id: string;
           business_name?: string | null;
+          email?: string | null;
           inbound_token?: string;
           created_at?: string;
         };

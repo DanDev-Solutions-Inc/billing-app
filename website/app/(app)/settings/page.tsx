@@ -15,6 +15,8 @@ const SettingsPage = async () => {
   const profile = await getProfile(supabase, user.id);
 
   const inboundDomain = process.env.INBOUND_DOMAIN ?? "inbound.dandev.solutions";
+  const friendlyAddress =
+    process.env.RECEIPTS_EMAIL ?? "receipts@dandev.solutions";
   const inboundAddress = profile
     ? `receipts+${profile.inbound_token}@${inboundDomain}`
     : null;
@@ -36,19 +38,26 @@ const SettingsPage = async () => {
             Email a receipt
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Forward or send a receipt (with the image attached) to your personal
-            address below. It is imported automatically and appears under
-            Receipts.
+            Send or forward a receipt (with the image attached) from your
+            account email to the address below — it is imported automatically and
+            appears under Receipts.
           </p>
           <div className="mt-4">
-            {inboundAddress ? (
-              <CopyField value={inboundAddress} />
-            ) : (
-              <p className="text-sm text-brand-red">
-                Your inbound address is not ready yet. Run the database schema,
-                then reload.
-              </p>
-            )}
+            <CopyField value={friendlyAddress} />
+            <p className="mt-2 text-xs text-muted">
+              Works from your sign-in email. Forwarding from a different address?
+              Use your personal alias instead:
+            </p>
+            <div className="mt-2">
+              {inboundAddress ? (
+                <CopyField value={inboundAddress} />
+              ) : (
+                <p className="text-sm text-brand-red">
+                  Your personal alias is not ready yet — run the database
+                  migrations, then reload.
+                </p>
+              )}
+            </div>
           </div>
         </Card>
 

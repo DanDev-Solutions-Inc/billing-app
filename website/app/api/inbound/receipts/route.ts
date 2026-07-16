@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { put } from "@vercel/blob";
 import { createAdminClient } from "@lib/supabase/admin";
-import { getProfileByInboundToken } from "@services/supabase/profile";
+import {
+  getProfileByInboundToken,
+  getProfileByEmail,
+} from "@services/supabase/profile";
 
 export const runtime = "nodejs";
 
@@ -29,12 +32,16 @@ export const POST = async (request: Request) => {
   const payload = safeJson(raw);
   const data = (payload?.data ?? payload) as Record<string, unknown>;
 
-  const token = extractToken(collectRecipients(data));
-  if (!token) return NextResponse.json({ ok: true, skipped: "no token" });
-
   const admin = createAdminClient();
-  const profile = await getProfileByInboundToken(admin, token);
-  if (!profile) return NextResponse.json({ ok: true, skipped: "unknown token" });
+
+  // Prefer the per-user alias token (receipts+<token>@…); otherwise fall back to
+  // matching the sender's address (plain receipts@dandev.solutions).
+  const token = extractToken(collectRecipients(data));
+  const profile = token
+    ? await getProfileByInboundToken(admin, token)
+    : await matchBySender(admin, data);
+  if (!profile)
+    return NextResponse.json({ ok: true, skipped: "unrecognised sender" });
 
   const attachments = extractImageAttachments(data);
   if (attachments.length === 0)
@@ -111,6 +118,31 @@ const extractToken = (recipients: string[]): string | null => {
     if (match) return match[1];
   }
   return null;
+};
+
+// Pull the sender email out of `from` (string "Name <a@b>" or { address }).
+const extractSenderEmail = (data: Record<string, unknown>): string | null => {
+  const from = data.from ?? data.sender;
+  const raw =
+    typeof from === "string"
+      ? from
+      : from && typeof from === "object"
+        ? String(
+            (from as Record<string, unknown>).address ??
+              (from as Record<string, unknown>).email ??
+              "",
+          )
+        : "";
+  const match = raw.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+  return match ? match[0] : null;
+};
+
+const matchBySender = async (
+  admin: ReturnType<typeof createAdminClient>,
+  data: Record<string, unknown>,
+) => {
+  const email = extractSenderEmail(data);
+  return email ? getProfileByEmail(admin, email) : null;
 };
 
 const extractImageAttachments = (
