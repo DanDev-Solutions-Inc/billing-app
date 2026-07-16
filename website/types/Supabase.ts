@@ -243,6 +243,57 @@ export interface Database {
           },
         ];
       };
+      recurring_invoices: {
+        Row: {
+          id: string;
+          user_id: string;
+          customer_id: string | null;
+          title: string | null;
+          line_items: Json;
+          tax_rate: number;
+          notes: string | null;
+          frequency: Database["public"]["Enums"]["recurring_frequency"];
+          interval: number;
+          next_run: string;
+          last_run: string | null;
+          end_date: string | null;
+          net_days: number;
+          auto_send: boolean;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          customer_id?: string | null;
+          title?: string | null;
+          line_items?: Json;
+          tax_rate?: number;
+          notes?: string | null;
+          frequency: Database["public"]["Enums"]["recurring_frequency"];
+          interval?: number;
+          next_run: string;
+          last_run?: string | null;
+          end_date?: string | null;
+          net_days?: number;
+          auto_send?: boolean;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["recurring_invoices"]["Insert"]
+        >;
+        Relationships: [
+          {
+            foreignKeyName: "recurring_invoices_customer_id_fkey";
+            columns: ["customer_id"];
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -251,6 +302,7 @@ export interface Database {
       estimate_status: "draft" | "sent" | "accepted" | "declined";
       txn_direction: "income" | "expense";
       receipt_source: "upload" | "email";
+      recurring_frequency: "daily" | "weekly" | "monthly" | "yearly";
     };
     CompositeTypes: Record<string, never>;
   };

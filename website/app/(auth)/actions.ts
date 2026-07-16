@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@lib/supabase/server";
 
 export interface AuthState {
@@ -49,6 +50,19 @@ export const signup = async (
 
   revalidatePath("/", "layout");
   redirect("/dashboard");
+};
+
+export const signInWithGoogle = async () => {
+  const headerList = await headers();
+  const origin = `${headerList.get("x-forwarded-proto") ?? "https"}://${headerList.get("host")}`;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${origin}/auth/callback` },
+  });
+  if (error || !data.url) redirect("/login?error=oauth");
+  redirect(data.url);
 };
 
 export const logout = async () => {

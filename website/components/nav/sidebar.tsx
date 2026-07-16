@@ -68,10 +68,18 @@ const IconLogout = ({ className }: IconProps) => (
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
   </svg>
 );
+const IconRepeat = ({ className }: IconProps) => (
+  <svg {...base} className={className}>
+    <path d="M17 2l4 4-4 4" />
+    <path d="M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4" />
+    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+  </svg>
+);
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: IconGrid },
   { href: "/invoices", label: "Invoices", icon: IconDoc },
+  { href: "/recurring", label: "Recurring", icon: IconRepeat },
   { href: "/estimates", label: "Estimates", icon: IconQuote },
   { href: "/receipts", label: "Receipts", icon: IconReceipt },
   { href: "/transactions", label: "Transactions", icon: IconLedger },

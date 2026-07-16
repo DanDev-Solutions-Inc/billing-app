@@ -5,7 +5,7 @@ import { Database } from "@typings/Supabase";
 // Public paths reachable without a session.
 const PUBLIC_PREFIXES = ["/login", "/signup", "/auth"];
 // Route handlers that must run without a UI session (server-to-server).
-const OPEN_API_PREFIXES = ["/api/inbound"];
+const OPEN_API_PREFIXES = ["/api/inbound", "/api/cron"];
 
 /**
  * Refreshes the Supabase session cookies on every request and performs an
