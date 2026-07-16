@@ -49,7 +49,7 @@ export const BulkReceiptUploader = () => {
   return (
     <Card className="p-6">
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <p className="text-sm text-muted">
+        <p className="text-sm text-muted-foreground">
           Select all the receipt images you exported from Wave. Each becomes a
           receipt you can label with a vendor and amount afterward.
         </p>
@@ -58,7 +58,7 @@ export const BulkReceiptUploader = () => {
           accept="image/*"
           multiple
           onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-          className="block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-blue"
+          className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-brand-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-blue"
         />
         {files.length > 0 && (
           <p className="text-sm text-foreground">
@@ -66,7 +66,7 @@ export const BulkReceiptUploader = () => {
           </p>
         )}
         {busy && (
-          <p className="text-sm text-muted">
+          <p className="text-sm text-muted-foreground">
             Uploading… {done}/{files.length}
           </p>
         )}

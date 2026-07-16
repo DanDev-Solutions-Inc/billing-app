@@ -8,16 +8,7 @@ import { receiptSchema } from "@utils/validation/receiptSchema";
 import { ReceiptFormValues } from "@interfaces/forms/ReceiptFormValues";
 import { Card, Field, inputClass, Button } from "@components/ui";
 
-const CATEGORIES = [
-  "Software & Subscriptions",
-  "Hardware & Equipment",
-  "Office Supplies",
-  "Travel",
-  "Meals & Entertainment",
-  "Contractors",
-  "Utilities",
-  "Other",
-];
+import { RECEIPT_CATEGORIES as CATEGORIES } from "@utils/constants";
 
 const today = () => {
   const d = new Date();
@@ -89,7 +80,7 @@ export const ReceiptUploader = () => {
             accept="image/*"
             capture="environment"
             onChange={onFileChange}
-            className="block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-blue"
+            className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-brand-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-blue"
           />
         </Field>
         {preview && (

@@ -9,6 +9,12 @@ import {
   ButtonLink,
   StatusPill,
   EmptyState,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 
@@ -35,50 +41,45 @@ const InvoicesPage = async () => {
         />
       ) : (
         <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-surface-muted/60 text-left text-xs font-medium text-muted">
-                  <th className="px-5 py-3">Invoice</th>
-                  <th className="px-5 py-3">Customer</th>
-                  <th className="px-5 py-3">Issued</th>
-                  <th className="px-5 py-3">Due</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {invoices.map((inv) => (
-                  <tr
-                    key={inv.id}
-                    className="transition hover:bg-surface-muted/40"
-                  >
-                    <td className="px-5 py-3 font-medium">
-                      <Link
-                        href={`/invoices/${inv.id}`}
-                        className="text-brand-accent hover:underline"
-                      >
-                        {inv.invoice_number || `#${inv.id.slice(0, 8)}`}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3">{inv.customers?.name ?? "—"}</td>
-                    <td className="px-5 py-3 text-muted">
-                      {formatDate(inv.issue_date)}
-                    </td>
-                    <td className="px-5 py-3 text-muted">
-                      {formatDate(inv.due_date)}
-                    </td>
-                    <td className="px-5 py-3">
-                      <StatusPill status={inv.status} />
-                    </td>
-                    <td className="px-5 py-3 text-right font-medium tabular-nums">
-                      {formatMoney(inv.total)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Invoice</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Issued</TableHead>
+                <TableHead>Due</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invoices.map((inv) => (
+                <TableRow key={inv.id}>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/invoices/${inv.id}`}
+                      className="text-brand-accent hover:underline"
+                    >
+                      {inv.invoice_number || `#${inv.id.slice(0, 8)}`}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{inv.customers?.name ?? "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(inv.issue_date)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(inv.due_date)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusPill status={inv.status} />
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">
+                    {formatMoney(inv.total)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Card>
       )}
     </>

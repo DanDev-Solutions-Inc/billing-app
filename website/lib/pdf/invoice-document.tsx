@@ -5,14 +5,28 @@ import {
   Text,
   Image,
   StyleSheet,
+  Svg,
+  Defs,
+  LinearGradient,
+  Stop,
+  Rect,
 } from "@react-pdf/renderer";
 import { BUSINESS } from "@utils/constants";
 
-const BLUE = "#144783";
-const INK = "#151515";
-const MUTED = "#64707d";
-const LINE = "#e3e7ec";
-const HILITE = "#eef2f7";
+// Light theme with the DanDev brand gradient accent.
+const BG = "#ffffff"; // page background (white)
+const PANEL = "#eef2f7"; // subtle raised panel (amount-due highlight)
+const INK = "#151515"; // primary text (near-black)
+const MUTED = "#64707d"; // labels / secondary text
+const LINE = "#e3e7ec"; // dividers / table row borders
+const BLUE = "#144783"; // table header bar (on-brand navy)
+
+// A4 width in points — used to full-bleed the top gradient bar.
+const PAGE_W = 595.28;
+
+// Print-safe horizontal margin for text content (~0.33"). The gradient
+// banner and the full-width borders/bars break out of this with -EDGE.
+const EDGE = 24;
 
 export interface PdfDocData {
   kind: "INVOICE" | "ESTIMATE";
@@ -44,20 +58,22 @@ export interface PdfDocData {
 
 const s = StyleSheet.create({
   page: {
-    paddingTop: 40,
-    paddingHorizontal: 44,
+    paddingTop: 44,
+    paddingHorizontal: EDGE,
     paddingBottom: 56,
     fontSize: 9.5,
     color: INK,
+    backgroundColor: BG,
     fontFamily: "Helvetica",
     lineHeight: 1.4,
   },
+  topBar: { position: "absolute", top: 0, left: 0 },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  logo: { width: 150 },
+  logo: { width: 210 },
   docTitle: {
     fontSize: 30,
     fontFamily: "Helvetica",
@@ -68,7 +84,12 @@ const s = StyleSheet.create({
   sellerName: { fontFamily: "Helvetica-Bold", fontSize: 10 },
   right: { textAlign: "right" },
   muted: { color: MUTED },
-  divider: { height: 1, backgroundColor: LINE, marginVertical: 16 },
+  divider: {
+    height: 1,
+    backgroundColor: LINE,
+    marginVertical: 16,
+    marginHorizontal: -EDGE, // full-bleed border
+  },
   twoCol: { flexDirection: "row", justifyContent: "space-between" },
   billTo: { width: "50%" },
   metaCol: { width: "45%" },
@@ -88,25 +109,30 @@ const s = StyleSheet.create({
   amountDueRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    backgroundColor: HILITE,
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    marginTop: 2,
+    backgroundColor: PANEL,
+    borderWidth: 1,
+    borderColor: LINE,
+    borderRadius: 3,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    marginTop: 4,
   },
   tableHead: {
     flexDirection: "row",
     backgroundColor: BLUE,
     color: "#ffffff",
     paddingVertical: 7,
-    paddingHorizontal: 8,
+    paddingHorizontal: EDGE, // full-bleed bar, text aligned to the text margin
     marginTop: 26,
+    marginHorizontal: -EDGE,
     fontFamily: "Helvetica-Bold",
     fontSize: 9,
   },
   row: {
     flexDirection: "row",
     paddingVertical: 8,
-    paddingHorizontal: 8,
+    paddingHorizontal: EDGE, // full-bleed border, cells aligned to the text margin
+    marginHorizontal: -EDGE,
     borderBottomWidth: 1,
     borderBottomColor: LINE,
   },
@@ -141,8 +167,8 @@ const s = StyleSheet.create({
   footer: {
     position: "absolute",
     bottom: 28,
-    left: 44,
-    right: 44,
+    left: EDGE,
+    right: EDGE,
     textAlign: "center",
     color: MUTED,
     fontSize: 9,
@@ -153,6 +179,18 @@ export const InvoiceDocument = ({ data }: { data: PdfDocData }) => {
   return (
     <Document>
       <Page size="A4" style={s.page}>
+        {/* Signature blue → red gradient bar, full bleed at the very top */}
+        <Svg style={s.topBar} width={PAGE_W} height={4} fixed>
+          <Defs>
+            <LinearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor="#2f6fd0" />
+              <Stop offset="0.5" stopColor="#3b3f63" />
+              <Stop offset="1" stopColor="#d0533f" />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width={PAGE_W} height={4} fill="url(#topbar)" />
+        </Svg>
+
         {/* Header: logo + big title */}
         <View style={s.headerRow}>
           <View>

@@ -72,6 +72,9 @@ const InvoicePage = async ({
             <StatusButton id={inv.id} status="sent" label="Reopen" />
           )}
           <SendButton id={inv.id} action={sendInvoice} />
+          <ButtonLink href={`/invoices/${inv.id}/edit`} variant="secondary">
+            Edit
+          </ButtonLink>
           <ButtonLink
             href={`/invoices/${inv.id}/pdf`}
             variant="secondary"

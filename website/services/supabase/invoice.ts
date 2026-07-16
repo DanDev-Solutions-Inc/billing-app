@@ -30,6 +30,15 @@ export const getInvoice = async (
   return (data as InvoiceWithCustomer) ?? null;
 };
 
+/** Next sequential invoice number for the user (continues the existing series). */
+export const getNextInvoiceNumber = async (
+  sb: SupabaseClient,
+  userId: string,
+): Promise<string> => {
+  const { data } = await sb.rpc("next_invoice_number", { uid: userId });
+  return data ?? "1";
+};
+
 export const createInvoice = async (
   sb: SupabaseClient,
   values: InvoiceInsert,
@@ -40,6 +49,15 @@ export const createInvoice = async (
     .select("id")
     .single();
   return { id: data?.id, error: error?.message };
+};
+
+export const updateInvoice = async (
+  sb: SupabaseClient,
+  id: string,
+  values: Partial<InvoiceInsert>,
+): Promise<{ error?: string }> => {
+  const { error } = await sb.from("invoices").update(values).eq("id", id);
+  return { error: error?.message };
 };
 
 export const updateInvoiceStatus = async (

@@ -6,7 +6,10 @@ import {
   listDueRecurring,
   advanceRecurring,
 } from "@services/supabase/recurring-invoice";
-import { createInvoice } from "@services/supabase/invoice";
+import {
+  createInvoice,
+  getNextInvoiceNumber,
+} from "@services/supabase/invoice";
 import {
   createLineItems,
   listLineItems,
@@ -43,6 +46,7 @@ export const generateDueInvoices = async (
       const { id: invoiceId } = await createInvoice(admin, {
         user_id: schedule.user_id,
         customer_id: schedule.customer_id,
+        invoice_number: await getNextInvoiceNumber(admin, schedule.user_id),
         notes: schedule.notes,
         issue_date: today,
         due_date: addDays(today, schedule.net_days),

@@ -88,6 +88,7 @@ export const convertToInvoice = async (formData: FormData) => {
   const { id: invoiceId } = await invoices.createInvoice(supabase, {
     user_id: user.id,
     customer_id: estimate.customer_id,
+    invoice_number: await invoices.getNextInvoiceNumber(supabase, user.id),
     notes: estimate.notes,
     subtotal: estimate.subtotal,
     tax: estimate.tax,

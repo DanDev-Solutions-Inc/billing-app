@@ -9,6 +9,12 @@ import {
   ButtonLink,
   StatusPill,
   EmptyState,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { deleteTransactionAction } from "./actions";
@@ -18,6 +24,7 @@ export const metadata: Metadata = { title: "Transactions" };
 
 const FILTERS = [
   { key: "all", label: "All", href: "/transactions" },
+  { key: "review", label: "To review", href: "/transactions?type=review" },
   { key: "income", label: "Income", href: "/transactions?type=income" },
   { key: "expense", label: "Expenses", href: "/transactions?type=expense" },
 ];
@@ -28,10 +35,10 @@ const Summary = ({ label, value, tone }: SummaryProps) => {
       ? "text-brand-green"
       : tone === "expense"
         ? "text-brand-red"
-        : "text-brand-black";
+        : "text-foreground";
   return (
     <Card className="p-5">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
       <p className={`mt-1 text-2xl font-semibold tabular-nums ${color}`}>
@@ -58,8 +65,17 @@ const TransactionsPage = async ({
     .filter((t) => t.direction === "expense")
     .reduce((s, t) => s + Number(t.amount), 0);
 
-  const active = type === "income" || type === "expense" ? type : "all";
-  const rows = active === "all" ? all : all.filter((t) => t.direction === active);
+  const pending = all.filter((t) => t.status === "pending").length;
+  const active =
+    type === "income" || type === "expense" || type === "review"
+      ? type
+      : "all";
+  const rows =
+    active === "all"
+      ? all
+      : active === "review"
+        ? all.filter((t) => t.status === "pending")
+        : all.filter((t) => t.direction === active);
 
   return (
     <>
@@ -86,10 +102,15 @@ const TransactionsPage = async ({
               "rounded-lg px-3 py-1.5 text-sm font-medium transition " +
               (active === f.key
                 ? "bg-brand-accent text-white"
-                : "border border-border bg-surface text-muted hover:bg-surface-muted")
+                : "border border-border bg-surface text-muted-foreground hover:bg-surface-muted")
             }
           >
             {f.label}
+            {f.key === "review" && pending > 0 && (
+              <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-xs font-semibold text-amber-600">
+                {pending}
+              </span>
+            )}
           </Link>
         ))}
       </div>
@@ -104,72 +125,79 @@ const TransactionsPage = async ({
         />
       ) : (
         <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-surface-muted/60 text-left text-xs font-medium text-muted">
-                  <th className="px-5 py-3">Date</th>
-                  <th className="px-5 py-3">Description</th>
-                  <th className="px-5 py-3">Category</th>
-                  <th className="px-5 py-3">Type</th>
-                  <th className="px-5 py-3 text-right">Amount</th>
-                  <th className="px-5 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rows.map((t) => {
-                  const linked =
-                    t.invoices?.invoice_number ??
-                    (t.invoice_id ? "Invoice" : null) ??
-                    t.receipts?.vendor ??
-                    (t.receipt_id ? "Receipt" : null);
-                  return (
-                    <tr key={t.id}>
-                      <td className="px-5 py-3 text-muted">
-                        {formatDate(t.txn_date)}
-                      </td>
-                      <td className="px-5 py-3">
-                        {t.description || "—"}
-                        {linked && (
-                          <span className="ml-2 text-xs text-muted">
-                            · {linked}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3 text-muted">
-                        {t.category || "—"}
-                      </td>
-                      <td className="px-5 py-3">
-                        <StatusPill status={t.direction} />
-                      </td>
-                      <td
-                        className={
-                          "px-5 py-3 text-right font-medium tabular-nums " +
-                          (t.direction === "income"
-                            ? "text-brand-green"
-                            : "text-brand-red")
-                        }
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Date</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((t) => {
+                const linked =
+                  t.invoices?.invoice_number ??
+                  (t.invoice_id ? "Invoice" : null) ??
+                  t.receipts?.vendor ??
+                  (t.receipt_id ? "Receipt" : null);
+                return (
+                  <TableRow key={t.id}>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(t.txn_date)}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/transactions/${t.id}`}
+                        className="font-medium text-foreground hover:text-brand-accent hover:underline"
                       >
-                        {t.direction === "income" ? "+" : "−"}
-                        {formatMoney(t.amount)}
-                      </td>
-                      <td className="px-5 py-3 text-right">
-                        <form action={deleteTransactionAction}>
-                          <input type="hidden" name="id" value={t.id} />
-                          <button
-                            type="submit"
-                            className="rounded-md px-2 py-1 text-xs font-medium text-muted transition hover:bg-brand-red/10 hover:text-brand-red"
-                          >
-                            Delete
-                          </button>
-                        </form>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        {t.description || "View transaction"}
+                      </Link>
+                      {linked && (
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          · {linked}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {t.category || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <StatusPill status={t.direction} />
+                    </TableCell>
+                    <TableCell>
+                      <StatusPill status={t.status} />
+                    </TableCell>
+                    <TableCell
+                      className={
+                        "text-right font-medium tabular-nums " +
+                        (t.direction === "income"
+                          ? "text-brand-green"
+                          : "text-brand-red")
+                      }
+                    >
+                      {t.direction === "income" ? "+" : "−"}
+                      {formatMoney(t.amount)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <form action={deleteTransactionAction}>
+                        <input type="hidden" name="id" value={t.id} />
+                        <button
+                          type="submit"
+                          className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition hover:bg-brand-red/10 hover:text-brand-red"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </Card>
       )}
     </>

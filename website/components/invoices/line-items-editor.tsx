@@ -17,7 +17,7 @@ export const LineItemsEditor = ({
   return (
     <div className="flex flex-col gap-3">
       {/* header */}
-      <div className="hidden grid-cols-[1fr_90px_120px_120px_32px] gap-2 px-1 text-xs font-medium text-muted sm:grid">
+      <div className="hidden grid-cols-[1fr_90px_120px_120px_32px] gap-2 px-1 text-xs font-medium text-muted-foreground sm:grid">
         <span>Description</span>
         <span className="text-right">Qty</span>
         <span className="text-right">Unit price</span>
@@ -62,7 +62,7 @@ export const LineItemsEditor = ({
               type="button"
               onClick={() => onRemoveRow(index)}
               aria-label="Remove line"
-              className="justify-self-end rounded-md px-2 py-1 text-muted transition hover:bg-brand-red/10 hover:text-brand-red"
+              className="justify-self-end rounded-md px-2 py-1 text-muted-foreground transition hover:bg-brand-red/10 hover:text-brand-red"
             >
               ✕
             </button>
@@ -78,7 +78,7 @@ export const LineItemsEditor = ({
         >
           + Add line
         </button>
-        <label className="flex items-center gap-2 text-sm text-muted">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
           Tax rate
           <input
             type="number"
@@ -96,7 +96,7 @@ export const LineItemsEditor = ({
       <div className="ml-auto w-full max-w-xs space-y-1 border-t border-border pt-3 text-sm">
         <TotalRow label="Subtotal" value={totals.subtotal} />
         <TotalRow label={`Tax (${taxRate || 0}%)`} value={totals.tax} />
-        <div className="flex items-center justify-between border-t border-border pt-2 font-semibold text-brand-black">
+        <div className="flex items-center justify-between border-t border-border pt-2 font-semibold text-foreground">
           <span>Total</span>
           <span className="tabular-nums">{formatMoney(totals.total)}</span>
         </div>
@@ -106,7 +106,7 @@ export const LineItemsEditor = ({
 };
 
 const TotalRow = ({ label, value }: { label: string; value: number }) => (
-  <div className="flex items-center justify-between text-muted">
+  <div className="flex items-center justify-between text-muted-foreground">
     <span>{label}</span>
     <span className="tabular-nums">{formatMoney(value)}</span>
   </div>

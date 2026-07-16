@@ -5,21 +5,15 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
-        <Link
-          href="/"
-          className="mb-8 flex flex-col items-center justify-center gap-2"
-        >
+        <Link href="/" className="mb-8 flex items-center justify-center">
           <Image
-            src="/brand/DandevDark.png"
-            alt="DanDev"
-            width={1103}
-            height={215}
+            src="/brand/DavdevSolutionsDark.png"
+            alt="DanDev Solutions"
+            width={1343}
+            height={268}
             priority
-            className="h-7 w-auto"
+            className="h-9 w-auto"
           />
-          <span className="text-sm font-medium tracking-wide text-muted">
-            Billing
-          </span>
         </Link>
         <div className="rounded-2xl border border-border bg-surface p-7 shadow-sm">
           {children}

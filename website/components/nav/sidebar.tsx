@@ -100,17 +100,15 @@ export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
 
   return (
     <aside className="flex h-dvh w-60 shrink-0 flex-col border-r border-border bg-surface">
-      <div className="flex items-center gap-2.5 px-5 py-5">
+      <div className="flex items-center px-5 py-5">
         <Image
-          src="/brand/DDDark.png"
-          alt="DanDev"
-          width={426}
-          height={266}
-          className="h-6 w-auto"
+          src="/brand/DavdevSolutionsDark.png"
+          alt="DanDev Solutions"
+          width={1343}
+          height={268}
+          priority
+          className="h-8 w-auto"
         />
-        <span className="font-heading text-base font-semibold tracking-tight text-brand-black">
-          DanDev Billing
-        </span>
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 px-3 py-2">
@@ -125,7 +123,7 @@ export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition " +
                 (active
                   ? "bg-brand-accent/10 text-brand-accent"
-                  : "text-muted hover:bg-surface-muted hover:text-foreground")
+                  : "text-muted-foreground hover:bg-surface-muted hover:text-foreground")
               }
             >
               <Icon className="h-[18px] w-[18px]" />
@@ -136,13 +134,13 @@ export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
       </nav>
 
       <div className="border-t border-border px-3 py-3">
-        <p className="truncate px-3 pb-2 text-xs text-muted" title={email}>
+        <p className="truncate px-3 pb-2 text-xs text-muted-foreground" title={email}>
           {email}
         </p>
         <form action={logout}>
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface-muted hover:text-brand-red"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-surface-muted hover:text-brand-red"
           >
             <IconLogout className="h-[18px] w-[18px]" />
             Sign out

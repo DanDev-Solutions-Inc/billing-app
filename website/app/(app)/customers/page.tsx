@@ -4,7 +4,14 @@ import { getUserOrRedirect } from "@lib/dal";
 import { listCustomers } from "@services/supabase/customer";
 import { deleteCustomer } from "./actions";
 import { CustomerForm } from "@components/customer-form";
-import { Card, PageHeader, EmptyState } from "@components/ui";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  PageHeader,
+  EmptyState,
+} from "@components/ui";
 
 export const metadata: Metadata = { title: "Customers" };
 
@@ -21,11 +28,13 @@ const CustomersPage = async () => {
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
-        <Card className="h-fit p-6">
-          <h2 className="mb-4 font-heading text-base font-semibold text-brand-black">
-            Add a customer
-          </h2>
-          <CustomerForm />
+        <Card className="h-fit">
+          <CardHeader>
+            <CardTitle>Add a customer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CustomerForm />
+          </CardContent>
         </Card>
 
         <div>
@@ -42,12 +51,12 @@ const CustomersPage = async () => {
                   className="flex items-start justify-between gap-4 px-5 py-4"
                 >
                   <div className="min-w-0">
-                    <p className="font-medium text-brand-black">{c.name}</p>
-                    <p className="truncate text-sm text-muted">
+                    <p className="font-medium text-foreground">{c.name}</p>
+                    <p className="truncate text-sm text-muted-foreground">
                       {[c.email, c.phone].filter(Boolean).join(" · ") || "—"}
                     </p>
                     {c.address && (
-                      <p className="mt-0.5 truncate text-sm text-muted">
+                      <p className="mt-0.5 truncate text-sm text-muted-foreground">
                         {c.address}
                       </p>
                     )}
@@ -56,7 +65,7 @@ const CustomersPage = async () => {
                     <input type="hidden" name="id" value={c.id} />
                     <button
                       type="submit"
-                      className="rounded-md px-2 py-1 text-xs font-medium text-muted transition hover:bg-brand-red/10 hover:text-brand-red"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition hover:bg-brand-red/10 hover:text-brand-red"
                     >
                       Delete
                     </button>

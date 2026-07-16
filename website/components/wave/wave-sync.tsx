@@ -11,7 +11,7 @@ export const WaveSync = () => {
 
   return (
     <form action={action} className="flex flex-col gap-3">
-      <p className="text-sm text-muted">
+      <p className="text-sm text-muted-foreground">
         Import customers, invoices, and estimates from your Wave account. Re-run
         anytime — existing records are updated, not duplicated. A full import can
         take a couple of minutes.

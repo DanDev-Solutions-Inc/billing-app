@@ -50,7 +50,7 @@ const ReceiptsPage = async () => {
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : r.image_url ? (
-                    <div className="flex h-full flex-col items-center justify-center gap-2 text-muted">
+                    <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
                       <svg
                         viewBox="0 0 24 24"
                         className="h-10 w-10"
@@ -64,7 +64,7 @@ const ReceiptsPage = async () => {
                       <span className="text-xs font-medium">PDF</span>
                     </div>
                   ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-muted">
+                    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                       No image
                     </div>
                   )}
@@ -73,10 +73,10 @@ const ReceiptsPage = async () => {
                   </div>
                 </div>
                 <div className="p-3">
-                  <p className="truncate font-medium text-brand-black">
+                  <p className="truncate font-medium text-foreground">
                     {r.vendor || "Unlabeled"}
                   </p>
-                  <div className="mt-0.5 flex items-center justify-between text-sm text-muted">
+                  <div className="mt-0.5 flex items-center justify-between text-sm text-muted-foreground">
                     <span>{formatDate(r.receipt_date)}</span>
                     <span className="font-medium tabular-nums text-foreground">
                       {formatMoney(r.amount)}

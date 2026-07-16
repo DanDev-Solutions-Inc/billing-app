@@ -25,7 +25,13 @@ const blankItem = (): LineItemFormValues => ({
   unit_price: 0,
 });
 
-export const DocForm = ({ kind, customers, action, defaults }: DocFormProps) => {
+export const DocForm = ({
+  kind,
+  customers,
+  action,
+  defaults,
+  submitLabel,
+}: DocFormProps) => {
   const isInvoice = kind === "invoice";
   const secondDateLabel = isInvoice ? "Due date" : "Expiry date";
   const numberLabel = isInvoice ? "Invoice #" : "Estimate #";
@@ -114,16 +120,24 @@ export const DocForm = ({ kind, customers, action, defaults }: DocFormProps) => 
               ))}
             </select>
           </Field>
-          <Field label={numberLabel} htmlFor="number">
-            <input
-              id="number"
-              name="number"
-              value={formik.values.number}
-              onChange={formik.handleChange}
-              placeholder="Optional"
-              className={inputClass}
-            />
-          </Field>
+          {isInvoice ? (
+            <Field label="Invoice #">
+              <div className={`${inputClass} bg-surface-muted text-muted-foreground`}>
+                Auto-generated (sequential)
+              </div>
+            </Field>
+          ) : (
+            <Field label={numberLabel} htmlFor="number">
+              <input
+                id="number"
+                name="number"
+                value={formik.values.number}
+                onChange={formik.handleChange}
+                placeholder="Optional"
+                className={inputClass}
+              />
+            </Field>
+          )}
           <Field label="Issue date" htmlFor="issue_date">
             <input
               id="issue_date"
@@ -153,7 +167,7 @@ export const DocForm = ({ kind, customers, action, defaults }: DocFormProps) => 
       </Card>
 
       <Card className="p-6">
-        <h2 className="mb-4 font-heading text-base font-semibold text-brand-black">
+        <h2 className="mb-4 font-heading text-base font-semibold text-foreground">
           Line items
         </h2>
         <LineItemsEditor
@@ -187,7 +201,7 @@ export const DocForm = ({ kind, customers, action, defaults }: DocFormProps) => 
 
       <div className="flex justify-end gap-3">
         <Button type="submit" disabled={formik.isSubmitting}>
-          {formik.isSubmitting ? "Saving…" : `Create ${kind}`}
+          {formik.isSubmitting ? "Saving…" : (submitLabel ?? `Create ${kind}`)}
         </Button>
       </div>
     </form>

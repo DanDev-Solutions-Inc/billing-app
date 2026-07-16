@@ -20,6 +20,30 @@ export const taxRowLabel = (ratePercent: number): string => {
   return `${BUSINESS.taxLabel} ${rate}% (${BUSINESS.taxNumber})`;
 };
 
+// Expense categories used by receipts, the AI classifier, and transactions.
+export const RECEIPT_CATEGORIES = [
+  "Software & Subscriptions",
+  "Hardware & Equipment",
+  "Office Supplies",
+  "Travel",
+  "Meals & Entertainment",
+  "Contractors",
+  "Advertising & Promotion",
+  "Professional Fees",
+  "Utilities",
+  "Vehicle & Fuel",
+  "Bank & Merchant Fees",
+  "Other",
+] as const;
+
+// Categories for the manual transaction ledger (income + expense).
+export const TRANSACTION_CATEGORIES = [
+  "Sales",
+  "Consulting",
+  "Other Income",
+  ...RECEIPT_CATEGORIES,
+] as const;
+
 // Wave API endpoints + OAuth scopes for importing invoices/customers.
 export const WAVE = {
   authorizeUrl: "https://api.waveapps.com/oauth2/authorize/",

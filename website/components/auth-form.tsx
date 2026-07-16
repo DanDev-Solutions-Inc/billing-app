@@ -95,7 +95,7 @@ export const AuthForm = ({ mode }: { mode: "login" | "signup" }) => {
 
       <div className="flex items-center gap-3">
         <span className="h-px flex-1 bg-border" />
-        <span className="text-xs text-muted">or</span>
+        <span className="text-xs text-muted-foreground">or</span>
         <span className="h-px flex-1 bg-border" />
       </div>
 
@@ -125,7 +125,7 @@ export const AuthForm = ({ mode }: { mode: "login" | "signup" }) => {
         Continue with Google
       </button>
 
-      <p className="text-center text-sm text-muted">
+      <p className="text-center text-sm text-muted-foreground">
         {mode === "login" ? (
           <>
             No account?{" "}

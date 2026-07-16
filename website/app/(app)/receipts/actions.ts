@@ -6,9 +6,12 @@ import { del } from "@vercel/blob";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { emptyToNull } from "@utils/doc-helpers";
+import { scanReceiptImage } from "@lib/receipts/scan";
 import * as receipts from "@services/supabase/receipt";
 import * as transactions from "@services/supabase/transaction";
 import { UploadedReceipt } from "@interfaces/forms/UploadedReceipt";
+
+const today = () => new Date().toISOString().slice(0, 10);
 
 export interface ReceiptFormState {
   error?: string;
@@ -47,32 +50,57 @@ export const createReceipt = async (
   const user = await getUserOrRedirect();
   const supabase = await createClient();
 
-  const amount = Number(formData.get("amount")) || 0;
-  const receiptDate = emptyToNull(formData.get("receipt_date"));
-  const vendor = emptyToNull(formData.get("vendor"));
+  const imageUrl = emptyToNull(formData.get("image_url"));
+  const formAmount = Number(formData.get("amount")) || 0;
+  const formVendor = emptyToNull(formData.get("vendor"));
+  const formCategory = emptyToNull(formData.get("category"));
+  const formDate = emptyToNull(formData.get("receipt_date"));
 
   const { id, error } = await receipts.createReceipt(supabase, {
     user_id: user.id,
-    vendor,
-    amount,
-    receipt_date: receiptDate ?? undefined,
-    category: emptyToNull(formData.get("category")),
+    vendor: formVendor,
+    amount: formAmount,
+    receipt_date: formDate ?? undefined,
+    category: formCategory,
     notes: emptyToNull(formData.get("notes")),
-    image_url: emptyToNull(formData.get("image_url")),
+    image_url: imageUrl,
     image_pathname: emptyToNull(formData.get("image_pathname")),
     source: "upload",
   });
   if (error || !id) return { error: error ?? "Failed to save receipt." };
 
-  // Optionally record the receipt as an expense transaction.
+  // AI: read the image and fill in whatever the user left blank.
+  let vendor = formVendor;
+  let amount = formAmount;
+  let category = formCategory;
+  let date = formDate;
+  if (imageUrl) {
+    const analysis = await scanReceiptImage(imageUrl);
+    if (analysis?.is_receipt) {
+      vendor = vendor ?? analysis.vendor;
+      category = category ?? analysis.category;
+      date = date ?? analysis.date;
+      if (amount <= 0 && analysis.amount && analysis.amount > 0)
+        amount = analysis.amount;
+      await receipts.updateReceipt(supabase, id, {
+        vendor,
+        amount,
+        category,
+        receipt_date: date ?? undefined,
+      });
+    }
+  }
+
+  // Record the receipt as a categorised expense transaction (linked to it).
   if (formData.get("as_expense") && amount > 0) {
     await transactions.createTransaction(supabase, {
       user_id: user.id,
-      txn_date: receiptDate ?? new Date().toISOString().slice(0, 10),
+      txn_date: date ?? today(),
       description: vendor ? `Receipt — ${vendor}` : "Receipt expense",
       amount,
       direction: "expense",
-      category: emptyToNull(formData.get("category")),
+      status: "pending",
+      category,
       receipt_id: id,
     });
     revalidatePath("/transactions");

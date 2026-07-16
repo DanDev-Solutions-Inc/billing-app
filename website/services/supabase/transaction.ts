@@ -1,10 +1,14 @@
 import "server-only";
 import { SupabaseClient } from "@typings/SupabaseClient";
 import { TxnDirection } from "@typings/transaction/TxnDirection";
+import { TxnStatus } from "@typings/transaction/TxnStatus";
 import { TransactionInsert } from "@typings/transaction/TransactionInsert";
 import { TransactionWithLinks } from "@interfaces/models/transaction/TransactionWithLinks";
+import { TransactionDetail } from "@interfaces/models/transaction/TransactionDetail";
 
 const WITH_LINKS = "*, receipts(vendor), invoices(invoice_number)";
+const DETAIL =
+  "*, receipts(id, vendor, image_url, receipt_date, amount, category), invoices(id, invoice_number, total)";
 
 export const listTransactions = async (
   sb: SupabaseClient,
@@ -20,11 +24,52 @@ export const listTransactions = async (
   return (data ?? []) as TransactionWithLinks[];
 };
 
+export const getTransaction = async (
+  sb: SupabaseClient,
+  id: string,
+): Promise<TransactionDetail | null> => {
+  const { data } = await sb
+    .from("transactions")
+    .select(DETAIL)
+    .eq("id", id)
+    .maybeSingle();
+  return (data as TransactionDetail | null) ?? null;
+};
+
 export const createTransaction = async (
   sb: SupabaseClient,
   values: TransactionInsert,
 ): Promise<void> => {
   await sb.from("transactions").insert(values);
+};
+
+/** Insert a transaction and return its new id (for linking a receipt). */
+export const createTransactionReturningId = async (
+  sb: SupabaseClient,
+  values: TransactionInsert,
+): Promise<string | null> => {
+  const { data } = await sb
+    .from("transactions")
+    .insert(values)
+    .select("id")
+    .single();
+  return data?.id ?? null;
+};
+
+export const setTransactionStatus = async (
+  sb: SupabaseClient,
+  id: string,
+  status: TxnStatus,
+): Promise<void> => {
+  await sb.from("transactions").update({ status }).eq("id", id);
+};
+
+export const updateTransaction = async (
+  sb: SupabaseClient,
+  id: string,
+  values: Partial<TransactionInsert>,
+): Promise<void> => {
+  await sb.from("transactions").update(values).eq("id", id);
 };
 
 export const deleteTransaction = async (

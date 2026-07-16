@@ -6,6 +6,7 @@ export interface DocFormProps {
   kind: "invoice" | "estimate";
   customers: Customer[];
   action: (prev: DocFormState, formData: FormData) => Promise<DocFormState>;
+  submitLabel?: string;
   defaults?: {
     customerId?: string | null;
     number?: string | null;

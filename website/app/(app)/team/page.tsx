@@ -2,7 +2,16 @@ import { Metadata } from "next";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listGrants } from "@services/supabase/profile-access";
-import { PageHeader, Card, StatusPill, EmptyState } from "@components/ui";
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  StatusPill,
+  EmptyState,
+} from "@components/ui";
 import { TeamInviteForm } from "@components/team-invite-form";
 import { removeMemberAction } from "./actions";
 
@@ -21,16 +30,18 @@ const TeamPage = async () => {
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.3fr]">
-        <Card className="h-fit p-6">
-          <h2 className="mb-1 font-heading text-base font-semibold text-brand-black">
-            Invite someone
-          </h2>
-          <p className="mb-4 text-sm text-muted">
-            They&apos;ll get access as soon as they sign in with this email
-            (password or Google). &ldquo;View &amp; export&rdquo; can see
-            everything but not change it.
-          </p>
-          <TeamInviteForm />
+        <Card className="h-fit">
+          <CardHeader>
+            <CardTitle>Invite someone</CardTitle>
+            <CardDescription>
+              They&apos;ll get access as soon as they sign in with this email
+              (password or Google). &ldquo;View &amp; export&rdquo; can see
+              everything but not change it.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TeamInviteForm />
+          </CardContent>
         </Card>
 
         <div>
@@ -47,14 +58,14 @@ const TeamPage = async () => {
                   className="flex items-center justify-between gap-4 px-5 py-4"
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-brand-black">
+                    <p className="truncate font-medium text-foreground">
                       {g.member_email}
                     </p>
                     <div className="mt-1">
                       <StatusPill
                         status={g.role === "editor" ? "sent" : "upload"}
                       />
-                      <span className="ml-2 text-xs text-muted">
+                      <span className="ml-2 text-xs text-muted-foreground">
                         {g.role === "editor" ? "Full edit" : "View & export"}
                       </span>
                     </div>
@@ -63,7 +74,7 @@ const TeamPage = async () => {
                     <input type="hidden" name="id" value={g.id} />
                     <button
                       type="submit"
-                      className="rounded-md px-2 py-1 text-xs font-medium text-muted transition hover:bg-brand-red/10 hover:text-brand-red"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition hover:bg-brand-red/10 hover:text-brand-red"
                     >
                       Remove
                     </button>

@@ -9,6 +9,12 @@ import {
   ButtonLink,
   StatusPill,
   EmptyState,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 
@@ -37,50 +43,45 @@ const EstimatesPage = async () => {
         />
       ) : (
         <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-surface-muted/60 text-left text-xs font-medium text-muted">
-                  <th className="px-5 py-3">Estimate</th>
-                  <th className="px-5 py-3">Customer</th>
-                  <th className="px-5 py-3">Issued</th>
-                  <th className="px-5 py-3">Expires</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {estimates.map((est) => (
-                  <tr
-                    key={est.id}
-                    className="transition hover:bg-surface-muted/40"
-                  >
-                    <td className="px-5 py-3 font-medium">
-                      <Link
-                        href={`/estimates/${est.id}`}
-                        className="text-brand-accent hover:underline"
-                      >
-                        {est.estimate_number || `#${est.id.slice(0, 8)}`}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3">{est.customers?.name ?? "—"}</td>
-                    <td className="px-5 py-3 text-muted">
-                      {formatDate(est.issue_date)}
-                    </td>
-                    <td className="px-5 py-3 text-muted">
-                      {formatDate(est.expiry_date)}
-                    </td>
-                    <td className="px-5 py-3">
-                      <StatusPill status={est.status} />
-                    </td>
-                    <td className="px-5 py-3 text-right font-medium tabular-nums">
-                      {formatMoney(est.total)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Estimate</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Issued</TableHead>
+                <TableHead>Expires</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {estimates.map((est) => (
+                <TableRow key={est.id}>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/estimates/${est.id}`}
+                      className="text-brand-accent hover:underline"
+                    >
+                      {est.estimate_number || `#${est.id.slice(0, 8)}`}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{est.customers?.name ?? "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(est.issue_date)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(est.expiry_date)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusPill status={est.status} />
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">
+                    {formatMoney(est.total)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Card>
       )}
     </>

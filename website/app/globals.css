@@ -1,20 +1,41 @@
 @import "tailwindcss";
 
-/* DanDev Billing — light finance theme.
-   Brand palette mirrors dandev-landing (Figma "DanDev Files" › Branding › Colors). */
+/* DanDev Billing — shadcn/ui neutral, dark-mode-first dashboard theme.
+   Neutral (zinc-free, hue 0) surfaces with a single DanDev-blue accent. */
 :root {
-  --brand-blue: #144783; /* Classic Blue — depth */
-  --brand-accent: #2f6fc4; /* Interactive blue — primary */
-  --brand-black: #151515; /* Off Black — text */
-  --brand-red: #d85a52; /* Muted Red — destructive / overdue */
-  --brand-green: #1f9d6b; /* Positive / paid / income */
+  color-scheme: dark;
 
-  --background: #f5f6f8; /* app canvas */
-  --surface: #ffffff; /* cards, panels */
-  --surface-muted: #f0f2f5; /* subtle fills, table headers */
-  --foreground: #151515; /* primary text */
-  --muted: #64707d; /* secondary text */
-  --border: #e3e7ec; /* hairlines */
+  /* Brand accent thread (blue), brightened for legibility on dark surfaces. */
+  --brand-blue: #2f6fc4; /* deeper blue — button hover / depth */
+  --brand-accent: #5c9bf5; /* interactive blue — primary accent */
+  --brand-black: #fafafa; /* headings on dark (kept name for back-compat) */
+  --brand-red: #f36f66; /* destructive / overdue */
+  --brand-green: #37c98b; /* positive / paid / income */
+
+  --background: oklch(0.145 0 0); /* app canvas — near-black neutral */
+  --surface: oklch(0.205 0 0); /* cards, panels */
+  --surface-muted: oklch(0.269 0 0); /* subtle fills, table headers */
+  --foreground: oklch(0.985 0 0); /* primary text — near-white */
+  --muted: oklch(0.269 0 0); /* shadcn muted surface (bg-muted) */
+  --border: oklch(1 0 0 / 10%); /* hairlines */
+
+  /* shadcn/ui (new-york) semantic tokens. */
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: var(--brand-accent); /* interactive blue */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.269 0 0); /* neutral hover fill */
+  --accent-foreground: oklch(0.985 0 0);
+  --muted-foreground: oklch(0.708 0 0); /* secondary text */
+  --destructive: var(--brand-red);
+  --destructive-foreground: oklch(0.985 0 0);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--brand-accent);
+  --radius: 0.625rem;
 
   /* Brand type (Adobe Fonts / Typekit kit yns3mqx): Neue Haas Grotesk Display
      for headings, Neue Haas Grotesk Text for body. Inter Tight / Inter are the
@@ -37,12 +58,35 @@
   --color-brand-black: var(--brand-black);
   --color-brand-red: var(--brand-red);
   --color-brand-green: var(--brand-green);
+
+  /* shadcn/ui semantic color + radius scale */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
   --font-heading: var(--heading-stack);
   --font-body: var(--body-stack);
 }
 
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
@@ -53,7 +97,7 @@ body {
 
 ::selection {
   background: var(--brand-accent);
-  color: #fff;
+  color: oklch(0.145 0 0);
 }
 
 ::-webkit-scrollbar {
@@ -64,10 +108,10 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd2da;
+  background: oklch(1 0 0 / 15%);
   border-radius: 6px;
   border: 2px solid var(--background);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #b3bcc7;
+  background: oklch(1 0 0 / 25%);
 }

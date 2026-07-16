@@ -113,7 +113,7 @@ export const RecurringInvoiceForm = ({
       </Card>
 
       <Card className="p-6">
-        <h2 className="mb-4 font-heading text-base font-semibold text-brand-black">
+        <h2 className="mb-4 font-heading text-base font-semibold text-foreground">
           Schedule
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -187,7 +187,7 @@ export const RecurringInvoiceForm = ({
       </Card>
 
       <Card className="p-6">
-        <h2 className="mb-4 font-heading text-base font-semibold text-brand-black">
+        <h2 className="mb-4 font-heading text-base font-semibold text-foreground">
           Line items
         </h2>
         <LineItemsEditor

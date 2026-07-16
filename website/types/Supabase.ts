@@ -212,6 +212,7 @@ export interface Database {
           description: string | null;
           amount: number;
           direction: Database["public"]["Enums"]["txn_direction"];
+          status: Database["public"]["Enums"]["txn_status"];
           category: string | null;
           receipt_id: string | null;
           invoice_id: string | null;
@@ -224,6 +225,7 @@ export interface Database {
           description?: string | null;
           amount: number;
           direction: Database["public"]["Enums"]["txn_direction"];
+          status?: Database["public"]["Enums"]["txn_status"];
           category?: string | null;
           receipt_id?: string | null;
           invoice_id?: string | null;
@@ -318,11 +320,17 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      next_invoice_number: {
+        Args: { uid: string };
+        Returns: string;
+      };
+    };
     Enums: {
       invoice_status: "draft" | "sent" | "paid";
       estimate_status: "draft" | "sent" | "accepted" | "declined";
       txn_direction: "income" | "expense";
+      txn_status: "pending" | "approved";
       receipt_source: "upload" | "email";
       recurring_frequency: "daily" | "weekly" | "monthly" | "yearly";
     };

@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Receipt" };
 
 const Detail = ({ label, value }: DetailProps) => (
   <div>
-    <p className="text-xs font-medium uppercase tracking-wide text-muted">
+    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
       {label}
     </p>
     <p className="mt-0.5 text-sm text-foreground">{value}</p>
@@ -73,7 +73,7 @@ const ReceiptPage = async ({
               />
             </div>
           ) : (
-            <div className="flex h-96 items-center justify-center text-sm text-muted">
+            <div className="flex h-96 items-center justify-center text-sm text-muted-foreground">
               No image attached
             </div>
           )}
@@ -81,7 +81,7 @@ const ReceiptPage = async ({
 
         <Card className="h-fit p-6">
           <div className="mb-4 flex items-center justify-between">
-            <span className="text-2xl font-semibold tabular-nums text-brand-black">
+            <span className="text-2xl font-semibold tabular-nums text-foreground">
               {formatMoney(receipt.amount)}
             </span>
             <StatusPill status={receipt.source} />

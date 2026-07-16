@@ -12,17 +12,15 @@ export const MobileNav = ({ email }: SidebarProps) => {
     <div className="md:hidden">
       {/* Top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface px-4 py-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <Image
-            src="/brand/DDDark.png"
-            alt="DanDev"
-            width={426}
-            height={266}
-            className="h-5 w-auto"
+            src="/brand/DavdevSolutionsDark.png"
+            alt="DanDev Solutions"
+            width={1343}
+            height={268}
+            priority
+            className="h-7 w-auto"
           />
-          <span className="font-heading text-sm font-semibold tracking-tight text-brand-black">
-            DanDev Billing
-          </span>
         </div>
         <button
           type="button"

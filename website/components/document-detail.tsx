@@ -1,4 +1,16 @@
-import { Card, StatusPill } from "@components/ui";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  StatusPill,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { DocumentDetailProps } from "@interfaces/components/DocumentDetailProps";
 import { MetaProps } from "@interfaces/components/MetaProps";
@@ -24,7 +36,7 @@ export const DocumentDetail = ({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight text-brand-black">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
             {heading}
             {number ? ` ${number}` : ""}
           </h1>
@@ -40,7 +52,7 @@ export const DocumentDetail = ({
           <Meta label="Bill to">
             {customer ? (
               <>
-                <p className="font-medium text-brand-black">{customer.name}</p>
+                <p className="font-medium text-foreground">{customer.name}</p>
                 {customer.email && <p>{customer.email}</p>}
                 {customer.phone && <p>{customer.phone}</p>}
                 {customer.address && (
@@ -57,39 +69,37 @@ export const DocumentDetail = ({
       </Card>
 
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-surface-muted/60 text-left text-xs font-medium text-muted">
-                <th className="px-5 py-3">Description</th>
-                <th className="px-5 py-3 text-right">Qty</th>
-                <th className="px-5 py-3 text-right">Unit price</th>
-                <th className="px-5 py-3 text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {items.map((it) => (
-                <tr key={it.id}>
-                  <td className="px-5 py-3">{it.description}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">
-                    {it.quantity}
-                  </td>
-                  <td className="px-5 py-3 text-right tabular-nums">
-                    {formatMoney(it.unit_price)}
-                  </td>
-                  <td className="px-5 py-3 text-right tabular-nums">
-                    {formatMoney(it.amount)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Description</TableHead>
+              <TableHead className="text-right">Qty</TableHead>
+              <TableHead className="text-right">Unit price</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((it) => (
+              <TableRow key={it.id}>
+                <TableCell>{it.description}</TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {it.quantity}
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {formatMoney(it.unit_price)}
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {formatMoney(it.amount)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
         <div className="flex justify-end border-t border-border px-5 py-4">
           <div className="w-full max-w-xs space-y-1 text-sm">
             <TotalRow label="Subtotal" value={subtotal} />
             <TotalRow label="Tax" value={tax} />
-            <div className="flex items-center justify-between border-t border-border pt-2 text-base font-semibold text-brand-black">
+            <div className="flex items-center justify-between border-t border-border pt-2 text-base font-semibold text-foreground">
               <span>Total</span>
               <span className="tabular-nums">{formatMoney(total)}</span>
             </div>
@@ -98,11 +108,15 @@ export const DocumentDetail = ({
       </Card>
 
       {notes && (
-        <Card className="p-6">
-          <h2 className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">
-            Notes
-          </h2>
-          <p className="whitespace-pre-line text-sm text-foreground">{notes}</p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-line text-sm text-foreground">
+              {notes}
+            </p>
+          </CardContent>
         </Card>
       )}
     </div>
@@ -110,14 +124,14 @@ export const DocumentDetail = ({
 };
 
 const Meta = ({ label, children }: MetaProps) => (
-  <div className="text-sm text-muted">
+  <div className="text-sm text-muted-foreground">
     <p className="mb-1 text-xs font-medium uppercase tracking-wide">{label}</p>
     <div className="space-y-0.5">{children}</div>
   </div>
 );
 
 const TotalRow = ({ label, value }: TotalRowProps) => (
-  <div className="flex items-center justify-between text-muted">
+  <div className="flex items-center justify-between text-muted-foreground">
     <span>{label}</span>
     <span className="tabular-nums">{formatMoney(value)}</span>
   </div>

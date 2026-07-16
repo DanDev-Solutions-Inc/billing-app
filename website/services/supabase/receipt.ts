@@ -38,6 +38,14 @@ export const createReceipt = async (
   return { id: data?.id, error: error?.message };
 };
 
+export const updateReceipt = async (
+  sb: SupabaseClient,
+  id: string,
+  values: Partial<ReceiptInsert>,
+): Promise<void> => {
+  await sb.from("receipts").update(values).eq("id", id);
+};
+
 export const deleteReceipt = async (
   sb: SupabaseClient,
   id: string,

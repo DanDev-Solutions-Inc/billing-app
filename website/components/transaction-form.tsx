@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useFormik } from "formik";
+import { upload } from "@vercel/blob/client";
 import { createTransactionAction } from "@app/(app)/transactions/actions";
 import { transactionSchema } from "@utils/validation/transactionSchema";
 import { TransactionFormValues } from "@interfaces/forms/TransactionFormValues";
+import { TRANSACTION_CATEGORIES as CATEGORIES } from "@utils/constants";
 import { Card, Field, inputClass, Button } from "@components/ui";
 
 const today = () => {
@@ -13,6 +16,15 @@ const today = () => {
 };
 
 export const TransactionForm = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string>();
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files?.[0] ?? null;
+    setFile(picked);
+    setPreview(picked ? URL.createObjectURL(picked) : undefined);
+  };
+
   const formik = useFormik<TransactionFormValues>({
     initialValues: {
       direction: "expense",
@@ -23,14 +35,28 @@ export const TransactionForm = () => {
     },
     validationSchema: transactionSchema,
     onSubmit: async (values, { setStatus }) => {
-      const formData = new FormData();
-      formData.set("direction", values.direction);
-      formData.set("amount", values.amount);
-      formData.set("txn_date", values.txn_date);
-      formData.set("category", values.category);
-      formData.set("description", values.description);
-      const result = await createTransactionAction({}, formData);
-      if (result?.error) setStatus({ error: result.error });
+      try {
+        const formData = new FormData();
+        if (file && file.size > 0) {
+          const blob = await upload(file.name, file, {
+            access: "private",
+            handleUploadUrl: "/api/receipts/upload",
+          });
+          formData.set("image_url", blob.url);
+          formData.set("image_pathname", blob.pathname);
+        }
+        formData.set("direction", values.direction);
+        formData.set("amount", values.amount);
+        formData.set("txn_date", values.txn_date);
+        formData.set("category", values.category);
+        formData.set("description", values.description);
+        const result = await createTransactionAction({}, formData);
+        if (result?.error) setStatus({ error: result.error });
+      } catch (err) {
+        setStatus({
+          error: err instanceof Error ? err.message : "Failed to save.",
+        });
+      }
     },
   });
 
@@ -79,13 +105,20 @@ export const TransactionForm = () => {
             />
           </Field>
           <Field label="Category" htmlFor="category">
-            <input
+            <select
               id="category"
               name="category"
               value={formik.values.category}
               onChange={formik.handleChange}
               className={inputClass}
-            />
+            >
+              <option value="">— None —</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
         <Field label="Description" htmlFor="description">
@@ -97,6 +130,31 @@ export const TransactionForm = () => {
             className={inputClass}
           />
         </Field>
+
+        <Field label="Attach receipt image (optional)" htmlFor="image">
+          <input
+            id="image"
+            name="image"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={onFileChange}
+            className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-brand-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-blue"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            The image is scanned and any blank fields are filled automatically.
+          </p>
+        </Field>
+        {preview && (
+          <div className="overflow-hidden rounded-xl border border-border">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={preview}
+              alt="Receipt preview"
+              className="max-h-64 w-full object-contain bg-surface-muted"
+            />
+          </div>
+        )}
 
         {status?.error && <p className="text-sm text-brand-red">{status.error}</p>}
 
