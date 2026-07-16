@@ -28,8 +28,11 @@ const CATEGORIES = [
   "Utilities", "Vehicle & Fuel", "Bank & Merchant Fees", "Other",
 ];
 const PROMPT = `You are reading a business expense receipt. Return ONLY a JSON object (no prose, no code fence) with keys:
-  is_receipt (boolean), vendor (string|null), amount (number|null, the grand total incl. tax),
-  date (string|null, YYYY-MM-DD), category (one of: ${CATEGORIES.join(", ")}, or null).
+  is_receipt (boolean), vendor (string|null), amount (number|null, the grand total incl. tax,
+  always POSITIVE), is_refund (boolean — true if this is a refund/return/credit, i.e. the total
+  is negative or it is marked REFUND/RETURN/CREDIT), date (string|null, YYYY-MM-DD),
+  category (one of: ${CATEGORIES.join(", ")}, or null).
+A zero total is valid (e.g. a free-trial invoice): report amount 0, not null.
 If it is not a receipt/invoice, set is_receipt=false and the rest null.`;
 
 const mediaFor = (pathname) => {
@@ -80,22 +83,28 @@ const run = async () => {
     if (!base64) { failed++; console.log(`  ! ${r.vendor}: blob fetch failed`); continue; }
     let a;
     try { a = await extract(base64, info); } catch (e) { failed++; console.log(`  ! ${r.vendor}: ${e.message}`); continue; }
-    if (!a || !a.is_receipt || !(a.amount > 0)) { notReceipt++; console.log(`  - ${r.vendor}: no amount (is_receipt=${a?.is_receipt})`); continue; }
+    if (!a || !a.is_receipt || a.amount == null) { notReceipt++; console.log(`  - ${r.vendor}: no amount (is_receipt=${a?.is_receipt})`); continue; }
 
     const vendor = r.vendor ?? a.vendor ?? null;
     const category = r.category ?? a.category ?? null;
     const date = r.receipt_date ?? a.date ?? null;
-    console.log(`  ✓ ${vendor} — $${a.amount} ${category ?? ""} ${date ?? ""}`);
+    // A refund is money coming back — book it as income, not an expense.
+    const direction = a.is_refund ? "income" : "expense";
+    const amount = Math.abs(a.amount);
+    console.log(`  ✓ ${vendor} — $${amount}${a.is_refund ? " (refund → income)" : ""} ${category ?? ""} ${date ?? ""}`);
     filled++;
     if (APPLY) {
-      await sb.from("receipts").update({ amount: a.amount, vendor, category, receipt_date: date ?? undefined }).eq("id", r.id);
-      // Create a linked expense transaction if none references this receipt yet.
+      await sb.from("receipts").update({ amount, vendor, category, receipt_date: date ?? undefined }).eq("id", r.id);
+      // Create a linked transaction if none references this receipt yet. A $0
+      // receipt (free trial) gets no transaction — there is no money movement.
       const { data: existing } = await sb.from("transactions").select("id").eq("receipt_id", r.id).maybeSingle();
-      if (!existing) {
+      if (!existing && amount > 0) {
         await sb.from("transactions").insert({
           user_id: userId, txn_date: date ?? new Date().toISOString().slice(0, 10),
-          description: vendor ? `Receipt — ${vendor}` : "Receipt expense",
-          amount: a.amount, direction: "expense", category, receipt_id: r.id,
+          description: vendor
+            ? `${a.is_refund ? "Refund" : "Receipt"} — ${vendor}`
+            : a.is_refund ? "Refund" : "Receipt expense",
+          amount, direction, category, receipt_id: r.id,
         });
       }
     }

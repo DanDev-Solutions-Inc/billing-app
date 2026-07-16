@@ -12,6 +12,7 @@ const analysisSchema = z.object({
   is_receipt: z.boolean(),
   vendor: z.string().nullable(),
   amount: z.number().nullable(),
+  is_refund: z.boolean(),
   date: z.string().nullable(),
   category: z.enum(RECEIPT_CATEGORIES).nullable(),
 });
@@ -20,7 +21,10 @@ const PROMPT = `You are analysing a photo of a purchase receipt or invoice for e
 Extract, as JSON:
 - is_receipt: true if this image is a receipt/invoice, false otherwise.
 - vendor: the merchant/company name (e.g. "Petro-Canada").
-- amount: the FINAL total actually paid, including tax, as a plain number (e.g. 83.06). Null if unreadable.
+- amount: the FINAL total actually paid, including tax, as a plain POSITIVE number (e.g. 83.06).
+  A zero total is valid (e.g. a free-trial invoice) — report 0, not null. Null only if unreadable.
+- is_refund: true if this is a refund/return/credit (the total is negative, or it is marked
+  REFUND / RETURN / CREDIT). Money is coming back rather than being spent.
 - date: the transaction date as YYYY-MM-DD. Null if not shown.
 - category: the single best-fitting expense category from the allowed list.`;
 

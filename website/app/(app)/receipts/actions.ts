@@ -74,14 +74,17 @@ export const createReceipt = async (
   let amount = formAmount;
   let category = formCategory;
   let date = formDate;
+  // A refund/return is money coming back — record it as income, not an expense.
+  let isRefund = false;
   if (imageUrl) {
     const analysis = await scanReceiptImage(imageUrl);
     if (analysis?.is_receipt) {
       vendor = vendor ?? analysis.vendor;
       category = category ?? analysis.category;
       date = date ?? analysis.date;
-      if (amount <= 0 && analysis.amount && analysis.amount > 0)
-        amount = analysis.amount;
+      isRefund = analysis.is_refund;
+      if (amount <= 0 && analysis.amount && analysis.amount !== 0)
+        amount = Math.abs(analysis.amount);
       await receipts.updateReceipt(supabase, id, {
         vendor,
         amount,
@@ -91,14 +94,18 @@ export const createReceipt = async (
     }
   }
 
-  // Record the receipt as a categorised expense transaction (linked to it).
+  // Record the receipt as a categorised transaction (linked to it).
   if (formData.get("as_expense") && amount > 0) {
     await transactions.createTransaction(supabase, {
       user_id: user.id,
       txn_date: date ?? today(),
-      description: vendor ? `Receipt — ${vendor}` : "Receipt expense",
+      description: vendor
+        ? `${isRefund ? "Refund" : "Receipt"} — ${vendor}`
+        : isRefund
+          ? "Refund"
+          : "Receipt expense",
       amount,
-      direction: "expense",
+      direction: isRefund ? "income" : "expense",
       status: "pending",
       category,
       receipt_id: id,

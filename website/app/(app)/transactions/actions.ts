@@ -23,7 +23,7 @@ export const createTransactionAction = async (
 ): Promise<TransactionFormState> => {
   const user = await getUserOrRedirect();
   const amount = Number(formData.get("amount")) || 0;
-  const direction = String(formData.get("direction") ?? "") as TxnDirection;
+  let direction = String(formData.get("direction") ?? "") as TxnDirection;
   if (amount <= 0) return { error: "Enter an amount greater than zero." };
   if (!["income", "expense"].includes(direction))
     return { error: "Choose income or expense." };
@@ -52,7 +52,11 @@ export const createTransactionAction = async (
       source: "upload",
     });
     receiptId = receipt.id ?? null;
-    if (!category && analysis?.is_receipt) category = analysis.category;
+    if (analysis?.is_receipt) {
+      if (!category) category = analysis.category;
+      // A scanned refund/return is money coming back — flip it to income.
+      if (analysis.is_refund) direction = "income";
+    }
   }
 
   await transactions.createTransaction(supabase, {
