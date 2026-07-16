@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
+/* DanDev Billing — light finance theme.
+   Brand palette mirrors dandev-landing (Figma "DanDev Files" › Branding › Colors). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand-blue: #144783; /* Classic Blue — depth */
+  --brand-accent: #2f6fc4; /* Interactive blue — primary */
+  --brand-black: #151515; /* Off Black — text */
+  --brand-red: #d85a52; /* Muted Red — destructive / overdue */
+  --brand-green: #1f9d6b; /* Positive / paid / income */
+
+  --background: #f5f6f8; /* app canvas */
+  --surface: #ffffff; /* cards, panels */
+  --surface-muted: #f0f2f5; /* subtle fills, table headers */
+  --foreground: #151515; /* primary text */
+  --muted: #64707d; /* secondary text */
+  --border: #e3e7ec; /* hairlines */
+
+  /* Brand type: Neue Haas Grotesk Display Pro (headings) / Söhne (body) are
+     licensed; Inter Tight / Inter are the free next/font stand-ins loaded in
+     layout.tsx. Named *-stack because the @theme mapping below would otherwise
+     self-reference. */
+  --heading-stack: "Neue Haas Grotesk Display Pro",
+    "neue-haas-grotesk-display", var(--font-inter-tight), sans-serif;
+  --body-stack: "Söhne", "soehne", var(--font-inter), sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-black: var(--brand-black);
+  --color-brand-red: var(--brand-red);
+  --color-brand-green: var(--brand-green);
+  --font-heading: var(--heading-stack);
+  --font-body: var(--body-stack);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--body-stack);
+}
+
+::selection {
+  background: var(--brand-accent);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd2da;
+  border-radius: 6px;
+  border: 2px solid var(--background);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b3bcc7;
 }

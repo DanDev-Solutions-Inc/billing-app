@@ -1,0 +1,79 @@
+import "server-only";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { renderToBuffer } from "@react-pdf/renderer";
+import { InvoiceDocument, type PdfDocData } from "@lib/pdf/invoice-document";
+import { formatMoney, formatDate } from "@utils/money";
+import { taxRowLabel } from "@utils/constants";
+import { Customer } from "@typings/customer/Customer";
+import { LineItem } from "@typings/line-item/LineItem";
+
+let logoCache: Buffer | null = null;
+const loadLogo = (): Buffer | undefined => {
+  if (logoCache) return logoCache;
+  try {
+    logoCache = readFileSync(
+      path.join(process.cwd(), "public", "brand", "DavdevSolutionsDark.png"),
+    );
+    return logoCache;
+  } catch {
+    return undefined;
+  }
+};
+
+export interface RenderInput {
+  kind: "INVOICE" | "ESTIMATE";
+  number: string | null;
+  issueDate: string | null;
+  secondLabel: string;
+  secondDate: string | null;
+  amountDue: number;
+  customer: Customer | null;
+  items: LineItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  notes: string | null;
+}
+
+export const renderDocumentPdf = async (
+  input: RenderInput,
+): Promise<Buffer> => {
+  const taxRate =
+    input.subtotal > 0 ? Math.round((input.tax / input.subtotal) * 100) : 0;
+
+  const data: PdfDocData = {
+    kind: input.kind,
+    number: input.number || "—",
+    issueDate: formatDate(input.issueDate),
+    secondLabel: input.secondLabel,
+    secondDate: formatDate(input.secondDate),
+    amountDueLabel: "Amount Due (CAD)",
+    amountDue: formatMoney(input.amountDue),
+    customer: input.customer
+      ? {
+          name: input.customer.name,
+          lines: (input.customer.address ?? "")
+            .split("\n")
+            .map((l) => l.trim())
+            .filter(Boolean),
+          phone: input.customer.phone,
+          email: input.customer.email,
+        }
+      : null,
+    items: input.items.map((it) => ({
+      description: it.description,
+      quantity: String(it.quantity),
+      rate: formatMoney(it.unit_price),
+      amount: formatMoney(it.amount),
+    })),
+    subtotal: formatMoney(input.subtotal),
+    taxLabel: taxRowLabel(taxRate),
+    tax: formatMoney(input.tax),
+    total: formatMoney(input.total),
+    notes: input.notes,
+    logo: loadLogo(),
+  };
+
+  return renderToBuffer(<InvoiceDocument data={data} />);
+};

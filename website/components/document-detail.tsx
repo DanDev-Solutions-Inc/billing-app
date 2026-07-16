@@ -1,0 +1,124 @@
+import { Card, StatusPill } from "@components/ui";
+import { formatMoney, formatDate } from "@utils/money";
+import { DocumentDetailProps } from "@interfaces/components/DocumentDetailProps";
+import { MetaProps } from "@interfaces/components/MetaProps";
+import { TotalRowProps } from "@interfaces/components/TotalRowProps";
+
+export const DocumentDetail = ({
+  heading,
+  status,
+  number,
+  customer,
+  issueDate,
+  secondDateLabel,
+  secondDate,
+  items,
+  subtotal,
+  tax,
+  total,
+  notes,
+  actionBar,
+  banner,
+}: DocumentDetailProps) => {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-brand-black">
+            {heading}
+            {number ? ` ${number}` : ""}
+          </h1>
+          <StatusPill status={status} />
+        </div>
+        {actionBar}
+      </div>
+
+      {banner}
+
+      <Card className="p-6">
+        <div className="grid gap-6 sm:grid-cols-3">
+          <Meta label="Bill to">
+            {customer ? (
+              <>
+                <p className="font-medium text-brand-black">{customer.name}</p>
+                {customer.email && <p>{customer.email}</p>}
+                {customer.phone && <p>{customer.phone}</p>}
+                {customer.address && (
+                  <p className="whitespace-pre-line">{customer.address}</p>
+                )}
+              </>
+            ) : (
+              <p>—</p>
+            )}
+          </Meta>
+          <Meta label="Issued">{formatDate(issueDate)}</Meta>
+          <Meta label={secondDateLabel}>{formatDate(secondDate)}</Meta>
+        </div>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-surface-muted/60 text-left text-xs font-medium text-muted">
+                <th className="px-5 py-3">Description</th>
+                <th className="px-5 py-3 text-right">Qty</th>
+                <th className="px-5 py-3 text-right">Unit price</th>
+                <th className="px-5 py-3 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {items.map((it) => (
+                <tr key={it.id}>
+                  <td className="px-5 py-3">{it.description}</td>
+                  <td className="px-5 py-3 text-right tabular-nums">
+                    {it.quantity}
+                  </td>
+                  <td className="px-5 py-3 text-right tabular-nums">
+                    {formatMoney(it.unit_price)}
+                  </td>
+                  <td className="px-5 py-3 text-right tabular-nums">
+                    {formatMoney(it.amount)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex justify-end border-t border-border px-5 py-4">
+          <div className="w-full max-w-xs space-y-1 text-sm">
+            <TotalRow label="Subtotal" value={subtotal} />
+            <TotalRow label="Tax" value={tax} />
+            <div className="flex items-center justify-between border-t border-border pt-2 text-base font-semibold text-brand-black">
+              <span>Total</span>
+              <span className="tabular-nums">{formatMoney(total)}</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {notes && (
+        <Card className="p-6">
+          <h2 className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">
+            Notes
+          </h2>
+          <p className="whitespace-pre-line text-sm text-foreground">{notes}</p>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+const Meta = ({ label, children }: MetaProps) => (
+  <div className="text-sm text-muted">
+    <p className="mb-1 text-xs font-medium uppercase tracking-wide">{label}</p>
+    <div className="space-y-0.5">{children}</div>
+  </div>
+);
+
+const TotalRow = ({ label, value }: TotalRowProps) => (
+  <div className="flex items-center justify-between text-muted">
+    <span>{label}</span>
+    <span className="tabular-nums">{formatMoney(value)}</span>
+  </div>
+);
