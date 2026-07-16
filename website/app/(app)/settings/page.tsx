@@ -17,8 +17,12 @@ export const metadata: Metadata = { title: "Settings" };
 const SettingsPage = async () => {
   const user = await getUserOrRedirect();
 
+  // Mail for the inbound domain is routed to Resend → /api/inbound/receipts.
+  // RECEIPTS_EMAIL overrides it if a friendlier alias is set up to forward there.
+  const inboundDomain = process.env.INBOUND_DOMAIN;
   const friendlyAddress =
-    process.env.RECEIPTS_EMAIL ?? "receipts@dandev.solutions";
+    process.env.RECEIPTS_EMAIL ??
+    (inboundDomain ? `receipts@${inboundDomain}` : null);
 
   return (
     <>
@@ -38,14 +42,26 @@ const SettingsPage = async () => {
           <CardHeader>
             <CardTitle>Email a receipt</CardTitle>
             <CardDescription>
-              Send or forward a receipt (with the image attached) from your
-              account email to the address below — it is imported automatically
-              and appears under Receipts.
+              {friendlyAddress ? (
+                <>
+                  Forward a receipt (image or PDF attached) from{" "}
+                  <strong>{user.email}</strong> to the address below. It is read
+                  automatically — vendor, amount, date, and category are filled
+                  in, and a matching transaction is filed for review.
+                </>
+              ) : (
+                <>
+                  Not configured yet — set <code>INBOUND_DOMAIN</code> (and point
+                  its MX records at Resend) to enable emailing receipts in.
+                </>
+              )}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <CopyField value={friendlyAddress} />
-          </CardContent>
+          {friendlyAddress && (
+            <CardContent>
+              <CopyField value={friendlyAddress} />
+            </CardContent>
+          )}
         </Card>
 
         <Card>

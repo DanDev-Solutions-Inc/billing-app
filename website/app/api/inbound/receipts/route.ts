@@ -2,22 +2,37 @@ import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { put } from "@vercel/blob";
 import { createAdminClient } from "@lib/supabase/admin";
+import { analyzeReceipt, isAnalyzable } from "@lib/ai/analyze-receipt";
 import {
   getProfileByInboundToken,
   getProfileByEmail,
 } from "@services/supabase/profile";
 
 export const runtime = "nodejs";
+// Fetching + AI-reading each attachment takes longer than the default budget.
+export const maxDuration = 60;
 
 // Receives forwarded receipt emails (Resend inbound → webhook). Resolves the
-// user from the `receipts+<token>@INBOUND_DOMAIN` alias, stores each image
-// attachment in Vercel Blob, and records a receipt (source = "email").
+// user from the `receipts+<token>@INBOUND_DOMAIN` alias, stores each image/PDF
+// attachment in Vercel Blob, records a receipt (source = "email"), reads it with
+// AI, and files a matching transaction — same treatment as an in-app upload.
 export const POST = async (request: Request) => {
   const raw = await request.text();
 
-  // Verify the Svix signature when a secret is configured.
+  // Verify the Svix signature. This endpoint writes to storage + the DB from an
+  // unauthenticated request, so in production a missing secret is a hard failure
+  // rather than a silent skip — otherwise anyone could POST receipts in.
   const secret = process.env.RESEND_WEBHOOK_SECRET;
-  if (secret) {
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("inbound/receipts: RESEND_WEBHOOK_SECRET is not set");
+      return NextResponse.json(
+        { error: "Webhook not configured" },
+        { status: 503 },
+      );
+    }
+    console.warn("inbound/receipts: no RESEND_WEBHOOK_SECRET — skipping signature check (dev only)");
+  } else {
     try {
       new Webhook(secret).verify(raw, {
         "svix-id": request.headers.get("svix-id") ?? "",
@@ -43,9 +58,9 @@ export const POST = async (request: Request) => {
   if (!profile)
     return NextResponse.json({ ok: true, skipped: "unrecognised sender" });
 
-  const attachments = extractImageAttachments(data);
+  const attachments = extractReceiptAttachments(data);
   if (attachments.length === 0)
-    return NextResponse.json({ ok: true, skipped: "no image attachments" });
+    return NextResponse.json({ ok: true, skipped: "no receipt attachments" });
 
   const subject = typeof data.subject === "string" ? data.subject : null;
   let created = 0;
@@ -60,15 +75,48 @@ export const POST = async (request: Request) => {
       { access: "private", addRandomSuffix: true, contentType: att.contentType },
     );
 
-    await admin.from("receipts").insert({
-      user_id: profile.user_id,
-      vendor: null,
-      amount: 0,
-      source: "email",
-      notes: subject,
-      image_url: blob.url,
-      image_pathname: blob.pathname,
-    });
+    // Read the receipt so it arrives with real values rather than a blank row.
+    // The bytes are already in hand — no need to re-fetch the blob.
+    const analysis = await analyzeReceipt(
+      bytes.toString("base64"),
+      att.contentType,
+    );
+    const usable = analysis?.is_receipt ? analysis : null;
+    const amount = usable?.amount != null ? Math.abs(usable.amount) : 0;
+
+    const { data: receipt } = await admin
+      .from("receipts")
+      .insert({
+        user_id: profile.user_id,
+        vendor: usable?.vendor ?? null,
+        amount,
+        receipt_date: usable?.date ?? undefined,
+        category: usable?.category ?? null,
+        source: "email",
+        notes: subject,
+        image_url: blob.url,
+        image_pathname: blob.pathname,
+      })
+      .select("id")
+      .single();
+
+    // File it in the ledger, pending review. A refund is money coming back, so
+    // it books as income; a $0 receipt moves no money and gets no transaction.
+    if (receipt && amount > 0) {
+      const vendor = usable?.vendor;
+      await admin.from("transactions").insert({
+        user_id: profile.user_id,
+        txn_date: usable?.date ?? new Date().toISOString().slice(0, 10),
+        description: vendor
+          ? `${usable?.is_refund ? "Refund" : "Receipt"} — ${vendor}`
+          : "Emailed receipt",
+        amount,
+        direction: usable?.is_refund ? "income" : "expense",
+        status: "pending",
+        category: usable?.category ?? null,
+        receipt_id: receipt.id,
+      });
+    }
     created += 1;
   }
 
@@ -77,7 +125,7 @@ export const POST = async (request: Request) => {
 
 /* --------------------------------------------------------- helpers --------- */
 
-interface ImageAttachment {
+interface ReceiptAttachment {
   filename: string;
   contentType: string;
   content?: string; // base64
@@ -145,19 +193,26 @@ const matchBySender = async (
   return email ? getProfileByEmail(admin, email) : null;
 };
 
-const extractImageAttachments = (
+// Keep image and PDF attachments — emailed receipts are very often PDFs.
+// Anything else (signatures, .ics, docs) is ignored.
+const extractReceiptAttachments = (
   data: Record<string, unknown>,
-): ImageAttachment[] => {
+): ReceiptAttachment[] => {
   const raw = data.attachments;
   if (!Array.isArray(raw)) return [];
-  const out: ImageAttachment[] = [];
+  const out: ReceiptAttachment[] = [];
   raw.forEach((a, i) => {
     if (!a || typeof a !== "object") return;
     const o = a as Record<string, unknown>;
-    const contentType = String(o.content_type ?? o.contentType ?? "");
-    if (!contentType.startsWith("image/")) return;
+    const filename = String(o.filename ?? o.name ?? `receipt-${i}`);
+    // Some providers omit/misreport the type — fall back to the extension.
+    const declared = String(o.content_type ?? o.contentType ?? "").toLowerCase();
+    const contentType = isAnalyzable(declared)
+      ? declared
+      : typeFromExtension(filename);
+    if (!contentType) return;
     out.push({
-      filename: String(o.filename ?? o.name ?? `receipt-${i}.jpg`),
+      filename,
       contentType,
       content: typeof o.content === "string" ? o.content : undefined,
       url:
@@ -171,8 +226,22 @@ const extractImageAttachments = (
   return out;
 };
 
+const EXT_TYPES: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  pdf: "application/pdf",
+};
+
+const typeFromExtension = (filename: string): string | null => {
+  const ext = filename.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1];
+  return (ext && EXT_TYPES[ext]) ?? null;
+};
+
 const attachmentBytes = async (
-  att: ImageAttachment,
+  att: ReceiptAttachment,
 ): Promise<Buffer | null> => {
   if (att.content) return Buffer.from(att.content, "base64");
   if (att.url) {
