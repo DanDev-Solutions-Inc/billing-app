@@ -15,6 +15,19 @@ const OPEN_API_PREFIXES = ["/api/inbound", "/api/cron"];
  * and getUser(), or token refresh breaks.
  */
 export const updateSession = async (request: NextRequest) => {
+  // Resilience: an OAuth `code` that landed on the site root (e.g. a Supabase
+  // redirect URL not yet allow-listed, so it fell back to the Site URL) is
+  // forwarded to the callback, which exchanges it for a session. Only the root
+  // is intercepted, so /auth/callback and /wave/auth keep their own `code`.
+  if (
+    request.nextUrl.pathname === "/" &&
+    request.nextUrl.searchParams.has("code")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(
