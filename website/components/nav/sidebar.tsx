@@ -87,7 +87,7 @@ const NAV = [
   { href: "/settings", label: "Settings", icon: IconCog },
 ];
 
-export const Sidebar = ({ email }: SidebarProps) => {
+export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
   const pathname = usePathname();
 
   return (
@@ -112,6 +112,7 @@ export const Sidebar = ({ email }: SidebarProps) => {
             <Link
               key={href}
               href={href}
+              onClick={onNavigate}
               className={
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition " +
                 (active
