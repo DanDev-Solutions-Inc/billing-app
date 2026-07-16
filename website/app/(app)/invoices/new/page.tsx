@@ -15,7 +15,12 @@ const NewInvoicePage = async () => {
 
   return (
     <>
-      <PageHeader title="New invoice" subtitle="Add line items and totals." />
+      <PageHeader
+        backHref="/invoices"
+        backLabel="Invoices"
+        title="New invoice"
+        subtitle="Add line items and totals."
+      />
       <DocForm kind="invoice" customers={customers} action={createInvoice} />
     </>
   );

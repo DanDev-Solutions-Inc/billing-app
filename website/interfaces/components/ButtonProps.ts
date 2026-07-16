@@ -1,6 +1,7 @@
 import { ComponentProps } from "react";
-import { ButtonVariant } from "@typings/ui/ButtonVariant";
+import { ButtonVariant, ButtonSize } from "@typings/ui/ButtonVariant";
 
 export interface ButtonProps extends ComponentProps<"button"> {
   variant?: ButtonVariant;
+  size?: ButtonSize;
 }

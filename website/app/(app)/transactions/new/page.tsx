@@ -11,6 +11,8 @@ const NewTransactionPage = async () => {
   return (
     <>
       <PageHeader
+        backHref="/transactions"
+        backLabel="Transactions"
         title="New transaction"
         subtitle="Record income or an expense manually."
       />

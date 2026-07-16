@@ -35,6 +35,8 @@ const ReceiptPage = async ({
   return (
     <>
       <PageHeader
+        backHref="/receipts"
+        backLabel="Receipts"
         title={receipt.vendor || "Receipt"}
         action={
           <form action={deleteReceipt}>

@@ -84,7 +84,7 @@ export const AuthForm = ({ mode }: { mode: "login" | "signup" }) => {
       <button
         type="submit"
         disabled={formik.isSubmitting}
-        className="mt-1 rounded-lg bg-brand-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue disabled:opacity-60"
+        className="mt-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
       >
         {formik.isSubmitting
           ? "Please wait…"

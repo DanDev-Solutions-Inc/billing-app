@@ -17,4 +17,8 @@ export interface DocumentDetailProps {
   notes: string | null;
   actionBar?: ReactNode;
   banner?: ReactNode;
+  /** When set, renders a back link above the heading. */
+  backHref?: string;
+  /** Label for the back link. Defaults to "Back". */
+  backLabel?: string;
 }

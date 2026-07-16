@@ -11,6 +11,8 @@ const ImportReceiptsPage = async () => {
   return (
     <>
       <PageHeader
+        backHref="/receipts"
+        backLabel="Receipts"
         title="Import receipts"
         subtitle="Bulk-upload receipt images exported from Wave."
       />

@@ -18,6 +18,11 @@ export { Input } from "@components/ui/input";
 export { Label } from "@components/ui/label";
 export { Textarea } from "@components/ui/textarea";
 export { StatCard } from "@components/ui/stat-card";
+export { IconTile } from "@components/ui/icon-tile";
+export { FilterTabs } from "@components/ui/filter-tabs";
+export type { FilterTab, FilterTabsProps } from "@components/ui/filter-tabs";
+export { FilterSelect } from "@components/ui/filter-select";
+export type { FilterOption, FilterSelectProps } from "@components/ui/filter-select";
 export { Separator } from "@components/ui/separator";
 export { Skeleton } from "@components/ui/skeleton";
 export {

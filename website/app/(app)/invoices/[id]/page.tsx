@@ -43,6 +43,8 @@ const InvoicePage = async ({
 
   return (
     <DocumentDetail
+      backHref="/invoices"
+      backLabel="Invoices"
       heading="Invoice"
       number={inv.invoice_number}
       status={inv.status}

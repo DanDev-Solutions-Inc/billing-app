@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -31,16 +33,29 @@ export const DocumentDetail = ({
   notes,
   actionBar,
   banner,
+  backHref,
+  backLabel = "Back",
 }: DocumentDetailProps) => {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-            {heading}
-            {number ? ` ${number}` : ""}
-          </h1>
-          <StatusPill status={status} />
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          {backHref && (
+            <Link
+              href={backHref}
+              className="-ml-1 mb-2 inline-flex items-center gap-1 rounded-md py-1 pr-2 text-sm font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            >
+              <ChevronLeft className="size-4" />
+              {backLabel}
+            </Link>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+              {heading}
+              {number ? ` ${number}` : ""}
+            </h1>
+            <StatusPill status={status} />
+          </div>
         </div>
         {actionBar}
       </div>

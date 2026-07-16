@@ -1,0 +1,112 @@
+import { Transaction } from "@typings/transaction/Transaction";
+import { CashFlowPoint } from "@interfaces/models/dashboard/CashFlowPoint";
+import { Period } from "@typings/ui/Period";
+
+const monthKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}`;
+
+/** Parse a `?period=` search param. Unknown / missing values default to month. */
+export const parsePeriod = (value?: string): Period =>
+  value === "year" || value === "all" ? value : "month";
+
+export const PERIOD_LABEL: Record<Period, string> = {
+  month: "This month",
+  year: "This year",
+  all: "All time",
+};
+
+/** Parse a `YYYY-MM-DD` column as a local date (avoids UTC shift). */
+export const parseDay = (value: string) => new Date(`${value}T00:00:00`);
+
+/**
+ * Inclusive start of the window. `all` has no lower bound.
+ * The upper bound is always "now", so no end date is needed.
+ */
+export const periodStart = (period: Period, now = new Date()): Date | null => {
+  if (period === "month") return new Date(now.getFullYear(), now.getMonth(), 1);
+  if (period === "year") return new Date(now.getFullYear(), 0, 1);
+  return null;
+};
+
+/** Is a `YYYY-MM-DD` date inside the period window? */
+export const inPeriod = (value: string, period: Period, now = new Date()) => {
+  const start = periodStart(period, now);
+  if (!start) return true;
+  return parseDay(value) >= start;
+};
+
+/** Sum income/expense/net over the period window. */
+export const totalsForPeriod = (
+  txns: Transaction[],
+  period: Period,
+  now = new Date(),
+) => {
+  const totals = txns.reduce(
+    (acc, t) => {
+      if (!inPeriod(t.txn_date, period, now)) return acc;
+      if (t.direction === "income") acc.income += Number(t.amount);
+      else acc.expense += Number(t.amount);
+      return acc;
+    },
+    { income: 0, expense: 0 },
+  );
+  return { ...totals, net: totals.income - totals.expense };
+};
+
+/**
+ * Monthly income/expense/net series sized to the period:
+ *  - month → trailing 12 months (context around the current month)
+ *  - year  → Jan..current month of this calendar year
+ *  - all   → every month from the earliest transaction (capped at 36)
+ */
+export const buildCashFlowForPeriod = (
+  txns: Transaction[],
+  period: Period,
+  now = new Date(),
+): CashFlowPoint[] => {
+  let months = 12;
+
+  if (period === "year") {
+    months = now.getMonth() + 1;
+  } else if (period === "all") {
+    const earliest = txns.reduce<Date | null>((min, t) => {
+      const d = parseDay(t.txn_date);
+      return !min || d < min ? d : min;
+    }, null);
+    if (earliest) {
+      const span =
+        (now.getFullYear() - earliest.getFullYear()) * 12 +
+        (now.getMonth() - earliest.getMonth()) +
+        1;
+      months = Math.min(36, Math.max(1, span));
+    }
+  }
+
+  const series: CashFlowPoint[] = [];
+  const index = new Map<string, CashFlowPoint>();
+  const multiYear = period !== "year";
+
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const point: CashFlowPoint = {
+      label: d.toLocaleDateString("en-CA", {
+        month: "short",
+        ...(multiYear && months > 12 ? { year: "2-digit" } : {}),
+      }),
+      income: 0,
+      expense: 0,
+      net: 0,
+    };
+    series.push(point);
+    index.set(monthKey(d), point);
+  }
+
+  for (const t of txns) {
+    const point = index.get(monthKey(parseDay(t.txn_date)));
+    if (!point) continue;
+    if (t.direction === "income") point.income += Number(t.amount);
+    else point.expense += Number(t.amount);
+    point.net = point.income - point.expense;
+  }
+
+  return series;
+};

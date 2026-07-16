@@ -99,7 +99,7 @@ export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-dvh w-60 shrink-0 flex-col border-r border-border bg-surface">
+    <aside className="flex h-dvh w-64 shrink-0 flex-col border-r border-glass-border bg-sidebar backdrop-blur-2xl">
       <div className="flex items-center px-5 py-5">
         <Image
           src="/brand/DavdevSolutionsDark.png"
@@ -111,7 +111,9 @@ export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
         />
       </div>
 
-      <nav className="flex flex-1 flex-col gap-0.5 px-3 py-2">
+      {/* Vision UI nav: the active row is a raised glass card and its icon sits
+          in a brand-gradient tile; inactive icons ride a quiet navy tile. */}
+      <nav className="flex flex-1 flex-col gap-1 px-4 py-2">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
@@ -119,30 +121,45 @@ export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
               key={href}
               href={href}
               onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
               className={
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition " +
+                "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring/60 " +
                 (active
-                  ? "bg-brand-accent/10 text-brand-accent"
-                  : "text-muted-foreground hover:bg-surface-muted hover:text-foreground")
+                  ? "vui-glass font-bold text-foreground shadow-[0_4px_16px_-6px_rgba(0,0,0,0.6)]"
+                  : "font-medium text-muted-foreground hover:bg-white/[0.04] hover:text-foreground")
               }
             >
-              <Icon className="h-[18px] w-[18px]" />
+              <span
+                className={
+                  "inline-flex size-8 shrink-0 items-center justify-center rounded-lg transition-all " +
+                  (active
+                    ? "vui-grad text-white shadow-[0_4px_12px_-3px_rgba(47,111,196,0.8)]"
+                    : "bg-white/[0.06] text-muted-foreground group-hover:text-foreground")
+                }
+              >
+                <Icon className="h-[18px] w-[18px]" />
+              </span>
               {label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-border px-3 py-3">
-        <p className="truncate px-3 pb-2 text-xs text-muted-foreground" title={email}>
+      <div className="border-t border-glass-border px-4 py-3">
+        <p
+          className="truncate px-1 pb-2 text-xs text-muted-foreground"
+          title={email}
+        >
           {email}
         </p>
         <form action={logout}>
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-surface-muted hover:text-brand-red"
+            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-white/[0.04] hover:text-brand-red focus-visible:ring-2 focus-visible:ring-ring/60"
           >
-            <IconLogout className="h-[18px] w-[18px]" />
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] transition-colors group-hover:bg-brand-red/15">
+              <IconLogout className="h-[18px] w-[18px]" />
+            </span>
             Sign out
           </button>
         </form>

@@ -50,6 +50,8 @@ const EstimatePage = async ({
 
   return (
     <DocumentDetail
+      backHref="/estimates"
+      backLabel="Estimates"
       heading="Estimate"
       number={est.estimate_number}
       status={est.status}

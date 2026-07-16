@@ -58,7 +58,7 @@ export const BulkReceiptUploader = () => {
           accept="image/*"
           multiple
           onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-          className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-brand-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-blue"
+          className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-foreground hover:file:bg-accent"
         />
         {files.length > 0 && (
           <p className="text-sm text-foreground">

@@ -11,6 +11,8 @@ const NewReceiptPage = async () => {
   return (
     <>
       <PageHeader
+        backHref="/receipts"
+        backLabel="Receipts"
         title="Add receipt"
         subtitle="Snap a photo or upload an image of your receipt."
       />

@@ -15,15 +15,41 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  FilterSelect,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 
 export const metadata: Metadata = { title: "Invoices" };
 
-const InvoicesPage = async () => {
+/* Invoices are a working list, not a time report: no date window here — an
+   unpaid invoice matters regardless of when it was issued. */
+const STATUSES = ["sent", "paid", "overdue"] as const;
+
+const InvoicesPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) => {
   await getUserOrRedirect();
+  const params = await searchParams;
+  const status =
+    params.status && STATUSES.includes(params.status as (typeof STATUSES)[number])
+      ? params.status
+      : "all";
+
   const supabase = await createClient();
-  const invoices = await listInvoices(supabase);
+  const all = await listInvoices(supabase);
+  const invoices =
+    status === "all" ? all : all.filter((i) => i.status === status);
+
+  const statusOptions = [
+    { key: "all", label: "All invoices", count: all.length },
+    ...STATUSES.map((s) => ({
+      key: s,
+      label: s[0].toUpperCase() + s.slice(1),
+      count: all.filter((i) => i.status === s).length,
+    })),
+  ];
 
   return (
     <>
@@ -33,11 +59,37 @@ const InvoicesPage = async () => {
         action={<ButtonLink href="/invoices/new">+ New invoice</ButtonLink>}
       />
 
+      <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-border pb-4">
+        <FilterSelect
+          param="status"
+          options={statusOptions}
+          value={status}
+          aria-label="Filter by status"
+        />
+        <span className="text-xs text-muted-foreground">
+          {invoices.length} invoice{invoices.length === 1 ? "" : "s"}
+        </span>
+      </div>
+
       {invoices.length === 0 ? (
         <EmptyState
-          title="No invoices yet"
-          description="Create your first invoice to start getting paid."
-          action={<ButtonLink href="/invoices/new">+ New invoice</ButtonLink>}
+          title={
+            all.length === 0 ? "No invoices yet" : `No ${status} invoices`
+          }
+          description={
+            all.length === 0
+              ? "Create your first invoice to start getting paid."
+              : "Nothing here right now."
+          }
+          action={
+            all.length === 0 ? (
+              <ButtonLink href="/invoices/new">+ New invoice</ButtonLink>
+            ) : (
+              <ButtonLink href="/invoices" variant="secondary">
+                View all invoices
+              </ButtonLink>
+            )
+          }
         />
       ) : (
         <Card className="overflow-hidden">

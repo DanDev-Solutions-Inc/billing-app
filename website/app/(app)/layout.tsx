@@ -14,7 +14,7 @@ const AppLayout = async ({ children }: { children: React.ReactNode }) => {
       <div className="flex min-w-0 flex-1 flex-col">
         <MobileNav email={email} />
         <main className="flex-1 px-4 py-5 sm:px-5 md:px-8 md:py-8">
-          <div className="mx-auto max-w-6xl">{children}</div>
+          <div className="mx-auto w-full max-w-[1600px]">{children}</div>
         </main>
       </div>
     </div>

@@ -16,6 +16,8 @@ const NewRecurringPage = async () => {
   return (
     <>
       <PageHeader
+        backHref="/recurring"
+        backLabel="Recurring"
         title="New recurring invoice"
         subtitle="Automatically generate and email invoices on a schedule."
       />

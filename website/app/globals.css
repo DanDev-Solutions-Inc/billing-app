@@ -1,41 +1,65 @@
 @import "tailwindcss";
 
-/* DanDev Billing — shadcn/ui neutral, dark-mode-first dashboard theme.
-   Neutral (zinc-free, hue 0) surfaces with a single DanDev-blue accent. */
+/* DanDev Billing — Vision UI dashboard language, DanDev brand palette.
+   Deep navy canvas, glassmorphic gradient cards, blue gradient accents.
+   The semantic token *names* stay shadcn-compatible so every existing
+   component keeps working; only the values and the extras below change. */
 :root {
   color-scheme: dark;
 
-  /* Brand accent thread (blue), brightened for legibility on dark surfaces. */
-  --brand-blue: #2f6fc4; /* deeper blue — button hover / depth */
-  --brand-accent: #5c9bf5; /* interactive blue — primary accent */
-  --brand-black: #fafafa; /* headings on dark (kept name for back-compat) */
-  --brand-red: #f36f66; /* destructive / overdue */
-  --brand-green: #37c98b; /* positive / paid / income */
+  /* Brand thread. DanDev Classic Blue (#144783) is the hue anchor; the
+     accents are brightened so they carry on a navy surface. */
+  --brand-blue: #2f6fc4; /* Interactive blue — gradient start */
+  --brand-accent: #5c9bf5; /* Bright blue — links, active nav, gradient end */
+  --brand-black: #ffffff; /* headings on dark (name kept for back-compat) */
+  --brand-red: #e8615a; /* destructive / overdue */
+  --brand-green: #2ecc8f; /* positive / paid / income */
 
-  --background: oklch(0.145 0 0); /* app canvas — near-black neutral */
-  --surface: oklch(0.205 0 0); /* cards, panels */
-  --surface-muted: oklch(0.269 0 0); /* subtle fills, table headers */
-  --foreground: oklch(0.985 0 0); /* primary text — near-white */
-  --muted: oklch(0.269 0 0); /* shadcn muted surface (bg-muted) */
-  --border: oklch(1 0 0 / 10%); /* hairlines */
+  /* Vision UI layering: a deep navy canvas, with panels that sit *above* it
+     via translucent gradients rather than flat greys. */
+  --navy-900: #060d1f; /* deepest — page gradient tail */
+  --navy-800: #0b1730; /* canvas */
+  --navy-700: #101c38; /* raised panel */
+  --sidebar: rgba(6, 13, 31, 0.65); /* glass rail */
+  --background: var(--navy-800);
+  --surface: #101c38;
+  --surface-muted: #17244a; /* subtle fills, table headers */
+  --foreground: #ffffff;
+  --muted: #17244a;
+  --border: rgba(255, 255, 255, 0.08); /* glass hairline */
 
-  /* shadcn/ui (new-york) semantic tokens. */
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: var(--brand-accent); /* interactive blue */
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --accent: oklch(0.269 0 0); /* neutral hover fill */
-  --accent-foreground: oklch(0.985 0 0);
-  --muted-foreground: oklch(0.708 0 0); /* secondary text */
+  /* shadcn/ui semantic tokens, re-pointed at the Vision UI palette. */
+  --card: #101c38;
+  --card-foreground: #ffffff;
+  --popover: #101c38;
+  --popover-foreground: #ffffff;
+  --primary: #2f6fc4;
+  --primary-foreground: #ffffff;
+  --secondary: #17244a;
+  --secondary-foreground: #ffffff;
+  --accent: rgba(92, 155, 245, 0.12);
+  --accent-foreground: #ffffff;
+  --muted-foreground: #9fb0c9; /* blue-tinted secondary text */
   --destructive: var(--brand-red);
-  --destructive-foreground: oklch(0.985 0 0);
-  --input: oklch(1 0 0 / 15%);
+  --destructive-foreground: #ffffff;
+  --input: rgba(255, 255, 255, 0.12);
   --ring: var(--brand-accent);
-  --radius: 0.625rem;
+  --radius: 1.25rem; /* Vision UI's generous 20px card radius */
+
+  /* Vision UI signatures */
+  --grad-brand: linear-gradient(135deg, #2f6fc4 0%, #5c9bf5 100%);
+  --grad-card: linear-gradient(
+    127deg,
+    rgba(16, 28, 56, 0.94) 0%,
+    rgba(19, 33, 68, 0.6) 100%
+  );
+  --grad-page: radial-gradient(
+      1200px 600px at 15% -10%,
+      rgba(47, 111, 196, 0.28) 0%,
+      transparent 60%
+    ),
+    linear-gradient(180deg, #0b1730 0%, #060d1f 100%);
+  --glass-border: rgba(255, 255, 255, 0.12);
 
   /* Brand type (Adobe Fonts / Typekit kit yns3mqx): Neue Haas Grotesk Display
      for headings, Neue Haas Grotesk Text for body. Inter Tight / Inter are the
@@ -48,6 +72,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-sidebar: var(--sidebar);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-foreground: var(--foreground);
@@ -75,8 +100,13 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --color-navy-900: var(--navy-900);
+  --color-navy-800: var(--navy-800);
+  --color-navy-700: var(--navy-700);
+  --color-glass-border: var(--glass-border);
+  /* Vision UI radii: cards 20px, controls step down from there. */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
@@ -90,14 +120,39 @@ html {
 }
 
 body {
-  background: var(--background);
+  /* The page itself carries the Vision UI navy gradient + brand glow. */
+  background: var(--grad-page);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--body-stack);
 }
 
+/* --- Vision UI kit primitives ------------------------------------------- */
+
+/* Glassmorphic panel: translucent gradient + hairline. The base for cards,
+   the nav rail, and any surface that should read as floating. */
+.vui-glass {
+  background: var(--grad-card);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+}
+
+/* Brand gradient fill — primary buttons and icon tiles. */
+.vui-grad {
+  background: var(--grad-brand);
+}
+
+/* Gradient hairline used under headers / around focus targets. */
+.vui-grad-border {
+  border-color: transparent;
+  background-image: var(--grad-card), var(--grad-brand);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
 ::selection {
   background: var(--brand-accent);
-  color: oklch(0.145 0 0);
+  color: #ffffff;
 }
 
 ::-webkit-scrollbar {

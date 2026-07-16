@@ -1,14 +1,24 @@
 import { ButtonProps } from "@interfaces/components/ButtonProps";
-import { cx } from "@components/ui/cx";
-import { buttonBase, buttonVariants } from "@components/ui/button-styles";
+import { cn } from "@lib/utils";
+import {
+  buttonBase,
+  buttonVariants,
+  buttonSizes,
+} from "@components/ui/button-styles";
 
 export const Button = ({
   variant = "primary",
+  size = "md",
   className,
   ...props
 }: ButtonProps) => (
   <button
     {...props}
-    className={cx(buttonBase, buttonVariants[variant], className)}
+    className={cn(
+      buttonBase,
+      buttonVariants[variant],
+      buttonSizes[size],
+      className,
+    )}
   />
 );

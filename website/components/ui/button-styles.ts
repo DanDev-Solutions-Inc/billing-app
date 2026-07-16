@@ -1,16 +1,33 @@
-import { ButtonVariant } from "@typings/ui/ButtonVariant";
+import { ButtonVariant, ButtonSize } from "@typings/ui/ButtonVariant";
 
-/* shadcn/ui (new-york) button styling, themed to the DanDev palette.
-   Variant keys are kept stable (primary/secondary/danger/ghost) so existing
-   <Button> / <ButtonLink> call sites keep working unchanged. */
+/* Vision UI branded buttons, DanDev palette.
+
+   Shape: pill-ish (rounded-xl), medium weight, generous padding, and a lifted
+   shadow on the brand gradient so primary actions read as raised glass.
+   Variant keys stay stable (primary/secondary/danger/ghost) so existing call
+   sites keep working; `glass` and `outline` are new. */
 export const buttonBase =
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium outline-none transition-all disabled:pointer-events-none disabled:opacity-50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4";
+  "inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium outline-none transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4";
+
+export const buttonSizes: Record<ButtonSize, string> = {
+  sm: "h-8 px-3 text-xs",
+  md: "h-10 px-4 text-sm",
+  lg: "h-12 px-6 text-sm",
+  icon: "size-10 p-0",
+};
 
 export const buttonVariants: Record<ButtonVariant, string> = {
-  primary: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+  /* The brand gradient — the one loud element on a navy page. */
+  primary:
+    "vui-grad text-white shadow-[0_4px_20px_-4px_rgba(47,111,196,0.6)] hover:shadow-[0_6px_26px_-4px_rgba(92,155,245,0.75)] hover:brightness-110",
+  /* Raised glass — the default for secondary actions on a navy canvas. */
   secondary:
-    "border border-border bg-surface text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground",
+    "border border-glass-border bg-white/[0.06] text-foreground backdrop-blur-md hover:bg-white/[0.12]",
+  glass:
+    "vui-glass text-foreground hover:border-brand-accent/40 hover:bg-white/[0.08]",
+  outline:
+    "border border-brand-accent/50 bg-transparent text-brand-accent hover:bg-brand-accent/10",
   danger:
-    "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/30",
-  ghost: "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+    "bg-destructive text-destructive-foreground shadow-[0_4px_20px_-4px_rgba(232,97,90,0.5)] hover:brightness-110 focus-visible:ring-destructive/40",
+  ghost: "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
 };

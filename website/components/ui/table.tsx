@@ -1,8 +1,8 @@
 import * as React from "react";
 import { cn } from "@lib/utils";
 
-/* shadcn/ui (new-york) table, themed to the DanDev palette.
-   Wrap in <Card className="overflow-hidden"> for a bordered data surface. */
+/* Vision UI table: no header fill — just an uppercase muted label row over a
+   hairline, with translucent row separators. Wrap in <Card> for the panel. */
 
 export const Table = ({
   className,
@@ -46,7 +46,7 @@ export const TableRow = ({
   <tr
     data-slot="table-row"
     className={cn(
-      "border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      "border-b border-white/[0.06] transition-colors hover:bg-white/[0.03] data-[state=selected]:bg-brand-accent/10",
       className,
     )}
     {...props}
@@ -60,7 +60,7 @@ export const TableHead = ({
   <th
     data-slot="table-head"
     className={cn(
-      "h-11 whitespace-nowrap bg-muted/40 px-5 text-left align-middle text-xs font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      "h-11 whitespace-nowrap px-6 text-left align-middle text-[10px] font-bold uppercase tracking-wider text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className,
     )}
     {...props}
@@ -74,7 +74,7 @@ export const TableCell = ({
   <td
     data-slot="table-cell"
     className={cn(
-      "whitespace-nowrap px-5 py-3 align-middle [&:has([role=checkbox])]:pr-0",
+      "whitespace-nowrap px-6 py-3.5 align-middle [&:has([role=checkbox])]:pr-0",
       className,
     )}
     {...props}

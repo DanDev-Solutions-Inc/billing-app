@@ -15,7 +15,12 @@ const NewEstimatePage = async () => {
 
   return (
     <>
-      <PageHeader title="New estimate" subtitle="Quote work for a customer." />
+      <PageHeader
+        backHref="/estimates"
+        backLabel="Estimates"
+        title="New estimate"
+        subtitle="Quote work for a customer."
+      />
       <DocForm kind="estimate" customers={customers} action={createEstimate} />
     </>
   );

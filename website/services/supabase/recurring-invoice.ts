@@ -10,7 +10,7 @@ export const listRecurring = async (
   const { data } = await sb
     .from("recurring_invoices")
     .select("*, customers(*)")
-    .order("next_run");
+    .order("created_at", { ascending: false });
   return (data ?? []) as RecurringInvoiceWithCustomer[];
 };
 

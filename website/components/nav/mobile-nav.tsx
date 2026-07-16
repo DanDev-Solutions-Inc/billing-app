@@ -11,7 +11,7 @@ export const MobileNav = ({ email }: SidebarProps) => {
   return (
     <div className="md:hidden">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface px-4 py-3">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-sidebar px-4 py-3">
         <div className="flex items-center">
           <Image
             src="/brand/DavdevSolutionsDark.png"
