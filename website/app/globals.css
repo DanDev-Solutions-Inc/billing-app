@@ -16,13 +16,13 @@
   --muted: #64707d; /* secondary text */
   --border: #e3e7ec; /* hairlines */
 
-  /* Brand type: Neue Haas Grotesk Display Pro (headings) / Söhne (body) are
-     licensed; Inter Tight / Inter are the free next/font stand-ins loaded in
-     layout.tsx. Named *-stack because the @theme mapping below would otherwise
-     self-reference. */
-  --heading-stack: "Neue Haas Grotesk Display Pro",
-    "neue-haas-grotesk-display", var(--font-inter-tight), sans-serif;
-  --body-stack: "Söhne", "soehne", var(--font-inter), sans-serif;
+  /* Brand type (Adobe Fonts / Typekit kit yns3mqx): Neue Haas Grotesk Display
+     for headings, Neue Haas Grotesk Text for body. Inter Tight / Inter are the
+     free next/font fallbacks used until the Adobe kit loads. Named *-stack
+     because the @theme mapping below would otherwise self-reference. */
+  --heading-stack: "neue-haas-grotesk-display", var(--font-inter-tight),
+    sans-serif;
+  --body-stack: "neue-haas-grotesk-text", var(--font-inter), sans-serif;
 }
 
 @theme inline {
