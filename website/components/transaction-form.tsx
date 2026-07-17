@@ -7,7 +7,7 @@ import { createTransactionAction } from "@app/(app)/transactions/actions";
 import { transactionSchema } from "@utils/validation/transactionSchema";
 import { TransactionFormValues } from "@interfaces/forms/TransactionFormValues";
 import { TRANSACTION_CATEGORIES as CATEGORIES } from "@utils/constants";
-import { Card, Field, inputClass, Button } from "@components/ui";
+import { Card, Field, inputClass, Button, Select } from "@components/ui";
 
 const today = () => {
   const d = new Date();
@@ -67,16 +67,15 @@ export const TransactionForm = () => {
       <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4" noValidate>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Type" htmlFor="direction">
-            <select
+            <Select
               id="direction"
               name="direction"
               value={formik.values.direction}
               onChange={formik.handleChange}
-              className={inputClass}
             >
               <option value="expense">Expense (money out)</option>
               <option value="income">Income (money in)</option>
-            </select>
+            </Select>
           </Field>
           <Field label="Amount (CAD)" htmlFor="amount">
             <input

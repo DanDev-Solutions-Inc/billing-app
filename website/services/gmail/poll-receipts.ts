@@ -1,5 +1,5 @@
 import "server-only";
-import { getAccessToken } from "@services/gmail/client";
+import { getAccessToken, getMailboxAddress } from "@services/gmail/client";
 import {
   listMessageIds,
   getMessage,
@@ -33,6 +33,20 @@ export const pollReceiptsMailbox = async (
   const accessToken = await getAccessToken();
   if (!accessToken)
     return { error: "Gmail is not authorised (check GMAIL_REFRESH_TOKEN)." };
+
+  // Refuse to poll anything but the expected mailbox. Consenting with the wrong
+  // Google account is an easy mistake, and pointing this at a real inbox would
+  // scan every attachment in it — an AI call each, filing junk as receipts.
+  const expected = process.env.GMAIL_RECEIPTS_MAILBOX;
+  if (!expected) return { error: "GMAIL_RECEIPTS_MAILBOX is not set." };
+
+  const actual = await getMailboxAddress(accessToken);
+  if (!actual) return { error: "Could not read the authorised mailbox." };
+  if (actual.toLowerCase() !== expected.toLowerCase()) {
+    return {
+      error: `Refusing to poll: token belongs to ${actual}, expected ${expected}. Re-run scripts/gmail-auth.mjs with the right account.`,
+    };
+  }
 
   const ids = await listMessageIds(accessToken, QUERY);
   let created = 0;

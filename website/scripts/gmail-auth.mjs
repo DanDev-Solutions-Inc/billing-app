@@ -35,7 +35,13 @@ const authUrl =
     response_type: "code",
     scope: SCOPE,
     access_type: "offline", // required to get a refresh token
-    prompt: "consent", // force one even if previously granted
+    // select_account forces the account picker — without it Google silently uses
+    // whoever is already signed in, which is how you end up authorising the
+    // wrong mailbox. consent forces a refresh token even if previously granted.
+    prompt: "select_account consent",
+    ...(process.env.GMAIL_RECEIPTS_MAILBOX
+      ? { login_hint: process.env.GMAIL_RECEIPTS_MAILBOX }
+      : {}),
   });
 
 const exchange = async (code) => {
@@ -79,12 +85,27 @@ const server = createServer(async (req, res) => {
     headers: { authorization: `Bearer ${token.access_token}` },
   }).then((r) => r.json());
 
+  const address = who.emailAddress ?? "(unknown)";
+  console.log(`\nAuthorised mailbox: ${address}  (${who.messagesTotal ?? "?"} messages)`);
+
+  // Guard against consenting with the wrong Google account — pointing the poller
+  // at a real inbox would scan every attachment in it (an AI call each).
+  const expected = process.env.GMAIL_RECEIPTS_MAILBOX;
+  if (expected && address.toLowerCase() !== expected.toLowerCase()) {
+    res.end(`Wrong account: ${address}. Close this tab and see the terminal.`);
+    console.error(
+      `\n✗ Expected ${expected} but you signed in as ${address}.\n` +
+        `  Nothing was saved. Re-run and pick the right account (use the\n` +
+        `  account switcher on the consent screen, or an incognito window).\n`,
+    );
+    server.close();
+    process.exit(1);
+  }
+  if (!expected) {
+    console.log("  (set GMAIL_RECEIPTS_MAILBOX to have this checked automatically)");
+  }
+
   res.end("Authorised. You can close this tab and return to the terminal.");
-  console.log(`\nAuthorised mailbox: ${who.emailAddress}  (${who.messagesTotal} messages)`);
-  console.log(
-    "Confirm that is the isolated receipts mailbox — every attachment in it\n" +
-      "becomes a receipt. If it is your personal/owner inbox, re-run and switch account.",
-  );
   console.log(`\nAdd to .env.local and Vercel:\n\nGMAIL_REFRESH_TOKEN="${token.refresh_token}"\n`);
   server.close();
 });

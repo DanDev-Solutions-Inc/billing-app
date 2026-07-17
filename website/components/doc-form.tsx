@@ -2,7 +2,7 @@
 
 import { useFormik } from "formik";
 import { LineItemsEditor } from "@components/invoices/line-items-editor";
-import { Card, Field, inputClass, Button } from "@components/ui";
+import { Card, Field, inputClass, Button, Select } from "@components/ui";
 import { documentSchema } from "@utils/validation/documentSchema";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { DocumentFormValues } from "@interfaces/forms/DocumentFormValues";
@@ -105,12 +105,11 @@ export const DocForm = ({
       <Card className="p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Customer" htmlFor="customer_id">
-            <select
+            <Select
               id="customer_id"
               name="customer_id"
               value={formik.values.customer_id}
               onChange={formik.handleChange}
-              className={inputClass}
             >
               <option value="">— None —</option>
               {customers.map((c) => (
@@ -118,11 +117,11 @@ export const DocForm = ({
                   {c.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           {isInvoice ? (
             <Field label="Invoice #">
-              <div className={`${inputClass} bg-surface-muted text-muted-foreground`}>
+              <div className={`${inputClass} border-dashed bg-white/[0.02] text-muted-foreground/70`}>
                 Auto-generated (sequential)
               </div>
             </Field>

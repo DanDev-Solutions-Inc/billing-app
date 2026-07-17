@@ -11,6 +11,19 @@ const TOKEN_URL = "https://oauth2.googleapis.com/token";
  * send, delete, or reach any other account. Uses the REST endpoint directly;
  * `googleapis` would be a very large dependency for two calls.
  */
+/** The address the access token actually belongs to. */
+export const getMailboxAddress = async (
+  accessToken: string,
+): Promise<string | null> => {
+  const res = await fetch(
+    "https://gmail.googleapis.com/gmail/v1/users/me/profile",
+    { headers: { authorization: `Bearer ${accessToken}` } },
+  );
+  if (!res.ok) return null;
+  const json = (await res.json()) as { emailAddress?: string };
+  return json.emailAddress ?? null;
+};
+
 export const getAccessToken = async (): Promise<string | null> => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
