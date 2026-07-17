@@ -1,12 +1,15 @@
 import { CurrencyCode } from "@typings/CurrencyCode";
 
 /**
- * USD→CAD rate applied to new USD documents.
+ * Fallback USD→CAD, used only when the Bank of Canada lookup is unreachable.
  *
- * Stored on the document at creation (invoices.exchange_rate), so reporting is
- * stable: an invoice raised at this rate keeps converting at it, and moving this
- * constant never restates past revenue. Update it when the rate drifts enough to
- * matter; existing rows are unaffected by design.
+ * Not the normal path: services/fx/boc-rate.ts fetches the official rate for the
+ * document's date and stamps it on the row. A constant is always stale — this
+ * one was 1.37 while the real rate was 1.4038 — which matters most for rare
+ * invoices, since each one lands further from whenever the number was written.
+ *
+ * A slightly-off rate beats a failed invoice, and the stored value can be
+ * corrected afterwards.
  */
 export const USD_TO_CAD = 1.37;
 

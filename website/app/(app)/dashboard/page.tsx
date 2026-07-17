@@ -29,6 +29,7 @@ import {
   CurrencyNote,
 } from "@components/ui";
 import { CashFlowChart } from "@components/charts/cash-flow-chart";
+import { MobileRangeDefault } from "@components/dashboard/mobile-range-default";
 import {
   parseMonths,
   totalsForMonths,
@@ -107,7 +108,11 @@ const DashboardPage = async ({
   searchParams: Promise<{ months?: string }>;
 }) => {
   await getUserOrRedirect();
-  const months = parseMonths((await searchParams).months);
+  const params = await searchParams;
+  const months = parseMonths(params.months);
+  /* Whether the range was chosen, vs. fallen back to the default — a phone
+     narrows an unchosen range to 3 months (see MobileRangeDefault). */
+  const hasExplicitRange = Boolean(params.months);
   const supabase = await createClient();
 
   /* Estimates are no longer surfaced here, so we don't pay to fetch them. */
@@ -164,20 +169,37 @@ const DashboardPage = async ({
 
   return (
     <>
+      <MobileRangeDefault hasExplicitRange={hasExplicitRange} />
       <PageHeader
         title="Dashboard"
         subtitle="Your business at a glance."
         action={
           /* Quick actions stack full-width on mobile so each is a real thumb
              target, and sit inline from sm up. */
+          /* Add receipt leads on mobile with its own full row — it's the one
+             you reach for on a phone, standing in front of a counter. The
+             primary takes the next full row; the rest pair up. Inline from sm. */
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            <ButtonLink
+              href="/receipts/new"
+              variant="secondary"
+              size="sm"
+              className="col-span-2 sm:col-auto"
+            >
+              <Receipt />
+              Add receipt
+            </ButtonLink>
+            <ButtonLink
+              href="/invoices/new"
+              size="sm"
+              className="col-span-2 sm:col-auto"
+            >
+              <FileText />
+              New invoice
+            </ButtonLink>
             <ButtonLink href="/customers" variant="secondary" size="sm">
               <UserPlus />
               New customer
-            </ButtonLink>
-            <ButtonLink href="/receipts/new" variant="secondary" size="sm">
-              <Receipt />
-              Add receipt
             </ButtonLink>
             <ButtonLink
               href="/transactions/new"
@@ -187,25 +209,24 @@ const DashboardPage = async ({
               <Plus />
               New transaction
             </ButtonLink>
-            <ButtonLink href="/invoices/new" size="sm">
-              <FileText />
-              New invoice
-            </ButtonLink>
           </div>
         }
       />
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <Card className="flex flex-col">
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Cash flow</CardTitle>
-            {/* The range drives the chart *and* the totals below it. */}
+          <CardHeader className="flex-row items-center justify-between gap-3">
+            <CardTitle className="shrink-0">Cash flow</CardTitle>
+            {/* The range drives the chart *and* the totals below it.
+                w-auto: the kit default goes full-width on mobile for filter
+                bars, which in a card header would wrap the title. */}
             <FilterSelect
               param="months"
               options={MONTH_OPTIONS}
               value={String(months)}
               allKey={String(DEFAULT_MONTHS)}
               aria-label="Cash flow range"
+              className="w-auto shrink-0"
             />
           </CardHeader>
           {/* min-h-0 lets the flex child shrink so the chart can own the space */}
@@ -213,8 +234,10 @@ const DashboardPage = async ({
             <CashFlowChart data={cashFlow} />
           </CardContent>
           {/* The period's totals live with the chart that plots them — showing
-              them again as separate tiles up top was pure duplication. */}
-          <div className="grid grid-cols-3 gap-4 border-t border-white/[0.06] px-6 py-4">
+              them again as separate tiles up top was pure duplication.
+              Stacked on mobile: three across truncated the amounts to
+              "$138,36…", and a money figure you can't read isn't a metric. */}
+          <div className="grid gap-4 border-t border-white/[0.06] px-6 py-4 sm:grid-cols-3">
             <Metric
               label="Income"
               value={formatMoney(totals.income)}

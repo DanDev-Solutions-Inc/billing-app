@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Sidebar } from "@components/nav/sidebar";
 import { SidebarProps } from "@interfaces/components/SidebarProps";
 
@@ -12,7 +13,11 @@ export const MobileNav = ({ email }: SidebarProps) => {
     <div className="md:hidden">
       {/* Top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-sidebar px-4 py-3">
-        <div className="flex items-center">
+        <Link
+          href="/dashboard"
+          aria-label="DanDev Solutions — go to dashboard"
+          className="flex items-center rounded-lg outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring/60"
+        >
           <Image
             src="/brand/DavdevSolutionsDark.png"
             alt="DanDev Solutions"
@@ -21,7 +26,7 @@ export const MobileNav = ({ email }: SidebarProps) => {
             priority
             className="h-7 w-auto invert"
           />
-        </div>
+        </Link>
         <button
           type="button"
           onClick={() => setOpen(true)}

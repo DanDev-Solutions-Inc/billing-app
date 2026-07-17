@@ -9,6 +9,7 @@ import { sendDocumentEmail } from "@lib/email";
 import { parseLineItems, emptyToNull } from "@utils/doc-helpers";
 import { computeTotals, formatMoney } from "@utils/money";
 import { chargesTax } from "@utils/currency";
+import { usdToCadOn } from "@services/fx/boc-rate";
 import { parseCurrency } from "@utils/doc-helpers";
 import * as estimates from "@services/supabase/estimate";
 import * as invoices from "@services/supabase/invoice";
@@ -43,6 +44,13 @@ export const createEstimate = async (
     ? Number(formData.get("tax_rate")) || 0
     : 0;
   const totals = computeTotals(items, taxRate);
+  /* Stamp the day's official rate so the document reports in CAD at what it was
+     actually worth. CAD is 1 — the identity — so no call is made for it. */
+  const issueDate =
+    emptyToNull(formData.get("issue_date")) ??
+    new Date().toISOString().slice(0, 10);
+  const exchangeRate =
+    currency === "USD" ? await usdToCadOn(issueDate) : 1;
   const supabase = await createClient();
 
   const { id, error } = await estimates.createEstimate(supabase, {
@@ -53,6 +61,7 @@ export const createEstimate = async (
     expiry_date: emptyToNull(formData.get("second_date")),
     notes: emptyToNull(formData.get("notes")),
     currency,
+    exchange_rate: exchangeRate,
     ...totals,
   });
   if (error || !id) return { error: error ?? "Failed to save." };
@@ -85,6 +94,13 @@ export const updateEstimate = async (
     ? Number(formData.get("tax_rate")) || 0
     : 0;
   const totals = computeTotals(items, taxRate);
+  /* Stamp the day's official rate so the document reports in CAD at what it was
+     actually worth. CAD is 1 — the identity — so no call is made for it. */
+  const issueDate =
+    emptyToNull(formData.get("issue_date")) ??
+    new Date().toISOString().slice(0, 10);
+  const exchangeRate =
+    currency === "USD" ? await usdToCadOn(issueDate) : 1;
   const supabase = await createClient();
 
   const { error } = await estimates.updateEstimate(supabase, id, {
@@ -94,6 +110,7 @@ export const updateEstimate = async (
     expiry_date: emptyToNull(formData.get("second_date")),
     notes: emptyToNull(formData.get("notes")),
     currency,
+    exchange_rate: exchangeRate,
     ...totals,
   });
   if (error) return { error };
@@ -146,6 +163,9 @@ export const convertToInvoice = async (formData: FormData) => {
     // Carry the estimate's currency across: a USD quote must not become a CAD
     // invoice (its totals were priced without tax).
     currency: estimate.currency,
+    // Carry the estimate's own rate: the invoice is that quote, honoured — not
+    // a fresh conversion at today's rate.
+    exchange_rate: estimate.exchange_rate,
     subtotal: estimate.subtotal,
     tax: estimate.tax,
     total: estimate.total,

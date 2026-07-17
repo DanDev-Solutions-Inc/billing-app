@@ -16,6 +16,7 @@ import {
 } from "@services/supabase/line-item";
 import { computeTotals, formatMoney } from "@utils/money";
 import { chargesTax } from "@utils/currency";
+import { usdToCadOn } from "@services/fx/boc-rate";
 import { computeNextRun, addDays } from "@utils/cadence";
 import { renderDocumentPdf } from "@lib/pdf/render";
 import { sendDocumentEmail } from "@lib/email";
@@ -49,6 +50,11 @@ export const generateDueInvoices = async (
         ? Number(schedule.tax_rate)
         : 0;
       const totals = computeTotals(items, taxRate);
+      /* The cron raises these unattended, so it stamps the day's official rate
+         itself — a yearly USD invoice would otherwise carry whatever constant
+         was current when the code was written. */
+      const exchangeRate =
+        schedule.currency === "USD" ? await usdToCadOn(today) : 1;
       const { id: invoiceId } = await createInvoice(admin, {
         user_id: schedule.user_id,
         customer_id: schedule.customer_id,
@@ -58,6 +64,7 @@ export const generateDueInvoices = async (
         due_date: addDays(today, schedule.net_days),
         status: "draft",
         currency: schedule.currency,
+        exchange_rate: exchangeRate,
         ...totals,
       });
 

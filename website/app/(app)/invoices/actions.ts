@@ -9,6 +9,7 @@ import { sendDocumentEmail } from "@lib/email";
 import { parseLineItems, emptyToNull } from "@utils/doc-helpers";
 import { computeTotals, formatMoney } from "@utils/money";
 import { chargesTax } from "@utils/currency";
+import { usdToCadOn } from "@services/fx/boc-rate";
 import { parseCurrency } from "@utils/doc-helpers";
 import * as invoices from "@services/supabase/invoice";
 import * as lineItems from "@services/supabase/line-item";
@@ -38,6 +39,13 @@ export const createInvoice = async (
     ? Number(formData.get("tax_rate")) || 0
     : 0;
   const totals = computeTotals(items, taxRate);
+  /* Stamp the day's official rate so the document reports in CAD at what it was
+     actually worth. CAD is 1 — the identity — so no call is made for it. */
+  const issueDate =
+    emptyToNull(formData.get("issue_date")) ??
+    new Date().toISOString().slice(0, 10);
+  const exchangeRate =
+    currency === "USD" ? await usdToCadOn(issueDate) : 1;
   const supabase = await createClient();
 
   const { id, error } = await invoices.createInvoice(supabase, {
@@ -48,6 +56,7 @@ export const createInvoice = async (
     due_date: emptyToNull(formData.get("second_date")),
     notes: emptyToNull(formData.get("notes")),
     currency,
+    exchange_rate: exchangeRate,
     ...totals,
   });
   if (error || !id) return { error: error ?? "Failed to save." };
@@ -80,6 +89,13 @@ export const updateInvoice = async (
     ? Number(formData.get("tax_rate")) || 0
     : 0;
   const totals = computeTotals(items, taxRate);
+  /* Stamp the day's official rate so the document reports in CAD at what it was
+     actually worth. CAD is 1 — the identity — so no call is made for it. */
+  const issueDate =
+    emptyToNull(formData.get("issue_date")) ??
+    new Date().toISOString().slice(0, 10);
+  const exchangeRate =
+    currency === "USD" ? await usdToCadOn(issueDate) : 1;
   const supabase = await createClient();
 
   const { error } = await invoices.updateInvoice(supabase, id, {
@@ -88,6 +104,7 @@ export const updateInvoice = async (
     due_date: emptyToNull(formData.get("second_date")),
     notes: emptyToNull(formData.get("notes")),
     currency,
+    exchange_rate: exchangeRate,
     ...totals,
   });
   if (error) return { error };
