@@ -4,7 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
-import { getTransaction } from "@services/supabase/transaction";
+import {
+  getTransaction,
+  listDescriptions,
+} from "@services/supabase/transaction";
 import {
   PageHeader,
   Card,
@@ -17,10 +20,10 @@ import {
 import { formatMoney, formatDate } from "@utils/money";
 import { TRANSACTION_CATEGORIES as CATEGORIES } from "@utils/constants";
 import {
-  updateTransactionAction,
   setTransactionStatusAction,
   deleteTransactionAction,
 } from "../actions";
+import { TransactionEditForm } from "@components/transactions/edit-form";
 
 export const metadata: Metadata = { title: "Transaction" };
 
@@ -33,7 +36,10 @@ const TransactionPage = async ({
   await getUserOrRedirect();
   const supabase = await createClient();
 
-  const txn = await getTransaction(supabase, id);
+  const [txn, descriptions] = await Promise.all([
+    getTransaction(supabase, id),
+    listDescriptions(supabase),
+  ]);
   if (!txn) notFound();
 
   const approved = txn.status === "approved";
@@ -92,73 +98,11 @@ const TransactionPage = async ({
             <h2 className="mb-4 font-heading text-base font-semibold text-foreground">
               Details
             </h2>
-            <form
-              action={updateTransactionAction}
-              className="flex flex-col gap-4"
-            >
-              <input type="hidden" name="id" value={txn.id} />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Type" htmlFor="direction">
-                  <select
-                    id="direction"
-                    name="direction"
-                    defaultValue={txn.direction}
-                    className={inputClass}
-                  >
-                    <option value="expense">Expense (money out)</option>
-                    <option value="income">Income (money in)</option>
-                  </select>
-                </Field>
-                <Field label="Amount (CAD)" htmlFor="amount">
-                  <input
-                    id="amount"
-                    name="amount"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    defaultValue={txn.amount}
-                    className={inputClass}
-                  />
-                </Field>
-                <Field label="Date" htmlFor="txn_date">
-                  <input
-                    id="txn_date"
-                    name="txn_date"
-                    type="date"
-                    defaultValue={txn.txn_date}
-                    className={inputClass}
-                  />
-                </Field>
-                <Field label="Category" htmlFor="category">
-                  <select
-                    id="category"
-                    name="category"
-                    defaultValue={txn.category ?? ""}
-                    className={inputClass}
-                  >
-                    <option value="">— None —</option>
-                    {categoryOptions.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-              <Field label="Description" htmlFor="description">
-                <input
-                  id="description"
-                  name="description"
-                  defaultValue={txn.description ?? ""}
-                  className={inputClass}
-                />
-              </Field>
-              <div className="flex items-center gap-2">
-                <Button type="submit" variant="secondary">
-                  Save changes
-                </Button>
-              </div>
-            </form>
+            <TransactionEditForm
+              transaction={txn}
+              categories={categoryOptions}
+              descriptions={descriptions}
+            />
           </Card>
 
           {txn.invoices && (

@@ -15,7 +15,8 @@ import {
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { isPdfReceipt } from "@utils/receipt-file";
-import { deleteReceipt, updateReceiptAction } from "../actions";
+import { deleteReceipt } from "../actions";
+import { ReceiptEditForm } from "@components/receipts/edit-form";
 import { RECEIPT_CATEGORIES } from "@utils/constants";
 import { DetailProps } from "@interfaces/components/DetailProps";
 
@@ -109,72 +110,14 @@ const ReceiptPage = async ({
 
           {/* Editable in place: the image is right there to read the real values
               off, which is exactly when a scan needs correcting. */}
-          <form action={updateReceiptAction} className="flex flex-col gap-4">
-            <input type="hidden" name="id" value={receipt.id} />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Vendor" htmlFor="vendor">
-                <input
-                  id="vendor"
-                  name="vendor"
-                  defaultValue={receipt.vendor ?? ""}
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Amount (CAD)" htmlFor="amount">
-                <input
-                  id="amount"
-                  name="amount"
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.01"
-                  defaultValue={receipt.amount}
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Date" htmlFor="receipt_date">
-                <input
-                  id="receipt_date"
-                  name="receipt_date"
-                  type="date"
-                  defaultValue={receipt.receipt_date}
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Category" htmlFor="category">
-                <Select
-                  id="category"
-                  name="category"
-                  defaultValue={receipt.category ?? ""}
-                >
-                  <option value="">— None —</option>
-                  {categoryOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
-            <Field label="Notes" htmlFor="notes">
-              <textarea
-                id="notes"
-                name="notes"
-                rows={2}
-                defaultValue={receipt.notes ?? ""}
-                className={inputClass}
-              />
-            </Field>
-            <div className="flex items-center justify-between gap-3">
-              <Detail
-                label="Added via"
-                value={receipt.source === "email" ? "Email" : "Upload"}
-              />
-              <Button type="submit" variant="secondary">
-                Save changes
-              </Button>
-            </div>
-          </form>
+          <ReceiptEditForm receipt={receipt} categories={categoryOptions} />
+
+          <div className="mt-4 border-t border-white/[0.06] pt-4">
+            <Detail
+              label="Added via"
+              value={receipt.source === "email" ? "Email" : "Upload"}
+            />
+          </div>
         </Card>
       </div>
     </>

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listTransactions } from "@services/supabase/transaction";
-import { FileText, Receipt as ReceiptIcon, Trash2, Plus } from "lucide-react";
+import { FileText, Receipt as ReceiptIcon, Trash2, Plus, Pencil } from "lucide-react";
 import {
   PageHeader,
   Card,
@@ -340,19 +340,35 @@ const TransactionsPage = async ({
                       {t.direction === "income" ? "+" : "−"}
                       {formatMoney(t.amount)}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <form action={deleteTransactionAction}>
-                        <input type="hidden" name="id" value={t.id} />
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <ButtonLink
+                          href={`/transactions/${t.id}`}
+                          variant="ghost"
+                          size="icon"
+                          title="Edit transaction"
+                          aria-label={`Edit ${t.description || "transaction"}`}
+                        >
+                          <Pencil />
+                        </ButtonLink>
+                        {/* formAction + name/value rather than a nested <form>:
+                            these rows live inside the bulk-select form, and a
+                            form inside a form is invalid — the parser drops the
+                            inner one, so this button would have submitted the
+                            bulk form instead of deleting anything. */}
                         <Button
                           type="submit"
+                          formAction={deleteTransactionAction}
+                          name="id"
+                          value={t.id}
                           variant="dangerGhost"
                           size="icon"
                           title="Delete transaction"
-                          aria-label="Delete transaction"
+                          aria-label={`Delete ${t.description || "transaction"}`}
                         >
                           <Trash2 />
                         </Button>
-                      </form>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

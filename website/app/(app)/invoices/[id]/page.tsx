@@ -1,12 +1,18 @@
 import { Metadata } from "next";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil, FileDown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { getInvoice } from "@services/supabase/invoice";
 import { listLineItems } from "@services/supabase/line-item";
 import { DocumentDetail } from "@components/document-detail";
-import { Button, ButtonLink } from "@components/ui";
+import {
+  Button,
+  ButtonLink,
+  Menu,
+  MenuItem,
+  MenuSeparator,
+} from "@components/ui";
 import { SendButton } from "@components/send-button";
 import { setInvoiceStatus, deleteInvoice, sendInvoice } from "../actions";
 import { StatusButtonProps } from "@interfaces/components/StatusButtonProps";
@@ -63,11 +69,11 @@ const InvoicePage = async ({
       tax={inv.tax}
       total={inv.total}
       notes={inv.notes}
+      /* Two actions carry the invoice forward — get paid, and send it. The
+         rest are occasional, so they live behind the overflow rather than
+         competing as six equal buttons. */
       actionBar={
         <div className="flex flex-wrap items-center gap-2">
-          {inv.status === "draft" && (
-            <StatusButton id={inv.id} status="sent" label="Mark as sent" />
-          )}
           {inv.status !== "paid" && (
             <StatusButton
               id={inv.id}
@@ -76,31 +82,60 @@ const InvoicePage = async ({
               variant="primary"
             />
           )}
-          {inv.status === "paid" && (
-            <StatusButton id={inv.id} status="sent" label="Reopen" />
-          )}
           <SendButton
             id={inv.id}
             action={sendInvoice}
             emails={customerEmails}
           />
-          <ButtonLink href={`/invoices/${inv.id}/edit`} variant="secondary">
-            Edit
-          </ButtonLink>
-          <ButtonLink
-            href={`/invoices/${inv.id}/pdf`}
-            variant="secondary"
-            target="_blank"
-          >
-            PDF
-          </ButtonLink>
-          <form action={deleteInvoice}>
-            <input type="hidden" name="id" value={inv.id} />
-            <Button type="submit" variant="dangerGhost">
-              <Trash2 />
-              Delete
-            </Button>
-          </form>
+
+          <Menu>
+            {inv.status === "draft" && (
+              <MenuItem>
+                <StatusButton
+                  id={inv.id}
+                  status="sent"
+                  label="Mark as sent"
+                  variant="ghost"
+                />
+              </MenuItem>
+            )}
+            {inv.status === "paid" && (
+              <MenuItem>
+                <StatusButton
+                  id={inv.id}
+                  status="sent"
+                  label="Reopen"
+                  variant="ghost"
+                />
+              </MenuItem>
+            )}
+            <MenuItem>
+              <ButtonLink href={`/invoices/${inv.id}/edit`} variant="ghost">
+                <Pencil />
+                Edit
+              </ButtonLink>
+            </MenuItem>
+            <MenuItem>
+              <ButtonLink
+                href={`/invoices/${inv.id}/pdf`}
+                variant="ghost"
+                target="_blank"
+              >
+                <FileDown />
+                Download PDF
+              </ButtonLink>
+            </MenuItem>
+            <MenuSeparator />
+            <MenuItem>
+              <form action={deleteInvoice}>
+                <input type="hidden" name="id" value={inv.id} />
+                <Button type="submit" variant="dangerGhost">
+                  <Trash2 />
+                  Delete
+                </Button>
+              </form>
+            </MenuItem>
+          </Menu>
         </div>
       }
     />

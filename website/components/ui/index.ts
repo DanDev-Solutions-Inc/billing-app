@@ -52,3 +52,4 @@ export { FilterCombobox } from "@components/ui/filter-combobox";
 export type { FilterComboboxProps } from "@interfaces/components/FilterComboboxProps";
 export { ClearFilters } from "@components/ui/clear-filters";
 export type { ClearFiltersProps } from "@interfaces/components/ClearFiltersProps";
+export { Menu, MenuItem, MenuSeparator } from "@components/ui/menu";
