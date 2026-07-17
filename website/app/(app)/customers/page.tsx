@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Trash2 } from "lucide-react";
+import { Trash2, MapPin } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listCustomers, getBillingSummaries } from "@services/supabase/customer";
@@ -12,6 +12,7 @@ import {
   PageHeader,
   EmptyState,
   SearchInput,
+  ClearFilters,
   Table,
   TableHeader,
   TableBody,
@@ -32,7 +33,10 @@ import {
   Accessors,
 } from "@utils/table";
 import { formatMoney } from "@utils/money";
-import { customerAddressLine } from "@utils/customer-address";
+import {
+  customerAddressLine,
+  customerMapsUrl as mapsUrl,
+} from "@utils/customer-address";
 import { CustomerRow } from "@interfaces/models/customer/CustomerRow";
 
 export const metadata: Metadata = { title: "Customers" };
@@ -119,10 +123,13 @@ const CustomersPage = async ({
       ) : (
         <>
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-            <SearchInput
-              placeholder="Search name, email, phone, city…"
-              className="w-full sm:max-w-xs"
-            />
+            <div className="flex flex-1 flex-wrap items-center gap-2">
+              <SearchInput
+                placeholder="Search name, email, phone, city…"
+                className="w-full sm:max-w-xs"
+              />
+              <ClearFilters href="/customers" active={Boolean(q)} />
+            </div>
             <div className="flex items-center gap-4">
               <span className="hidden text-sm text-muted-foreground sm:inline">
                 {formatMoney(billedTotal)} billed
@@ -215,7 +222,22 @@ const CustomersPage = async ({
                       {/* max-w-0 + truncate keeps a long address from stretching
                           the table past the card. */}
                       <TableCell className="hidden max-w-0 truncate text-muted-foreground lg:table-cell">
-                        {customerAddressLine(c) || "—"}
+                        {mapsUrl(c) ? (
+                          <a
+                            href={mapsUrl(c)!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open in Google Maps"
+                            className="group inline-flex max-w-full items-center gap-1.5 rounded-full outline-none transition-colors hover:text-brand-accent focus-visible:ring-2 focus-visible:ring-ring/50"
+                          >
+                            <span className="truncate">
+                              {customerAddressLine(c)}
+                            </span>
+                            <MapPin className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                          </a>
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                       <TableCell className="text-right tabular-nums text-muted-foreground">
                         {c.invoice_count || "—"}

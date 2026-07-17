@@ -60,6 +60,43 @@ export const createEstimate = async (
   redirect(`/estimates/${id}`);
 };
 
+export const updateEstimate = async (
+  id: string,
+  _prev: DocFormState,
+  formData: FormData,
+): Promise<DocFormState> => {
+  const user = await getUserOrRedirect();
+  const items = parseLineItems(formData);
+  if (items.length === 0) return { error: "Add at least one line item." };
+
+  const totals = computeTotals(items, Number(formData.get("tax_rate")) || 0);
+  const supabase = await createClient();
+
+  const { error } = await estimates.updateEstimate(supabase, id, {
+    customer_id: emptyToNull(formData.get("customer_id")),
+    estimate_number: emptyToNull(formData.get("number")),
+    issue_date: emptyToNull(formData.get("issue_date")) ?? undefined,
+    expiry_date: emptyToNull(formData.get("second_date")),
+    notes: emptyToNull(formData.get("notes")),
+    ...totals,
+  });
+  if (error) return { error };
+
+  // Replace the line items wholesale (polymorphic table, no cascade).
+  await lineItems.deleteLineItems(supabase, "estimate", id);
+  const { error: liError } = await lineItems.createLineItems(supabase, {
+    userId: user.id,
+    parentType: "estimate",
+    parentId: id,
+    items,
+  });
+  if (liError) return { error: liError };
+
+  revalidatePath("/estimates");
+  revalidatePath(`/estimates/${id}`);
+  redirect(`/estimates/${id}?toast=estimate-saved`);
+};
+
 export const setEstimateStatus = async (formData: FormData) => {
   await getUserOrRedirect();
   const id = String(formData.get("id") ?? "");

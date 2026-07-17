@@ -22,6 +22,30 @@ export const createRecurring = async (
   return { error: error?.message };
 };
 
+export const getRecurring = async (
+  sb: SupabaseClient,
+  id: string,
+): Promise<RecurringInvoiceWithCustomer | null> => {
+  const { data } = await sb
+    .from("recurring_invoices")
+    .select("*, customers(*)")
+    .eq("id", id)
+    .maybeSingle();
+  return (data as RecurringInvoiceWithCustomer) ?? null;
+};
+
+export const updateRecurring = async (
+  sb: SupabaseClient,
+  id: string,
+  values: Partial<RecurringInvoiceInsert>,
+): Promise<{ error?: string }> => {
+  const { error } = await sb
+    .from("recurring_invoices")
+    .update(values)
+    .eq("id", id);
+  return { error: error?.message };
+};
+
 export const setRecurringActive = async (
   sb: SupabaseClient,
   id: string,

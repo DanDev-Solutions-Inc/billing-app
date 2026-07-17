@@ -24,9 +24,11 @@ const blankItem = (): LineItemFormValues => ({
 export const RecurringInvoiceForm = ({
   customers,
   action,
+  defaults,
+  submitLabel,
 }: RecurringInvoiceFormProps) => {
   const formik = useFormik<RecurringFormValues>({
-    initialValues: {
+    initialValues: defaults ?? {
       customer_id: "",
       title: "",
       frequency: "monthly",
@@ -278,7 +280,7 @@ export const RecurringInvoiceForm = ({
 
       <div className="flex justify-end">
         <Button type="submit" disabled={formik.isSubmitting}>
-          {formik.isSubmitting ? "Saving…" : "Create schedule"}
+          {formik.isSubmitting ? "Saving…" : (submitLabel ?? "Create schedule")}
         </Button>
       </div>
     </form>

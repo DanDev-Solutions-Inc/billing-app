@@ -19,6 +19,7 @@ import {
   TableCell,
   FilterTabs,
   SortableHead,
+  Checkbox,
   Pagination,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
@@ -35,6 +36,7 @@ import {
 } from "@utils/table";
 import { TransactionWithLinks } from "@interfaces/models/transaction/TransactionWithLinks";
 import { deleteTransactionAction } from "./actions";
+import { BulkForm } from "@components/transactions/bulk-form";
 
 export const metadata: Metadata = { title: "Transactions" };
 
@@ -199,10 +201,17 @@ const TransactionsPage = async ({
           }
         />
       ) : (
+        <BulkForm>
         <Card className="overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[44px]">
+                  <Checkbox
+                    data-select-all=""
+                    aria-label="Select all on this page"
+                  />
+                </TableHead>
                 <SortableHead
                   label="Date"
                   sortKey="txn_date"
@@ -262,6 +271,13 @@ const TransactionsPage = async ({
                     : null;
                 return (
                   <TableRow key={t.id}>
+                    <TableCell>
+                      <Checkbox
+                        name="ids"
+                        value={t.id}
+                        aria-label={`Select ${t.description || "transaction"}`}
+                      />
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(t.txn_date)}
                     </TableCell>
@@ -331,6 +347,7 @@ const TransactionsPage = async ({
             </TableBody>
           </Table>
         </Card>
+        </BulkForm>
       )}
     </>
   );

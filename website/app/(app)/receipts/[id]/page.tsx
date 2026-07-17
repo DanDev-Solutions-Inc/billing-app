@@ -4,10 +4,19 @@ import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { getReceipt } from "@services/supabase/receipt";
-import { PageHeader, Card, Button, StatusPill } from "@components/ui";
+import {
+  PageHeader,
+  Card,
+  Button,
+  StatusPill,
+  Field,
+  Select,
+  inputClass,
+} from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { isPdfReceipt } from "@utils/receipt-file";
-import { deleteReceipt } from "../actions";
+import { deleteReceipt, updateReceiptAction } from "../actions";
+import { RECEIPT_CATEGORIES } from "@utils/constants";
 import { DetailProps } from "@interfaces/components/DetailProps";
 
 export const metadata: Metadata = { title: "Receipt" };
@@ -32,6 +41,14 @@ const ReceiptPage = async ({
 
   const receipt = await getReceipt(supabase, id);
   if (!receipt) notFound();
+
+  /* Keep an imported category that isn't in our list, so saving can't silently
+     drop it. */
+  const categoryOptions =
+    receipt.category &&
+    !(RECEIPT_CATEGORIES as readonly string[]).includes(receipt.category)
+      ? [receipt.category, ...RECEIPT_CATEGORIES]
+      : RECEIPT_CATEGORIES;
 
   return (
     <>
@@ -89,20 +106,75 @@ const ReceiptPage = async ({
             </span>
             <StatusPill status={receipt.source} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Detail label="Vendor" value={receipt.vendor || "—"} />
-            <Detail label="Date" value={formatDate(receipt.receipt_date)} />
-            <Detail label="Category" value={receipt.category || "—"} />
-            <Detail
-              label="Added via"
-              value={receipt.source === "email" ? "Email" : "Upload"}
-            />
-          </div>
-          {receipt.notes && (
-            <div className="mt-4">
-              <Detail label="Notes" value={receipt.notes} />
+
+          {/* Editable in place: the image is right there to read the real values
+              off, which is exactly when a scan needs correcting. */}
+          <form action={updateReceiptAction} className="flex flex-col gap-4">
+            <input type="hidden" name="id" value={receipt.id} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Vendor" htmlFor="vendor">
+                <input
+                  id="vendor"
+                  name="vendor"
+                  defaultValue={receipt.vendor ?? ""}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Amount (CAD)" htmlFor="amount">
+                <input
+                  id="amount"
+                  name="amount"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  defaultValue={receipt.amount}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Date" htmlFor="receipt_date">
+                <input
+                  id="receipt_date"
+                  name="receipt_date"
+                  type="date"
+                  defaultValue={receipt.receipt_date}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Category" htmlFor="category">
+                <Select
+                  id="category"
+                  name="category"
+                  defaultValue={receipt.category ?? ""}
+                >
+                  <option value="">— None —</option>
+                  {categoryOptions.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
             </div>
-          )}
+            <Field label="Notes" htmlFor="notes">
+              <textarea
+                id="notes"
+                name="notes"
+                rows={2}
+                defaultValue={receipt.notes ?? ""}
+                className={inputClass}
+              />
+            </Field>
+            <div className="flex items-center justify-between gap-3">
+              <Detail
+                label="Added via"
+                value={receipt.source === "email" ? "Email" : "Upload"}
+              />
+              <Button type="submit" variant="secondary">
+                Save changes
+              </Button>
+            </div>
+          </form>
         </Card>
       </div>
     </>

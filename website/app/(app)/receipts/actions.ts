@@ -118,6 +118,27 @@ export const createReceipt = async (
   redirect(`/receipts/${id}?toast=receipt-saved`);
 };
 
+export const updateReceiptAction = async (formData: FormData) => {
+  await getUserOrRedirect();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const supabase = await createClient();
+  await receipts.updateReceipt(supabase, id, {
+    vendor: emptyToNull(formData.get("vendor")),
+    amount: Number(formData.get("amount")) || 0,
+    receipt_date: emptyToNull(formData.get("receipt_date")) ?? undefined,
+    category: emptyToNull(formData.get("category")),
+    notes: emptyToNull(formData.get("notes")),
+  });
+
+  // The linked transaction is a separate record — correcting a receipt doesn't
+  // rewrite the ledger. Change the amount there if it was wrong too.
+  revalidatePath("/receipts");
+  revalidatePath(`/receipts/${id}`);
+  redirect(`/receipts/${id}?toast=receipt-saved`);
+};
+
 export const deleteReceipt = async (formData: FormData) => {
   await getUserOrRedirect();
   const id = String(formData.get("id") ?? "");

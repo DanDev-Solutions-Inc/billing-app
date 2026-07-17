@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
@@ -102,6 +102,10 @@ const EstimatePage = async ({
             </form>
           )}
           <SendButton id={est.id} action={sendEstimate} />
+          <ButtonLink href={`/estimates/${est.id}/edit`} variant="secondary">
+            <Pencil />
+            Edit
+          </ButtonLink>
           <ButtonLink
             href={`/estimates/${est.id}/pdf`}
             variant="secondary"

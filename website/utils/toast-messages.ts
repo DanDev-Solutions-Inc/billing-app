@@ -9,6 +9,7 @@ export const TOAST_MESSAGES: Record<string, { message: string; tone: ToastTone }
   "invoice-created": { message: "Invoice created.", tone: "success" },
   "invoice-saved": { message: "Invoice updated.", tone: "success" },
   "invoice-deleted": { message: "Invoice deleted.", tone: "success" },
+  "estimate-saved": { message: "Estimate updated.", tone: "success" },
   "estimate-created": { message: "Estimate created.", tone: "success" },
   "estimate-deleted": { message: "Estimate deleted.", tone: "success" },
   "estimate-converted": { message: "Estimate converted to an invoice.", tone: "success" },
@@ -27,6 +28,7 @@ export const TOAST_MESSAGES: Record<string, { message: string; tone: ToastTone }
   "transactions-updated": { message: "Transactions updated.", tone: "success" },
   "customer-saved": { message: "Customer saved.", tone: "success" },
   "customer-deleted": { message: "Customer deleted.", tone: "success" },
+  "recurring-created": { message: "Schedule created.", tone: "success" },
   "recurring-saved": { message: "Schedule saved.", tone: "success" },
   "recurring-deleted": { message: "Schedule deleted.", tone: "success" },
 };

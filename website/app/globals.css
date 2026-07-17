@@ -181,6 +181,39 @@ h6 {
   background-clip: padding-box, border-box;
 }
 
+
+/* Checkbox: draw the control ourselves so the unchecked state matches the glass
+   fields instead of the platform's grey square. Lives here rather than in a
+   Tailwind arbitrary value — a data-URI's quotes/parens don't survive that. */
+.vui-checkbox {
+  appearance: none;
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.vui-checkbox:hover {
+  border-color: rgba(92, 155, 245, 0.6);
+}
+.vui-checkbox:checked {
+  background-color: var(--brand-accent);
+  border-color: transparent;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-size: 12px 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.vui-checkbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(92, 155, 245, 0.5);
+}
+
 ::selection {
   background: var(--brand-accent);
   color: #ffffff;

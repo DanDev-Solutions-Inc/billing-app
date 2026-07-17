@@ -30,3 +30,14 @@ export const customerAddressLines = (c: AddressParts): string[] => {
 /** Single-line form, for table cells. */
 export const customerAddressLine = (c: AddressParts): string =>
   customerAddressLines(c).join(", ");
+
+/**
+ * Google Maps search URL for an address, or null when there's nothing to look
+ * up. Uses the `?api=1` search endpoint — the documented, stable entry point —
+ * and encodes the query so commas/spaces can't break the link.
+ */
+export const customerMapsUrl = (c: AddressParts): string | null => {
+  const query = customerAddressLine(c).trim();
+  if (!query) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+};

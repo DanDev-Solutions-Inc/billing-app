@@ -47,3 +47,8 @@ export type { ComboboxProps, ComboboxOption } from "@interfaces/components/Combo
 export { ToastProvider, useToast } from "@components/ui/toast";
 export { ToastFlash } from "@components/ui/toast-flash";
 export { Metric } from "@components/ui/metric";
+export { Checkbox } from "@components/ui/checkbox";
+export { FilterCombobox } from "@components/ui/filter-combobox";
+export type { FilterComboboxProps } from "@interfaces/components/FilterComboboxProps";
+export { ClearFilters } from "@components/ui/clear-filters";
+export type { ClearFiltersProps } from "@interfaces/components/ClearFiltersProps";

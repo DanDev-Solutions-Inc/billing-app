@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listRecurring } from "@services/supabase/recurring-invoice";
@@ -87,6 +87,15 @@ const RecurringPage = async () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">
+                        <ButtonLink
+                          href={`/recurring/${s.id}/edit`}
+                          variant="ghost"
+                          size="icon"
+                          title="Edit schedule"
+                          aria-label={`Edit ${s.title || "schedule"}`}
+                        >
+                          <Pencil />
+                        </ButtonLink>
                         <form action={toggleRecurring}>
                           <input type="hidden" name="id" value={s.id} />
                           <input

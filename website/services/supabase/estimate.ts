@@ -41,6 +41,15 @@ export const createEstimate = async (
   return { id: data?.id, error: error?.message };
 };
 
+export const updateEstimate = async (
+  sb: SupabaseClient,
+  id: string,
+  values: Partial<EstimateInsert>,
+): Promise<{ error?: string }> => {
+  const { error } = await sb.from("estimates").update(values).eq("id", id);
+  return { error: error?.message };
+};
+
 export const updateEstimateStatus = async (
   sb: SupabaseClient,
   id: string,

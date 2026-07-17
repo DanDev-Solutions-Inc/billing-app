@@ -19,6 +19,8 @@ import {
   SortableHead,
   Pagination,
   FilterSelect,
+  FilterCombobox,
+  ClearFilters,
   SearchInput,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
@@ -118,10 +120,12 @@ const InvoicesPage = async ({
   const pageHref = (p: number) =>
     mergeQuery("/invoices", current, { page: p === 1 ? undefined : String(p) });
 
-  const customerOptions = [
-    { key: "all", label: "All customers" },
-    ...customers.map((c) => ({ key: c.id, label: c.name })),
-  ];
+  /* FilterCombobox renders the "all" row itself, so only real customers here. */
+  const customerOptions = customers.map((c) => ({
+    value: c.id,
+    label: c.name,
+    hint: c.email ?? undefined,
+  }));
 
   /* Any narrowing at all — search, customer, or status. */
   const isFiltered = Boolean(q || customerId || status !== "all");
@@ -151,32 +155,39 @@ const InvoicesPage = async ({
       {/* Pager lives with the filters so it's reachable without scrolling the
           whole table on a short screen. */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+        {/* Narrowing on the left, then status + the pager on the right. */}
         <div className="flex flex-1 flex-wrap items-center gap-2">
           <SearchInput
             placeholder="Search number, customer, notes…"
             className="w-full sm:max-w-xs"
           />
+          {/* Searchable: 28 customers is past what a native dropdown can scan,
+              and the widest name would otherwise stretch the control. */}
+          <FilterCombobox
+            param="customer"
+            options={customerOptions}
+            value={customerId}
+            allLabel="All customers"
+            placeholder="All customers"
+            className="w-full sm:w-56"
+            aria-label="Filter by customer"
+          />
+          <ClearFilters href="/invoices" active={isFiltered} />
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
           <FilterSelect
             param="status"
             options={statusOptions}
             value={status}
             aria-label="Filter by status"
           />
-          <FilterSelect
-            param="customer"
-            options={customerOptions}
-            value={customerId || "all"}
-            aria-label="Filter by customer"
-          />
-        </div>
-        {filtered.length > 0 && (
           <Pagination
             {...result}
             hrefFor={pageHref}
             noun="invoice"
             variant="bar"
           />
-        )}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
