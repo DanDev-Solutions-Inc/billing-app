@@ -309,7 +309,7 @@ const InvoicesPage = async ({
                     />
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {formatMoney(inv.total)}
+                    {formatMoney(inv.total, inv.currency)}
                   </TableCell>
                 </TableRow>
               ))}

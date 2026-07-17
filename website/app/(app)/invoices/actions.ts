@@ -182,7 +182,7 @@ export const sendInvoice = async (
     to,
     kind: "invoice",
     number,
-    total: formatMoney(invoice.total),
+    total: formatMoney(invoice.total, invoice.currency),
     filename: `Invoice_${number}.pdf`,
     pdf,
   });

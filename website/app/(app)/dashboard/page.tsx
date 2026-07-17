@@ -25,6 +25,7 @@ import {
   ButtonLink,
   IconTile,
   FilterSelect,
+  CurrencyNote,
 } from "@components/ui";
 import { CashFlowChart } from "@components/charts/cash-flow-chart";
 import {
@@ -35,6 +36,7 @@ import {
   DEFAULT_MONTHS,
 } from "@utils/period";
 import { formatMoney, formatDate, computeTotals } from "@utils/money";
+import { sumInCad, toCad, rateFor } from "@utils/fx";
 import { isOverdue, isOutstanding } from "@utils/invoice";
 import { cadenceLabel } from "@utils/cadence";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
@@ -119,11 +121,10 @@ const DashboardPage = async ({
      (past due_date) — there is no stored "overdue" status. */
   const outstandingInvoices = invoices.filter(isOutstanding);
   const overdueInvoices = outstandingInvoices.filter(isOverdue);
-  const outstanding = outstandingInvoices.reduce(
-    (s, i) => s + Number(i.total),
-    0,
-  );
-  const overdue = overdueInvoices.reduce((s, i) => s + Number(i.total), 0);
+  /* Reported in CAD. A USD invoice converts at the rate stored on it, so the
+     figure is stable and adding the two currencies together means something. */
+  const outstanding = sumInCad(outstandingInvoices);
+  const overdue = sumInCad(overdueInvoices);
 
   /* Overdue first — those are the ones that need chasing. */
   const outstandingSorted = [...outstandingInvoices].sort(
@@ -151,7 +152,12 @@ const DashboardPage = async ({
      monthly figure — $621.50 weekly is exactly $32,318/yr, but "$2,693.17/mo"
      is an average you'd never see on a statement. */
   const yearlyRun = upcoming.reduce(
-    (sum, s) => sum + (s.total * YEARLY_FACTOR[s.frequency]) / Math.max(1, s.interval),
+    (sum, s) =>
+      sum +
+      /* Nothing's been invoiced yet, so there's no stored rate — a forward
+         projection uses today's. It's an estimate either way. */
+      (toCad(s.total, rateFor(s.currency)) * YEARLY_FACTOR[s.frequency]) /
+        Math.max(1, s.interval),
     0,
   );
 
@@ -228,10 +234,11 @@ const DashboardPage = async ({
             <div>
               <CardTitle>Outstanding</CardTitle>
               <p className="mt-1.5 text-3xl font-bold tabular-nums tracking-tight text-foreground">
-                {formatMoney(outstanding)}
+                {formatMoney(outstanding.cad)}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {outstandingInvoices.length} unpaid · all time
+              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                <span>{outstandingInvoices.length} unpaid · all time</span>
+                <CurrencyNote total={outstanding} />
               </p>
             </div>
             <Link
@@ -249,7 +256,7 @@ const DashboardPage = async ({
                 {overdueInvoices.length} overdue
               </span>
               <span className="text-sm font-bold tabular-nums text-brand-red">
-                {formatMoney(overdue)}
+                {formatMoney(overdue.cad)}
               </span>
             </div>
           )}
@@ -291,7 +298,7 @@ const DashboardPage = async ({
                         </span>
                       </span>
                       <span className="shrink-0 font-medium tabular-nums">
-                        {formatMoney(inv.total)}
+                        {formatMoney(inv.total, inv.currency)}
                       </span>
                     </Link>
                   </li>
@@ -370,7 +377,7 @@ const DashboardPage = async ({
                         </span>
                       </span>
                       <span className="shrink-0 font-medium tabular-nums">
-                        {formatMoney(s.total)}
+                        {formatMoney(s.total, s.currency)}
                       </span>
                     </Link>
                   </li>

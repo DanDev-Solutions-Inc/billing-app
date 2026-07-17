@@ -231,7 +231,7 @@ const TransactionsPage = async ({
                   activeKey={sort}
                   activeDir={dir}
                   href={sortHref("txn_date")}
-                  className="w-[110px]"
+                  className="hidden w-[110px] sm:table-cell"
                 />
                 {/* w-full makes Description absorb slack so Amount never clips */}
                 <SortableHead
@@ -291,7 +291,7 @@ const TransactionsPage = async ({
                         aria-label={`Select ${t.description || "transaction"}`}
                       />
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {formatDate(t.txn_date)}
                     </TableCell>
                     <TableCell className="max-w-0">
@@ -313,7 +313,15 @@ const TransactionsPage = async ({
                           </Link>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground md:hidden">
+                      {/* Date and category ride under the description on
+                          mobile — as columns they ate the width the
+                          description needed, truncating it to "Wave Fin…". */}
+                      <span className="mt-0.5 block truncate text-xs text-muted-foreground sm:hidden">
+                        {[formatDate(t.txn_date), t.category]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                      <span className="mt-0.5 hidden truncate text-xs text-muted-foreground sm:block md:hidden">
                         {t.category}
                       </span>
                     </TableCell>

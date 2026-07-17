@@ -89,6 +89,7 @@ export interface Database {
           tax: number;
           total: number;
           currency: Database["public"]["Enums"]["currency_code"];
+          exchange_rate: number;
           wave_id: string | null;
           created_at: string;
           updated_at: string;
@@ -106,6 +107,7 @@ export interface Database {
           tax?: number;
           total?: number;
           currency?: Database["public"]["Enums"]["currency_code"];
+          exchange_rate?: number;
           wave_id?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -135,6 +137,7 @@ export interface Database {
           total: number;
           converted_invoice_id: string | null;
           currency: Database["public"]["Enums"]["currency_code"];
+          exchange_rate: number;
           wave_id: string | null;
           created_at: string;
           updated_at: string;
@@ -153,6 +156,7 @@ export interface Database {
           total?: number;
           converted_invoice_id?: string | null;
           currency?: Database["public"]["Enums"]["currency_code"];
+          exchange_rate?: number;
           wave_id?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -356,6 +360,7 @@ export interface Database {
           total_billed: number;
           total_paid: number;
           last_invoiced: string | null;
+          total_billed_foreign: number | null;
         };
         Relationships: [];
       };

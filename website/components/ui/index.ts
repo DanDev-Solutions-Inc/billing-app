@@ -53,3 +53,4 @@ export type { FilterComboboxProps } from "@interfaces/components/FilterComboboxP
 export { ClearFilters } from "@components/ui/clear-filters";
 export type { ClearFiltersProps } from "@interfaces/components/ClearFiltersProps";
 export { Menu, MenuItem, MenuSeparator } from "@components/ui/menu";
+export { CurrencyNote } from "@components/ui/currency-note";

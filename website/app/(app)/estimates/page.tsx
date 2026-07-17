@@ -254,7 +254,7 @@ const EstimatesPage = async ({
                     <StatusPill status={est.status} />
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {formatMoney(est.total)}
+                    {formatMoney(est.total, est.currency)}
                   </TableCell>
                 </TableRow>
               ))}

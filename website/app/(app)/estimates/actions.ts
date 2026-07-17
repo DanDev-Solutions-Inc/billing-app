@@ -215,7 +215,7 @@ export const sendEstimate = async (
     to,
     kind: "estimate",
     number,
-    total: formatMoney(estimate.total),
+    total: formatMoney(estimate.total, estimate.currency),
     filename: `Estimate_${number}.pdf`,
     pdf,
   });

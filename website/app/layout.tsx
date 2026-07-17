@@ -50,7 +50,12 @@ export default function RootLayout({
       lang="en"
       className={`${interTight.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full">
+      {/* Extensions (Grammarly, wallets) inject attributes onto <body> before
+          React hydrates — `data-gr-ext-installed`, `data-new-gr-c-s-check-loaded`
+          — which React reports as a hydration mismatch. Suppressing it here is
+          scoped to this element's own attributes: children are still checked,
+          so a real mismatch inside the app still surfaces. */}
+      <body className="min-h-full" suppressHydrationWarning>
         {adobeKit && (
           <link
             rel="stylesheet"

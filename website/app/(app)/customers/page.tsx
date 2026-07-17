@@ -86,6 +86,7 @@ const CustomersPage = async ({
       invoice_count: Number(s?.invoice_count ?? 0),
       total_billed: Number(s?.total_billed ?? 0),
       total_paid: Number(s?.total_paid ?? 0),
+      total_billed_foreign: s?.total_billed_foreign ?? null,
     };
   });
 
@@ -244,6 +245,13 @@ const CustomersPage = async ({
                       </TableCell>
                       <TableCell className="text-right font-medium tabular-nums">
                         {c.total_billed ? formatMoney(c.total_billed) : "—"}
+                        {c.total_billed_foreign ? (
+                          /* The CAD figure hides that this was billed in USD —
+                             say so rather than let it read as CAD invoices. */
+                          <span className="block text-xs font-normal text-muted-foreground">
+                            {formatMoney(c.total_billed_foreign, c.currency)}
+                          </span>
+                        ) : null}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-1">

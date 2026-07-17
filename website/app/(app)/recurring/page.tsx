@@ -80,7 +80,7 @@ const RecurringPage = async () => {
                       {formatDate(s.next_run)}
                     </TableCell>
                     <TableCell className="text-right font-medium tabular-nums">
-                      {formatMoney(total)}
+                      {formatMoney(total, s.currency)}
                     </TableCell>
                     <TableCell>
                       <StatusPill status={s.active ? "sent" : "draft"} />
