@@ -1,10 +1,12 @@
 import { Metadata } from "next";
+import { Trash2 } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listCustomers } from "@services/supabase/customer";
 import { deleteCustomer } from "./actions";
 import { CustomerForm } from "@components/customer-form";
 import {
+  Button,
   Card,
   CardHeader,
   CardTitle,
@@ -63,12 +65,15 @@ const CustomersPage = async () => {
                   </div>
                   <form action={deleteCustomer}>
                     <input type="hidden" name="id" value={c.id} />
-                    <button
+                    <Button
                       type="submit"
-                      className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition hover:bg-brand-red/10 hover:text-brand-red"
+                      variant="dangerGhost"
+                      size="icon"
+                      title="Delete customer"
+                      aria-label="Delete customer"
                     >
-                      Delete
-                    </button>
+                      <Trash2 />
+                    </Button>
                   </form>
                 </div>
               ))}

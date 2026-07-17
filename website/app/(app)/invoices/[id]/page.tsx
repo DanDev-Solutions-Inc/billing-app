@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Trash2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
@@ -44,7 +45,6 @@ const InvoicePage = async ({
   return (
     <DocumentDetail
       backHref="/invoices"
-      backLabel="Invoices"
       heading="Invoice"
       number={inv.invoice_number}
       status={inv.status}
@@ -86,7 +86,8 @@ const InvoicePage = async ({
           </ButtonLink>
           <form action={deleteInvoice}>
             <input type="hidden" name="id" value={inv.id} />
-            <Button type="submit" variant="ghost">
+            <Button type="submit" variant="dangerGhost">
+              <Trash2 />
               Delete
             </Button>
           </form>

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { FileText } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listEstimates } from "@services/supabase/estimate";
@@ -73,7 +74,12 @@ const EstimatesPage = async ({
       <PageHeader
         title="Estimates"
         subtitle="Quote work before it becomes an invoice."
-        action={<ButtonLink href="/estimates/new">+ New estimate</ButtonLink>}
+        action={
+          <ButtonLink href="/estimates/new" size="sm">
+            <FileText />
+            New estimate
+          </ButtonLink>
+        }
       />
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
@@ -104,7 +110,10 @@ const EstimatesPage = async ({
           }
           action={
             all.length === 0 ? (
-              <ButtonLink href="/estimates/new">+ New estimate</ButtonLink>
+              <ButtonLink href="/estimates/new">
+                <FileText />
+                New estimate
+              </ButtonLink>
             ) : (
               <ButtonLink href="/estimates?period=all" variant="secondary">
                 View all time

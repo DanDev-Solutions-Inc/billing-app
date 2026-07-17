@@ -17,7 +17,6 @@ const NewEstimatePage = async () => {
     <>
       <PageHeader
         backHref="/estimates"
-        backLabel="Estimates"
         title="New estimate"
         subtitle="Quote work for a customer."
       />

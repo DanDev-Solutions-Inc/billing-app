@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listReceipts } from "@services/supabase/receipt";
-import { Mail, Upload } from "lucide-react";
+import { Mail, Upload, Plus } from "lucide-react";
 import {
   PageHeader,
   Card,
@@ -76,10 +76,14 @@ const ReceiptsPage = async ({
         subtitle="Track expenses by photo or forwarded email."
         action={
           <div className="flex gap-2">
-            <ButtonLink href="/receipts/import" variant="secondary">
+            <ButtonLink href="/receipts/import" variant="secondary" size="sm">
+              <Upload />
               Bulk import
             </ButtonLink>
-            <ButtonLink href="/receipts/new">+ Add receipt</ButtonLink>
+            <ButtonLink href="/receipts/new" size="sm">
+              <Plus />
+              Add receipt
+            </ButtonLink>
           </div>
         }
       />
@@ -110,7 +114,10 @@ const ReceiptsPage = async ({
           }
           action={
             all.length === 0 ? (
-              <ButtonLink href="/receipts/new">+ Add receipt</ButtonLink>
+              <ButtonLink href="/receipts/new">
+                <Plus />
+                Add receipt
+              </ButtonLink>
             ) : (
               <ButtonLink href="/receipts?period=all" variant="secondary">
                 View all time

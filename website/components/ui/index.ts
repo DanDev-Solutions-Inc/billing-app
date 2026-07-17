@@ -7,6 +7,7 @@ export {
   CardFooter,
 } from "@components/ui/card";
 export { PageHeader } from "@components/ui/page-header";
+export { BackButton } from "@components/ui/back-button";
 export { Button } from "@components/ui/button";
 export { ButtonLink } from "@components/ui/button-link";
 export { StatusPill } from "@components/ui/status-pill";

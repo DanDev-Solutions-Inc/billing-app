@@ -3,14 +3,11 @@ import Link from "next/link";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listTransactions } from "@services/supabase/transaction";
-import {
-  FileText,
-  Receipt as ReceiptIcon,
-  Trash2,
-} from "lucide-react";
+import { FileText, Receipt as ReceiptIcon, Trash2, Plus } from "lucide-react";
 import {
   PageHeader,
   Card,
+  Button,
   ButtonLink,
   StatusPill,
   EmptyState,
@@ -99,7 +96,10 @@ const TransactionsPage = async ({
         title="Transactions"
         subtitle="Money in and out of your business."
         action={
-          <ButtonLink href="/transactions/new">+ New transaction</ButtonLink>
+          <ButtonLink href="/transactions/new" size="sm">
+            <Plus />
+            New transaction
+          </ButtonLink>
         }
       />
 
@@ -137,7 +137,10 @@ const TransactionsPage = async ({
           }
           action={
             everything.length === 0 ? (
-              <ButtonLink href="/transactions/new">+ New transaction</ButtonLink>
+              <ButtonLink href="/transactions/new" size="sm">
+            <Plus />
+            New transaction
+          </ButtonLink>
             ) : (
               <ButtonLink href="/transactions?period=all" variant="secondary">
                 View all time
@@ -233,14 +236,15 @@ const TransactionsPage = async ({
                     <TableCell className="text-right">
                       <form action={deleteTransactionAction}>
                         <input type="hidden" name="id" value={t.id} />
-                        <button
+                        <Button
                           type="submit"
+                          variant="dangerGhost"
+                          size="icon"
                           title="Delete transaction"
                           aria-label="Delete transaction"
-                          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-brand-red/10 hover:text-brand-red"
                         >
-                          <Trash2 className="size-4" />
-                        </button>
+                          <Trash2 />
+                        </Button>
                       </form>
                     </TableCell>
                   </TableRow>

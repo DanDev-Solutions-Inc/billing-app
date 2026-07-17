@@ -23,6 +23,8 @@ export const POST = async (request: Request) => {
             "image/webp",
             "image/heic",
             "image/heif",
+            // Emailed/downloaded receipts are very often PDFs.
+            "application/pdf",
           ],
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({ userId: user.id }),

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Trash2 } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listRecurring } from "@services/supabase/recurring-invoice";
@@ -99,12 +100,15 @@ const RecurringPage = async () => {
                         </form>
                         <form action={deleteRecurringAction}>
                           <input type="hidden" name="id" value={s.id} />
-                          <button
+                          <Button
                             type="submit"
-                            className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition hover:bg-brand-red/10 hover:text-brand-red"
+                            variant="dangerGhost"
+                            size="icon"
+                            title="Delete schedule"
+                            aria-label="Delete schedule"
                           >
-                            Delete
-                          </button>
+                            <Trash2 />
+                          </Button>
                         </form>
                       </div>
                     </TableCell>

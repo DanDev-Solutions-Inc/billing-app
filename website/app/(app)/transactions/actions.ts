@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { del } from "@vercel/blob";
 import { redirect } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { emptyToNull } from "@utils/doc-helpers";
 import { scanReceiptImage } from "@lib/receipts/scan";
-import { deleteReceiptWithFile } from "@services/receipts/delete-receipt";
 import * as transactions from "@services/supabase/transaction";
 import * as receipts from "@services/supabase/receipt";
 import { TxnDirection } from "@typings/transaction/TxnDirection";
@@ -116,14 +116,19 @@ export const deleteTransactionAction = async (formData: FormData) => {
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
 
-  const txn = await transactions.getTransaction(supabase, id);
-  const receiptId = txn?.receipt_id ?? null;
-
-  // Transaction first: the receipt FK is ON DELETE SET NULL, so removing the
-  // receipt while the row still pointed at it would just null the link and
-  // strand the transaction.
-  await transactions.deleteTransaction(supabase, id);
-  if (receiptId) await deleteReceiptWithFile(supabase, receiptId);
+  // One Postgres function removes both rows in a single transaction and hands
+  // back the receipt's file path; the Blob is deleted only once that commits.
+  const { imagePathname } = await transactions.deleteTransactionCascade(
+    supabase,
+    id,
+  );
+  if (imagePathname) {
+    try {
+      await del(imagePathname);
+    } catch {
+      // Blob already gone or token missing — the rows are what matter.
+    }
+  }
 
   revalidatePath("/transactions");
   revalidatePath("/receipts");

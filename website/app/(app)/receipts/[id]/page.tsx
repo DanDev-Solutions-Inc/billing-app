@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Trash2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
@@ -36,12 +37,12 @@ const ReceiptPage = async ({
     <>
       <PageHeader
         backHref="/receipts"
-        backLabel="Receipts"
         title={receipt.vendor || "Receipt"}
         action={
           <form action={deleteReceipt}>
             <input type="hidden" name="id" value={receipt.id} />
-            <Button type="submit" variant="ghost">
+            <Button type="submit" variant="dangerGhost">
+              <Trash2 />
               Delete
             </Button>
           </form>

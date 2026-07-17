@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { FileText } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listInvoices } from "@services/supabase/invoice";
@@ -65,7 +66,12 @@ const InvoicesPage = async ({
       <PageHeader
         title="Invoices"
         subtitle="Bill customers and track what's outstanding."
-        action={<ButtonLink href="/invoices/new">+ New invoice</ButtonLink>}
+        action={
+          <ButtonLink href="/invoices/new" size="sm">
+            <FileText />
+            New invoice
+          </ButtonLink>
+        }
       />
 
       <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-border pb-4">
@@ -92,7 +98,10 @@ const InvoicesPage = async ({
           }
           action={
             all.length === 0 ? (
-              <ButtonLink href="/invoices/new">+ New invoice</ButtonLink>
+              <ButtonLink href="/invoices/new">
+                <FileText />
+                New invoice
+              </ButtonLink>
             ) : (
               <ButtonLink href="/invoices" variant="secondary">
                 View all invoices

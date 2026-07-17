@@ -323,6 +323,10 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      delete_transaction_cascade: {
+        Args: { txn_id: string };
+        Returns: string | null;
+      };
       next_invoice_number: {
         Args: { uid: string };
         Returns: string;

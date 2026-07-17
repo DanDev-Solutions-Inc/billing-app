@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
@@ -224,7 +225,8 @@ const TransactionPage = async ({
 
           <form action={deleteTransactionAction}>
             <input type="hidden" name="id" value={txn.id} />
-            <Button type="submit" variant="ghost">
+            <Button type="submit" variant="dangerGhost">
+              <Trash2 />
               Delete transaction
             </Button>
           </form>

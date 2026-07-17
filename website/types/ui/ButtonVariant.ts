@@ -3,6 +3,7 @@ export type ButtonVariant =
   | "primary"
   | "secondary"
   | "danger"
+  | "dangerGhost"
   | "ghost"
   | "glass"
   | "outline";

@@ -17,7 +17,6 @@ const NewInvoicePage = async () => {
     <>
       <PageHeader
         backHref="/invoices"
-        backLabel="Invoices"
         title="New invoice"
         subtitle="Add line items and totals."
       />

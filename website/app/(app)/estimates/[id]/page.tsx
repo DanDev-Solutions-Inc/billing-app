@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
@@ -51,7 +52,6 @@ const EstimatePage = async ({
   return (
     <DocumentDetail
       backHref="/estimates"
-      backLabel="Estimates"
       heading="Estimate"
       number={est.estimate_number}
       status={est.status}
@@ -111,7 +111,8 @@ const EstimatePage = async ({
           </ButtonLink>
           <form action={deleteEstimate}>
             <input type="hidden" name="id" value={est.id} />
-            <Button type="submit" variant="ghost">
+            <Button type="submit" variant="dangerGhost">
+              <Trash2 />
               Delete
             </Button>
           </form>

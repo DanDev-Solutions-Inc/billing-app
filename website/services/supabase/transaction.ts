@@ -79,6 +79,24 @@ export const deleteTransaction = async (
   await sb.from("transactions").delete().eq("id", id);
 };
 
+/**
+ * Delete a transaction and the receipt it was filed from, atomically.
+ *
+ * Both rows go or neither does — as two separate calls, a failure in between
+ * would strand an orphaned receipt. Returns the receipt's Blob pathname (or
+ * null) so the caller can delete the file only after the DB has committed;
+ * storage can't take part in the transaction.
+ */
+export const deleteTransactionCascade = async (
+  sb: SupabaseClient,
+  id: string,
+): Promise<{ imagePathname: string | null; error?: string }> => {
+  const { data, error } = await sb.rpc("delete_transaction_cascade", {
+    txn_id: id,
+  });
+  return { imagePathname: data ?? null, error: error?.message };
+};
+
 /** True when an income transaction already exists for the given invoice. */
 export const hasInvoiceIncome = async (
   sb: SupabaseClient,
