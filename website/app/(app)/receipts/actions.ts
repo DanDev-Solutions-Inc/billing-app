@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { del } from "@vercel/blob";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { emptyToNull } from "@utils/doc-helpers";
 import { scanReceiptImage } from "@lib/receipts/scan";
+import { deleteReceiptWithFile } from "@services/receipts/delete-receipt";
 import * as receipts from "@services/supabase/receipt";
 import * as transactions from "@services/supabase/transaction";
 import { UploadedReceipt } from "@interfaces/forms/UploadedReceipt";
@@ -123,16 +123,9 @@ export const deleteReceipt = async (formData: FormData) => {
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
 
-  const receipt = await receipts.getReceipt(supabase, id);
-  if (receipt?.image_pathname) {
-    try {
-      await del(receipt.image_pathname);
-    } catch {
-      // Blob already gone or token missing — proceed with the row delete.
-    }
-  }
-  await receipts.deleteReceipt(supabase, id);
+  await deleteReceiptWithFile(supabase, id);
 
   revalidatePath("/receipts");
+  revalidatePath("/transactions");
   redirect("/receipts");
 };
