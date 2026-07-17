@@ -35,28 +35,34 @@ export const TransactionForm = () => {
     },
     validationSchema: transactionSchema,
     onSubmit: async (values, { setStatus }) => {
-      try {
-        const formData = new FormData();
-        if (file && file.size > 0) {
+      const formData = new FormData();
+
+      // Only the upload is guarded. The action must stay OUT of the try:
+      // redirect() works by throwing, so catching around it would swallow the
+      // navigation and surface "NEXT_REDIRECT" as a failure.
+      if (file && file.size > 0) {
+        try {
           const blob = await upload(file.name, file, {
             access: "private",
             handleUploadUrl: "/api/receipts/upload",
           });
           formData.set("image_url", blob.url);
           formData.set("image_pathname", blob.pathname);
+        } catch (err) {
+          setStatus({
+            error: err instanceof Error ? err.message : "Upload failed.",
+          });
+          return;
         }
-        formData.set("direction", values.direction);
-        formData.set("amount", values.amount);
-        formData.set("txn_date", values.txn_date);
-        formData.set("category", values.category);
-        formData.set("description", values.description);
-        const result = await createTransactionAction({}, formData);
-        if (result?.error) setStatus({ error: result.error });
-      } catch (err) {
-        setStatus({
-          error: err instanceof Error ? err.message : "Failed to save.",
-        });
       }
+
+      formData.set("direction", values.direction);
+      formData.set("amount", values.amount);
+      formData.set("txn_date", values.txn_date);
+      formData.set("category", values.category);
+      formData.set("description", values.description);
+      const result = await createTransactionAction({}, formData);
+      if (result?.error) setStatus({ error: result.error });
     },
   });
 

@@ -38,27 +38,23 @@ export const ReceiptUploader = () => {
       as_expense: true,
     },
     validationSchema: receiptSchema,
+    // No try/catch: the upload already happened when the file was picked, so
+    // the only call here is the action — and redirect() works by throwing, so
+    // catching would swallow the navigation and show "NEXT_REDIRECT" instead.
     onSubmit: async (values, { setStatus }) => {
-      try {
-        const formData = new FormData();
-        // Already uploaded when the file was picked, so saving is instant.
-        if (blob) {
-          formData.set("image_url", blob.url);
-          formData.set("image_pathname", blob.pathname);
-        }
-        formData.set("vendor", values.vendor);
-        formData.set("amount", values.amount);
-        formData.set("receipt_date", values.receipt_date);
-        formData.set("category", values.category);
-        formData.set("notes", values.notes);
-        if (values.as_expense) formData.set("as_expense", "on");
-        const result = await createReceipt(formData);
-        if (result?.error) setStatus({ error: result.error });
-      } catch (err) {
-        setStatus({
-          error: err instanceof Error ? err.message : "Failed to save.",
-        });
+      const formData = new FormData();
+      if (blob) {
+        formData.set("image_url", blob.url);
+        formData.set("image_pathname", blob.pathname);
       }
+      formData.set("vendor", values.vendor);
+      formData.set("amount", values.amount);
+      formData.set("receipt_date", values.receipt_date);
+      formData.set("category", values.category);
+      formData.set("notes", values.notes);
+      if (values.as_expense) formData.set("as_expense", "on");
+      const result = await createReceipt(formData);
+      if (result?.error) setStatus({ error: result.error });
     },
   });
 
