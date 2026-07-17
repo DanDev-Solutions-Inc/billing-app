@@ -14,7 +14,11 @@ import { PollReceiptsResult } from "@interfaces/services/PollReceiptsResult";
 const QUERY = "has:attachment";
 
 /**
- * Poll the dedicated receipts mailbox and ingest any new attachments.
+ * Poll the receipts mailbox and ingest any new attachments.
+ *
+ * Mail sent to the receipts@dandev.solutions alias is auto-forwarded into an
+ * isolated free Gmail account, which this reads. Everything that lands there is
+ * a forwarded receipt, so any attachment is fair game.
  *
  * Every receipt is filed against GMAIL_RECEIPTS_USER_ID (the mailbox is shared
  * business-wide, not per-user). Idempotent: receipts.source_message_id is unique,

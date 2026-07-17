@@ -5,9 +5,11 @@ const TOKEN_URL = "https://oauth2.googleapis.com/token";
 /**
  * Exchange the long-lived refresh token for a short-lived access token.
  *
- * The refresh token belongs to the dedicated receipts@ mailbox only, so this
- * grants no access to any other account. Uses the REST endpoint directly —
- * `googleapis` would pull in a very large dependency for two calls.
+ * The refresh token belongs to the isolated receipts mailbox only (a free Gmail
+ * account that receives nothing but receipts forwarded from the
+ * receipts@dandev.solutions alias), and carries a read-only scope — so it cannot
+ * send, delete, or reach any other account. Uses the REST endpoint directly;
+ * `googleapis` would be a very large dependency for two calls.
  */
 export const getAccessToken = async (): Promise<string | null> => {
   const clientId = process.env.GOOGLE_CLIENT_ID;

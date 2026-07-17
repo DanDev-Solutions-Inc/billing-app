@@ -1,4 +1,4 @@
-// One-time: mint a Gmail refresh token for the dedicated receipts@ mailbox.
+// One-time: mint a Gmail refresh token for the isolated receipts mailbox.
 //
 // Spins up a throwaway localhost listener, opens Google's consent screen, and
 // prints the refresh token to paste into .env.local / Vercel. Read-only scope —
@@ -7,10 +7,13 @@
 // Prereq (Google Cloud console → the OAuth client in GOOGLE_CLIENT_ID):
 //   • Gmail API enabled
 //   • Authorised redirect URI: http://localhost:5599/oauth2callback
+//   • Consent screen = External (a free @gmail.com account cannot grant access
+//     to an "Internal" Workspace-only client). If it is in Testing mode, add the
+//     receipts account under Test users first.
 //
 //   cd website && set -a; source .env.local; set +a
 //   node scripts/gmail-auth.mjs
-//   → sign in as receipts@dandev.solutions (NOT your personal account)
+//   → sign in as the receipts mailbox (NOT your personal/owner account)
 import { createServer } from "node:http";
 import { exec } from "node:child_process";
 
@@ -77,10 +80,11 @@ const server = createServer(async (req, res) => {
   }).then((r) => r.json());
 
   res.end("Authorised. You can close this tab and return to the terminal.");
-  console.log(`\nAuthorised mailbox: ${who.emailAddress}`);
-  if (!/^receipts@/i.test(who.emailAddress ?? "")) {
-    console.log("⚠️  That is NOT the receipts@ mailbox — re-run and pick the right account.");
-  }
+  console.log(`\nAuthorised mailbox: ${who.emailAddress}  (${who.messagesTotal} messages)`);
+  console.log(
+    "Confirm that is the isolated receipts mailbox — every attachment in it\n" +
+      "becomes a receipt. If it is your personal/owner inbox, re-run and switch account.",
+  );
   console.log(`\nAdd to .env.local and Vercel:\n\nGMAIL_REFRESH_TOKEN="${token.refresh_token}"\n`);
   server.close();
 });
