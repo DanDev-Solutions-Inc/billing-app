@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Pencil, FileText, Pause, Play } from "lucide-react";
+import { FileText, Pause, Play } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listRecurring } from "@services/supabase/recurring-invoice";
@@ -15,7 +15,7 @@ import {
   TableBody,
   TableRow,
   TableHead,
-  TableCell, ConfirmButton } from "@components/ui";
+  TableCell, ConfirmButton, RowLink } from "@components/ui";
 import { formatMoney, formatDate, computeTotals } from "@utils/money";
 import { cadenceLabel } from "@utils/cadence";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
@@ -66,14 +66,19 @@ const RecurringPage = async () => {
                 return (
                   <TableRow key={s.id}>
                     <TableCell className="w-full max-w-0">
-                      <span className="block truncate font-medium text-foreground">
+                      {/* Row opens Edit — the pencil was one more icon
+                          competing with the name for a phone's width. */}
+                      <RowLink
+                        href={`/recurring/${s.id}/edit`}
+                        className="block truncate"
+                      >
                         {s.title || "Untitled"}
                         {s.auto_send && (
                           <span className="ml-2 text-xs font-normal text-muted-foreground">
                             auto-emails
                           </span>
                         )}
-                      </span>
+                      </RowLink>
                       {/* The columns hidden on small screens, folded into one
                           line so the row still says who/when/how often. */}
                       <span className="mt-0.5 block truncate text-xs text-muted-foreground md:hidden">
@@ -106,7 +111,11 @@ const RecurringPage = async () => {
                       <StatusPill status={s.active ? "sent" : "draft"} />
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-end gap-1">
+                      {/* relative z-10: above the row-link overlay, or these
+                          would all just open Edit. */}
+                      <div className="relative z-10 flex items-center justify-end gap-1">
+                        {/* Preview is desktop-only — pause and delete are the
+                            two you'd actually reach for on a phone. */}
                         <ButtonLink
                           href={`/recurring/${s.id}/pdf`}
                           variant="ghost"
@@ -114,17 +123,9 @@ const RecurringPage = async () => {
                           target="_blank"
                           title="Preview next invoice"
                           aria-label={`Preview the next invoice for ${s.title || "this schedule"}`}
+                          className="hidden sm:inline-flex"
                         >
                           <FileText />
-                        </ButtonLink>
-                        <ButtonLink
-                          href={`/recurring/${s.id}/edit`}
-                          variant="ghost"
-                          size="icon"
-                          title="Edit schedule"
-                          aria-label={`Edit ${s.title || "schedule"}`}
-                        >
-                          <Pencil />
                         </ButtonLink>
                         <form action={toggleRecurring}>
                           <input type="hidden" name="id" value={s.id} />

@@ -2,11 +2,12 @@
 
 import { useState, useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, CheckCircle2 } from "lucide-react";
 import {
   Button,
   Modal,
   ModalFooter,
+  ModalResult,
   Field,
   Select,
   Alert,
@@ -55,7 +56,7 @@ export const SendButton = ({
         open={open}
         onClose={() => setOpen(false)}
         size="sm"
-        title={state.ok ? "Sent" : label}
+        title={state.ok ? "" : label}
         description={
           state.ok
             ? undefined
@@ -63,16 +64,17 @@ export const SendButton = ({
         }
       >
         {state.ok ? (
-          <div className="flex flex-col gap-4">
-            {/* Same Alert every other modal uses — this was a hand-rolled
-                green box saying the same thing a different way. */}
-            <Alert tone="success">{state.ok}</Alert>
-            <ModalFooter>
+          <ModalResult
+            tone="success"
+            icon={<CheckCircle2 />}
+            title="Invoice sent"
+            detail={state.ok}
+            action={
               <Button type="button" onClick={() => setOpen(false)}>
                 Done
               </Button>
-            </ModalFooter>
-          </div>
+            }
+          />
         ) : (
           <form action={formAction} className="flex flex-col gap-4">
             <input type="hidden" name="id" value={id} />

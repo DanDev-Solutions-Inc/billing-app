@@ -37,7 +37,7 @@ export { SortableHead } from "@components/ui/sortable-head";
 export { Pagination } from "@components/ui/pagination";
 export { Alert, AlertIcon } from "@components/ui/alert";
 export { Menu, MenuItem, MenuSeparator } from "@components/ui/menu";
-export { Modal, ModalFooter } from "@components/ui/modal";
+export { Modal, ModalFooter, ModalResult } from "@components/ui/modal";
 export { SearchInput } from "@components/ui/search-input";
 export type { SearchInputProps } from "@interfaces/components/SearchInputProps";
 export { Combobox } from "@components/ui/combobox";

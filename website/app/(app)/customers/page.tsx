@@ -143,7 +143,7 @@ const CustomersPage = async ({
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <SortableHead
-                      className="w-full"
+                      className="min-w-[12rem]"
                       label="Name"
                       sortKey="name"
                       activeKey={sort}
@@ -172,7 +172,7 @@ const CustomersPage = async ({
                       activeKey={sort}
                       activeDir={dir}
                       href={sortHref("address")}
-                      className="hidden lg:table-cell"
+                      className="hidden w-full lg:table-cell"
                     />
                     <SortableHead
                       label="Invoices"
@@ -196,7 +196,7 @@ const CustomersPage = async ({
                 <TableBody>
                   {result.rows.map((c) => (
                     <TableRow key={c.id}>
-                      <TableCell className="w-full max-w-0">
+                      <TableCell className="min-w-[12rem] max-w-0">
                         {/* Opens the edit modal from anywhere on the row. */}
                         <CustomerRowLink customer={c} />
                         {/* Email and invoice count fold under the name on
@@ -225,7 +225,7 @@ const CustomersPage = async ({
                       </TableCell>
                       {/* max-w-0 + truncate keeps a long address from stretching
                           the table past the card. */}
-                      <TableCell className="hidden max-w-0 truncate text-muted-foreground lg:table-cell">
+                      <TableCell className="hidden w-full max-w-0 truncate text-muted-foreground lg:table-cell">
                         {mapsUrl(c) ? (
                           <a
                             href={mapsUrl(c)!}

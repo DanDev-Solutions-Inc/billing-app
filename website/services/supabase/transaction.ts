@@ -1,7 +1,6 @@
 import "server-only";
 import { SupabaseClient } from "@typings/SupabaseClient";
 import { TxnStatus } from "@typings/transaction/TxnStatus";
-import { Transaction } from "@typings/transaction/Transaction";
 import { TransactionInsert } from "@typings/transaction/TransactionInsert";
 import { TransactionWithLinks } from "@interfaces/models/transaction/TransactionWithLinks";
 import { TransactionDetail } from "@interfaces/models/transaction/TransactionDetail";
@@ -23,25 +22,6 @@ const DETAIL =
  * Returns the total alongside the rows, because the pager needs the count of
  * what matched, not of what was returned.
  */
-/**
- * Every transaction on/after `from`, unpaginated — for the dashboard chart and
- * its totals, which describe a whole window rather than a page.
- *
- * Deliberately separate from `listTransactions`: that one returns a page, so
- * reusing it here would silently plot only the first PAGE_SIZE rows.
- */
-export const listTransactionsSince = async (
-  sb: SupabaseClient,
-  from: string,
-): Promise<Transaction[]> => {
-  const { data } = await sb
-    .from("transactions")
-    .select("*")
-    .gte("txn_date", from)
-    .order("txn_date", { ascending: false });
-  return (data ?? []) as Transaction[];
-};
-
 export const listTransactions = async (
   sb: SupabaseClient,
   filters: TransactionFilters = {},

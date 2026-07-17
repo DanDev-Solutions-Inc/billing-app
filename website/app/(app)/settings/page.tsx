@@ -28,7 +28,11 @@ const SettingsPage = async () => {
     <>
       <PageHeader title="Settings" subtitle="Account and email-in details." />
 
-      <div className="grid max-w-3xl gap-6">
+      {/* [&>*]:min-w-0 — grid items default to `min-width: auto`, so a card
+          can't shrink below its content's intrinsic width. The long inbound
+          address then pushed every card past the screen on a phone instead of
+          truncating inside it. */}
+      <div className="grid max-w-3xl gap-6 [&>*]:min-w-0">
         <Card>
           <CardHeader>
             <CardTitle>Import from Wave</CardTitle>
