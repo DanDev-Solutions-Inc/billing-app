@@ -39,7 +39,19 @@ export const signup = async (
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return { error: error.message };
 
-  // If the project requires email confirmation there is no session yet.
+  // Supabase hides "email already registered" behind a fake success to prevent
+  // enumeration: it returns a user with an empty `identities` array and no
+  // session. Surface it plainly instead of a misleading "check your email" —
+  // this is what strands someone who signed up with Google and then tries a
+  // password (that account has no password to set this way).
+  if (data.user && data.user.identities?.length === 0) {
+    return {
+      error:
+        "An account with this email already exists. Sign in instead — use “Continue with Google” if that's how you signed up.",
+    };
+  }
+
+  // Email confirmation required (no session yet).
   if (!data.session) {
     return { message: "Check your email to confirm your account, then sign in." };
   }
