@@ -28,6 +28,13 @@ export const metadata: Metadata = { title: "Estimates" };
 
 const STATUSES = ["draft", "sent", "accepted", "declined"] as const;
 
+/* Only these get filter tabs. accepted/declined stay valid statuses — the
+   convert-to-invoice flow still sets 'accepted' — but an estimate is either a
+   draft or it's been sent, so those are the two worth filtering by. A deep
+   link to ?status=accepted still resolves (it's in STATUSES); it just has no
+   dedicated tab. */
+const TAB_STATUSES = ["draft", "sent"] as const;
+
 /* What each sortable column sorts by. Dates sort as ISO strings (lexical ==
    chronological); money sorts numerically, not as text. */
 const ACCESSORS: Accessors<EstimateWithCustomer> = {
@@ -87,7 +94,7 @@ const EstimatesPage = async ({
 
   const statusTabs = [
     { key: "all", label: "All", href: query("all", period), count: windowed.length },
-    ...STATUSES.map((s) => ({
+    ...TAB_STATUSES.map((s) => ({
       key: s,
       label: s[0].toUpperCase() + s.slice(1),
       href: query(s, period),

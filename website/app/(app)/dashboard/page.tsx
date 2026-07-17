@@ -29,7 +29,6 @@ import { RecurringCard } from "@components/dashboard/recurring-card";
 import { MobileRangeDefault } from "@components/dashboard/mobile-range-default";
 import {
   parseMonths,
-  monthsStart,
   totalsForCashFlow,
   toCashFlowPoints,
   MONTH_RANGES,
@@ -62,10 +61,6 @@ const DashboardPage = async ({
      narrows an unchosen range to 3 months (see MobileRangeDefault). */
   const hasExplicitRange = Boolean(params.months);
   const supabase = await createClient();
-  /* Only the window the chart draws — listTransactions() returns a *page*, so
-     using it here would silently plot the first PAGE_SIZE rows. */
-  const windowStart = monthsStart(months).toISOString().slice(0, 10);
-
   /* Estimates are no longer surfaced here, so we don't pay to fetch them. */
   const [invoices, cashFlowMonths, schedules] = await Promise.all([
     listInvoices(supabase),
@@ -164,7 +159,10 @@ const DashboardPage = async ({
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+      {/* [&>*]:min-w-0 — grid items are `min-width: auto` by default, so a
+          card can't shrink below its content (a wide chart or a long customer
+          name) and would push the column past the screen. */}
+      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] [&>*]:min-w-0">
         <Card className="flex flex-col">
           <CardHeader className="flex-row items-center justify-between gap-3">
             <CardTitle className="shrink-0">Cash flow</CardTitle>
@@ -220,8 +218,12 @@ const DashboardPage = async ({
       </div>
 
       {/* Recurring — money that bills itself. The point is what's coming and
-          when, so it leads with the next run rather than a status column. */}
-      <RecurringCard yearlyRun={yearlyRun} upcoming={upcoming} />
+          when, so it leads with the next run rather than a status column.
+          mt-6 matches the grid's own gap-6 so it doesn't butt against the row
+          above it — the grid only spaces its own children, not this sibling. */}
+      <div className="mt-6">
+        <RecurringCard yearlyRun={yearlyRun} upcoming={upcoming} />
+      </div>
     </>
   );
 };

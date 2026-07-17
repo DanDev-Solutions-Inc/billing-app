@@ -144,7 +144,10 @@ const ReceiptsPage = async ({
         title="Receipts"
         subtitle="Track expenses by photo or forwarded email."
         action={
-          <div className="flex gap-2">
+          // flex-1 so the two split the row on a phone — the header's own
+          // w-full only stretches direct children, not these nested in a
+          // group. Natural width from sm up.
+          <div className="flex gap-2 [&>a]:flex-1 sm:[&>a]:flex-none">
             <ButtonLink href="/receipts/import" variant="secondary" size="sm">
               <Upload />
               Bulk import

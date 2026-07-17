@@ -43,24 +43,42 @@ export const Modal = ({
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}
-      aria-label={title}
+      aria-label={title || "Dialog"}
       className={cn(
-        "vui-glass m-auto rounded-[--radius] p-0 text-foreground shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8)] backdrop:bg-navy-900/70 backdrop:backdrop-blur-sm",
-        // Width follows the content: a one-line confirmation in a 32rem box
-        // reads as an empty room. calc() keeps a phone margin at every size.
-        size === "sm" && "w-[min(26rem,calc(100vw-2rem))]",
-        size === "md" && "w-[min(32rem,calc(100vw-2rem))]",
-        size === "lg" && "w-[min(40rem,calc(100vw-2rem))]",
+        // whitespace-normal: white-space inherits, and a <dialog> stays a DOM
+        // descendant of wherever it's declared even while it renders in the top
+        // layer. Opened from inside a `whitespace-nowrap` table cell (the edit
+        // buttons are), the title and subtitle inherited nowrap and ran off a
+        // phone instead of wrapping. Reset it at the modal boundary.
+        "vui-glass m-auto whitespace-normal rounded-[--radius] p-0 text-foreground shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8)] backdrop:bg-navy-900/70 backdrop:backdrop-blur-sm",
+        // A <dialog> is width:fit-content by default, so without an explicit
+        // width it grows to its widest line and runs off a phone.
+        // `w-[calc(100%-2rem)]` + max-w keeps a margin at every size; the
+        // width follows the content, since a one-line confirmation in a 32rem
+        // box reads as an empty room.
+        "w-[calc(100%-2rem)]",
+        size === "sm" && "max-w-md",
+        size === "md" && "max-w-lg",
+        size === "lg" && "max-w-2xl",
+        // A long form (customer + address) is taller than a phone: cap the
+        // height and scroll inside, or the fields below the fold are simply
+        // unreachable — a <dialog> doesn't scroll the page behind it.
+        "max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain",
         className,
       )}
     >
       {/* Inner wrapper stops backdrop clicks from bubbling up as a close. */}
       <div onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between gap-4 px-6 pb-4 pt-5">
+        {/* Header sticks so the title and close stay reachable while the body
+            scrolls. A ModalResult carries its own headline, so an empty title
+            drops the heading and floats just the close button. */}
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 bg-navy-700/95 px-6 pb-4 pt-5 backdrop-blur-md">
           <div className="min-w-0">
-            <h2 className="font-heading text-base font-bold tracking-tight text-foreground">
-              {title}
-            </h2>
+            {title && (
+              <h2 className="font-heading text-base font-bold tracking-tight text-foreground">
+                {title}
+              </h2>
+            )}
             {description && (
               <p className="mt-1 text-sm text-muted-foreground">
                 {description}
@@ -71,7 +89,7 @@ export const Modal = ({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mr-1 shrink-0 rounded-full p-1.5 text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="-mr-1 ml-auto shrink-0 rounded-full p-1.5 text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
           >
             <X className="size-4" />
           </button>
@@ -93,5 +111,45 @@ export const ModalFooter = ({
 }: React.ComponentProps<"div">) => (
   <div className={cn("mt-5 flex flex-wrap items-center justify-end gap-2", className)}>
     {children}
+  </div>
+);
+
+/**
+ * A finished-action modal: a tone glyph, a headline, an optional detail line,
+ * one action centred beneath.
+ *
+ * Use this for success/result states instead of a boxed <Alert> in the body —
+ * the alert repeated what the title already said, so a "Sent" modal read the
+ * word twice. Mirrors the error page's language (glyph + message + action) so
+ * result states look the same wherever they appear.
+ */
+const RESULT_TONE = {
+  success: "text-brand-green",
+  info: "text-brand-accent",
+  error: "text-brand-red",
+} as const;
+
+export const ModalResult = ({
+  tone = "success",
+  icon,
+  title,
+  detail,
+  action,
+}: {
+  tone?: keyof typeof RESULT_TONE;
+  icon: React.ReactNode;
+  title: string;
+  detail?: React.ReactNode;
+  action: React.ReactNode;
+}) => (
+  <div className="flex flex-col items-center gap-4 py-2 text-center">
+    <span className={cn("[&_svg]:size-10", RESULT_TONE[tone])}>{icon}</span>
+    <div className="space-y-1">
+      <p className="font-heading text-base font-bold text-foreground">{title}</p>
+      {detail && (
+        <p className="break-words text-sm text-muted-foreground">{detail}</p>
+      )}
+    </div>
+    <div className="mt-1 flex justify-center">{action}</div>
   </div>
 );

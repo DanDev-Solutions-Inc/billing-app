@@ -17,10 +17,15 @@ export const FilterTabs = ({
   <nav
     aria-label={ariaLabel}
     className={cn(
-      "inline-flex items-center",
+      /* Each group takes its own row on a phone — as inline-flex they ignored
+         the FilterBar's stretch and wrapped into ragged part-rows. Segmented
+         controls divide their row evenly so the options stay tappable. */
+      "flex w-full items-center sm:inline-flex sm:w-auto",
       variant === "segmented"
-        ? "gap-0.5 rounded-xl border border-glass-border bg-white/[0.04] p-1 backdrop-blur-md"
-        : "flex-wrap gap-1",
+        ? "gap-0.5 rounded-xl border border-glass-border bg-white/[0.04] p-1 backdrop-blur-md [&>a]:flex-1 [&>a]:justify-center sm:[&>a]:flex-none"
+        : /* Chips fill the row on a phone (flex-1) so they read as a control
+             rather than a ragged left huddle; natural width from sm up. */
+          "gap-1 [&>a]:flex-1 [&>a]:justify-center sm:flex-wrap sm:[&>a]:flex-none sm:[&>a]:justify-start",
       className,
     )}
   >
