@@ -27,14 +27,17 @@ import { SidebarProps } from "@interfaces/components/SidebarProps";
 
 /* Icons are lucide across the whole app — these were hand-rolled SVGs, the one
    place that didn't match. */
+/* Ordered by how often Daniel actually uses them — getting paid first
+   (invoices, recurring), then the books (transactions, customers, receipts),
+   then the occasional ones. Admin stays at the bottom. */
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
   { href: "/invoices", label: "Invoices", icon: FileText },
   { href: "/recurring", label: "Recurring", icon: Repeat },
-  { href: "/estimates", label: "Estimates", icon: FileSignature },
-  { href: "/receipts", label: "Receipts", icon: Receipt },
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/customers", label: "Customers", icon: Building2 },
+  { href: "/receipts", label: "Receipts", icon: Receipt },
+  { href: "/estimates", label: "Estimates", icon: FileSignature },
   { href: "/team", label: "Team", icon: UserCog },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
