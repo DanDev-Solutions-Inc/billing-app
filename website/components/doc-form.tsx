@@ -3,6 +3,7 @@
 import { useFormik } from "formik";
 import { LineItemsEditor } from "@components/invoices/line-items-editor";
 import { Card, Field, inputClass, Button, Select } from "@components/ui";
+import { Combobox } from "@components/ui/combobox";
 import { documentSchema } from "@utils/validation/documentSchema";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { DocumentFormValues } from "@interfaces/forms/DocumentFormValues";
@@ -58,6 +59,12 @@ export const DocForm = ({
   const numberLabel = isInvoice ? "Invoice #" : "Estimate #";
 
   const initialIssueDate = defaults?.issueDate ?? today();
+
+  const customerOptions = customers.map((c) => ({
+    value: c.id,
+    label: c.name,
+    hint: c.email ?? undefined,
+  }));
 
   const formik = useFormik<DocumentFormValues>({
     initialValues: {
@@ -156,22 +163,25 @@ export const DocForm = ({
 
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-6" noValidate>
-      <Card className="p-6">
+      {/* z-20: `.vui-glass` sets backdrop-filter, which creates a stacking
+          context per Card. The customer combobox's dropdown is z-50 *inside*
+          this card, so without raising the card itself the later "Line items"
+          card paints over the open list. */}
+      <Card className="relative z-20 p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Customer" htmlFor="customer_id">
-            <Select
+            {/* Searchable: scrolling a plain select for 28+ customers is slow,
+                and the email disambiguates similar names. */}
+            <Combobox
               id="customer_id"
               name="customer_id"
+              options={customerOptions}
               value={formik.values.customer_id}
-              onChange={formik.handleChange}
-            >
-              <option value="">— None —</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
+              onChange={(next) => formik.setFieldValue("customer_id", next)}
+              emptyLabel="— None —"
+              placeholder="Search customers…"
+              aria-label="Customer"
+            />
           </Field>
           {isInvoice ? (
             <Field label="Invoice #">

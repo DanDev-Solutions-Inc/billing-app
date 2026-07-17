@@ -75,7 +75,7 @@ export const createTransactionAction = async (
   revalidatePath("/transactions");
   revalidatePath("/receipts");
   revalidatePath("/dashboard");
-  redirect("/transactions");
+  redirect("/transactions?toast=transaction-saved");
 };
 
 export const updateTransactionAction = async (formData: FormData) => {
@@ -95,6 +95,7 @@ export const updateTransactionAction = async (formData: FormData) => {
   revalidatePath("/transactions");
   revalidatePath(`/transactions/${id}`);
   revalidatePath("/dashboard");
+  redirect(`/transactions/${id}?toast=transaction-updated`);
 };
 
 export const setTransactionStatusAction = async (formData: FormData) => {
@@ -106,6 +107,9 @@ export const setTransactionStatusAction = async (formData: FormData) => {
   await transactions.setTransactionStatus(supabase, id, status);
   revalidatePath("/transactions");
   revalidatePath(`/transactions/${id}`);
+  redirect(
+    `/transactions/${id}?toast=${status === "approved" ? "transaction-approved" : "transaction-reopened"}`,
+  );
 };
 
 // Deleting a transaction also removes the receipt it was filed from (and its
@@ -133,5 +137,5 @@ export const deleteTransactionAction = async (formData: FormData) => {
   revalidatePath("/transactions");
   revalidatePath("/receipts");
   revalidatePath("/dashboard");
-  redirect("/transactions");
+  redirect("/transactions?toast=transaction-deleted");
 };

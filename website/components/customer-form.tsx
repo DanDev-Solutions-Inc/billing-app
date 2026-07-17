@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import { createCustomer } from "@app/(app)/customers/actions";
 import { customerSchema } from "@utils/validation/customerSchema";
 import { CustomerFormValues } from "@interfaces/forms/CustomerFormValues";
-import { Field, inputClass, Button } from "@components/ui";
+import { Field, inputClass, Button, Alert } from "@components/ui";
 
 const initialValues: CustomerFormValues = {
   name: "",
@@ -13,7 +13,8 @@ const initialValues: CustomerFormValues = {
   address: "",
 };
 
-export const CustomerForm = () => {
+/** `onSuccess` lets a host (e.g. a modal) react once the customer is created. */
+export const CustomerForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
   const formik = useFormik<CustomerFormValues>({
     initialValues,
     validationSchema: customerSchema,
@@ -24,8 +25,12 @@ export const CustomerForm = () => {
       formData.set("phone", values.phone);
       formData.set("address", values.address);
       const result = await createCustomer({}, formData);
-      if (result?.error) setStatus({ error: result.error });
-      else resetForm();
+      if (result?.error) {
+        setStatus({ error: result.error });
+        return;
+      }
+      resetForm();
+      onSuccess?.();
     },
   });
 
@@ -81,8 +86,8 @@ export const CustomerForm = () => {
           className={inputClass}
         />
       </Field>
-      {status?.error && <p className="text-sm text-brand-red">{status.error}</p>}
-      <div>
+      {status?.error && <Alert tone="error">{status.error}</Alert>}
+      <div className="flex justify-end">
         <Button type="submit" disabled={formik.isSubmitting}>
           {formik.isSubmitting ? "Adding…" : "Add customer"}
         </Button>

@@ -4,10 +4,17 @@ import { X } from "lucide-react";
 import { formatMoney, computeTotals } from "@utils/money";
 import { cn } from "@lib/utils";
 import { inputClass } from "@components/ui/input-class";
+import { Combobox } from "@components/ui/combobox";
 import { LineItemsEditorProps } from "@interfaces/components/LineItemsEditorProps";
 import { LINE_ITEM_PRESETS, presetText } from "@utils/line-item-presets";
 
-const PRESET_LIST_ID = "line-item-presets";
+/* Presets as combobox options: the title is what you scan for, the full text
+   is what gets inserted. */
+const PRESET_OPTIONS = LINE_ITEM_PRESETS.map((p) => ({
+  value: presetText(p),
+  label: p.title,
+  hint: presetText(p),
+}));
 
 /** Presentational line-items grid — state is owned by the parent Formik form.
  *  Fields use the shared `inputClass` so they inherit the kit's glass styling,
@@ -24,14 +31,6 @@ export const LineItemsEditor = ({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Shared preset list — every description field type-aheads against it.
-          `label` shows the title, `value` is what gets inserted. */}
-      <datalist id={PRESET_LIST_ID}>
-        {LINE_ITEM_PRESETS.map((p) => (
-          <option key={p.id} value={presetText(p)} label={p.title} />
-        ))}
-      </datalist>
-
       {/* header */}
       <div className="hidden grid-cols-[1fr_90px_120px_120px_32px] gap-2 px-1 text-xs font-medium text-muted-foreground sm:grid">
         <span>Description</span>
@@ -49,17 +48,17 @@ export const LineItemsEditor = ({
             key={index}
             className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_90px_120px_120px_32px] sm:items-center"
           >
-            {/* `list` gives the field native type-ahead over the presets while
-                staying fully free-text — a preset is a starting point, not a
-                lock-in. */}
-            <input
-              list={PRESET_LIST_ID}
+            {/* Presets are suggestions, not a lock-in: any text is accepted.
+                A styled listbox rather than <datalist>, which can't be themed
+                and renders differently in every browser. */}
+            <Combobox
+              options={PRESET_OPTIONS}
               value={row.description}
-              onChange={(e) =>
-                onItemChange(index, "description", e.target.value)
-              }
+              onChange={(next) => onItemChange(index, "description", next)}
+              allowCustom
               placeholder="Item or service"
-              className={cn(inputClass, "col-span-2 py-2 sm:col-span-1")}
+              aria-label="Description"
+              className="col-span-2 sm:col-span-1"
             />
             <input
               type="number"

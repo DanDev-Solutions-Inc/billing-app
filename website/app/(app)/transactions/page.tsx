@@ -169,14 +169,26 @@ const TransactionsPage = async ({
         />
       </div>
 
+      {/* Pager sits with the filters so it's reachable without scrolling the
+          whole table on a short screen. */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <FilterTabs tabs={typeTabs} active={active} aria-label="Filter by type" />
-        <FilterTabs
-          tabs={periodTabs}
-          active={period}
-          variant="segmented"
-          aria-label="Filter by date range"
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <FilterTabs tabs={typeTabs} active={active} aria-label="Filter by type" />
+          <FilterTabs
+            tabs={periodTabs}
+            active={period}
+            variant="segmented"
+            aria-label="Filter by date range"
+          />
+        </div>
+        {rows.length > 0 && (
+          <Pagination
+            {...result}
+            hrefFor={pageHref}
+            noun="transaction"
+            variant="bar"
+          />
+        )}
       </div>
 
       {rows.length === 0 ? (
@@ -336,7 +348,6 @@ const TransactionsPage = async ({
               })}
             </TableBody>
           </Table>
-          <Pagination {...result} hrefFor={pageHref} noun="transaction" />
         </Card>
       )}
     </>

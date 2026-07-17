@@ -122,13 +122,23 @@ const InvoicesPage = async ({
         }
       />
 
-      <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-border pb-4">
+      {/* Pager lives with the filters so it's reachable without scrolling the
+          whole table on a short screen. */}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
         <FilterSelect
           param="status"
           options={statusOptions}
           value={status}
           aria-label="Filter by status"
         />
+        {filtered.length > 0 && (
+          <Pagination
+            {...result}
+            hrefFor={pageHref}
+            noun="invoice"
+            variant="bar"
+          />
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -238,7 +248,6 @@ const InvoicesPage = async ({
               ))}
             </TableBody>
           </Table>
-          <Pagination {...result} hrefFor={pageHref} noun="invoice" />
         </Card>
       )}
     </>

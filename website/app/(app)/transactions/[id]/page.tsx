@@ -46,6 +46,7 @@ const TransactionPage = async ({
   return (
     <>
       <PageHeader
+        backHref="/transactions"
         title="Transaction"
         subtitle={formatDate(txn.txn_date)}
         action={

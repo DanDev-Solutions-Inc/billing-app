@@ -52,7 +52,7 @@ export const createInvoice = async (
   if (liError) return { error: liError };
 
   revalidatePath("/invoices");
-  redirect(`/invoices/${id}`);
+  redirect(`/invoices/${id}?toast=invoice-created`);
 };
 
 export const updateInvoice = async (
@@ -88,7 +88,7 @@ export const updateInvoice = async (
 
   revalidatePath("/invoices");
   revalidatePath(`/invoices/${id}`);
-  redirect(`/invoices/${id}`);
+  redirect(`/invoices/${id}?toast=invoice-saved`);
 };
 
 export const setInvoiceStatus = async (formData: FormData) => {
@@ -180,5 +180,5 @@ export const deleteInvoice = async (formData: FormData) => {
   await lineItems.deleteLineItems(supabase, "invoice", id);
   await invoices.deleteInvoice(supabase, id);
   revalidatePath("/invoices");
-  redirect("/invoices");
+  redirect("/invoices?toast=invoice-deleted");
 };

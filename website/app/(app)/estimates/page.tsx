@@ -131,18 +131,30 @@ const EstimatesPage = async ({
         }
       />
 
+      {/* Pager sits with the filters so it's reachable without scrolling the
+          whole table on a short screen. */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <FilterTabs
-          tabs={statusTabs}
-          active={status}
-          aria-label="Filter by status"
-        />
-        <FilterTabs
-          tabs={periodTabs}
-          active={period}
-          variant="segmented"
-          aria-label="Filter by date range"
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <FilterTabs
+            tabs={statusTabs}
+            active={status}
+            aria-label="Filter by status"
+          />
+          <FilterTabs
+            tabs={periodTabs}
+            active={period}
+            variant="segmented"
+            aria-label="Filter by date range"
+          />
+        </div>
+        {filtered.length > 0 && (
+          <Pagination
+            {...result}
+            hrefFor={pageHref}
+            noun="estimate"
+            variant="bar"
+          />
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -248,7 +260,6 @@ const EstimatesPage = async ({
               ))}
             </TableBody>
           </Table>
-          <Pagination {...result} hrefFor={pageHref} noun="estimate" />
         </Card>
       )}
     </>

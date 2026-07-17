@@ -115,7 +115,7 @@ export const createReceipt = async (
   }
 
   revalidatePath("/receipts");
-  redirect(`/receipts/${id}`);
+  redirect(`/receipts/${id}?toast=receipt-saved`);
 };
 
 export const deleteReceipt = async (formData: FormData) => {
@@ -127,5 +127,5 @@ export const deleteReceipt = async (formData: FormData) => {
 
   revalidatePath("/receipts");
   revalidatePath("/transactions");
-  redirect("/receipts");
+  redirect("/receipts?toast=receipt-deleted");
 };

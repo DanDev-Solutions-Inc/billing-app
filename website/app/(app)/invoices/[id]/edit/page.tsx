@@ -31,6 +31,7 @@ const EditInvoicePage = async ({
   return (
     <>
       <PageHeader
+        backHref={`/invoices/${id}`}
         title={`Edit invoice ${inv.invoice_number ?? ""}`.trim()}
         subtitle="Update the customer, dates, line items, or notes."
       />

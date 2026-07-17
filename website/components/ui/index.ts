@@ -39,3 +39,10 @@ export {
 export { SortableHead } from "@components/ui/sortable-head";
 export { Pagination } from "@components/ui/pagination";
 export { Alert, AlertIcon } from "@components/ui/alert";
+export { Modal } from "@components/ui/modal";
+export { SearchInput } from "@components/ui/search-input";
+export type { SearchInputProps } from "@interfaces/components/SearchInputProps";
+export { Combobox } from "@components/ui/combobox";
+export type { ComboboxProps, ComboboxOption } from "@interfaces/components/ComboboxProps";
+export { ToastProvider, useToast } from "@components/ui/toast";
+export { ToastFlash } from "@components/ui/toast-flash";

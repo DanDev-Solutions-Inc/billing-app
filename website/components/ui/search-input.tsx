@@ -21,10 +21,16 @@ export const SearchInput = ({
   const searchParams = useSearchParams();
   const urlValue = searchParams.get(param) ?? "";
   const [value, setValue] = useState(urlValue);
+  const [lastUrlValue, setLastUrlValue] = useState(urlValue);
   const isFirst = useRef(true);
 
-  // Keep in step when the URL changes elsewhere (back button, filter reset).
-  useEffect(() => setValue(urlValue), [urlValue]);
+  // Re-sync when the URL changes elsewhere (back button, a filter reset).
+  // Adjusting state during render rather than in an effect — an effect here
+  // would render twice and can cascade.
+  if (urlValue !== lastUrlValue) {
+    setLastUrlValue(urlValue);
+    setValue(urlValue);
+  }
 
   useEffect(() => {
     // Don't re-push the URL we just arrived on.
