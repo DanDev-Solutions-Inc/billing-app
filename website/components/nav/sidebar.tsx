@@ -57,10 +57,12 @@ export const Sidebar = ({
         mini ? "w-[76px]" : "w-64",
       )}
     >
+      {/* Open/collapse lives in the nav header next to the logo — it's a
+          property of the nav, not a menu item under Sign out. */}
       <div
         className={cn(
-          "flex items-center gap-2 px-5 py-5",
-          mini && "justify-center px-0",
+          "flex px-5 py-5",
+          mini ? "flex-col items-center gap-3 px-0" : "items-center justify-between gap-2",
         )}
       >
         {/* Collapsed shows the DD monogram; expanded shows the full wordmark. */}
@@ -72,6 +74,22 @@ export const Sidebar = ({
           priority
           className={cn("w-auto invert", mini ? "h-7" : "h-8")}
         />
+        {collapsible && (
+          <button
+            type="button"
+            onClick={toggleSidebarCollapsed}
+            aria-expanded={!mini}
+            aria-label={mini ? "Expand navigation" : "Collapse navigation"}
+            title={mini ? "Expand navigation" : "Collapse navigation"}
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+          >
+            {mini ? (
+              <PanelLeftOpen className="size-[18px]" />
+            ) : (
+              <PanelLeftClose className="size-[18px]" />
+            )}
+          </button>
+        )}
       </div>
 
       <nav className={cn("flex flex-1 flex-col gap-1 py-2", mini ? "px-3" : "px-4")}>
@@ -138,29 +156,6 @@ export const Sidebar = ({
             {!mini && "Sign out"}
           </button>
         </form>
-
-        {collapsible && (
-          <button
-            type="button"
-            onClick={toggleSidebarCollapsed}
-            aria-expanded={!mini}
-            aria-label={mini ? "Expand sidebar" : "Collapse sidebar"}
-            title={mini ? "Expand sidebar" : "Collapse sidebar"}
-            className={cn(
-              "mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-white/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
-              mini && "justify-center px-0",
-            )}
-          >
-            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]">
-              {mini ? (
-                <PanelLeftOpen className="size-[18px]" />
-              ) : (
-                <PanelLeftClose className="size-[18px]" />
-              )}
-            </span>
-            {!mini && "Collapse"}
-          </button>
-        )}
       </div>
     </aside>
   );

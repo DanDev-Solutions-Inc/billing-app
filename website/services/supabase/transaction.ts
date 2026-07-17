@@ -64,6 +64,26 @@ export const setTransactionStatus = async (
   await sb.from("transactions").update({ status }).eq("id", id);
 };
 
+/* Bulk variants use a single `.in("id", ids)` statement rather than N round
+   trips, so approving 50 rows is one query. RLS still scopes them to the user. */
+export const setTransactionStatusMany = async (
+  sb: SupabaseClient,
+  ids: string[],
+  status: TxnStatus,
+): Promise<void> => {
+  if (!ids.length) return;
+  await sb.from("transactions").update({ status }).in("id", ids);
+};
+
+export const updateTransactionMany = async (
+  sb: SupabaseClient,
+  ids: string[],
+  values: Partial<TransactionInsert>,
+): Promise<void> => {
+  if (!ids.length || !Object.keys(values).length) return;
+  await sb.from("transactions").update(values).in("id", ids);
+};
+
 export const updateTransaction = async (
   sb: SupabaseClient,
   id: string,

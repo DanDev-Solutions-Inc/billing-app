@@ -4,6 +4,7 @@ import { FileText } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listInvoices } from "@services/supabase/invoice";
+import { listCustomers } from "@services/supabase/customer";
 import {
   PageHeader,
   Card,
@@ -18,6 +19,7 @@ import {
   SortableHead,
   Pagination,
   FilterSelect,
+  SearchInput,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { isOverdue } from "@utils/invoice";
@@ -64,6 +66,8 @@ const InvoicesPage = async ({
 }: {
   searchParams: Promise<{
     status?: string;
+    customer?: string;
+    q?: string;
     sort?: string;
     dir?: string;
     page?: string;
@@ -80,9 +84,17 @@ const InvoicesPage = async ({
   const sort = parseSort(params.sort, SORT_KEYS, "issue_date");
   const dir = parseDir(params.dir, "desc");
   const page = parsePage(params.page);
+  const q = params.q?.trim() ?? "";
+  const customerId = params.customer ?? "";
 
   const supabase = await createClient();
-  const all = await listInvoices(supabase);
+  /* Search + customer run in Postgres, so they cover every invoice rather than
+     the page being rendered. Status is derived (overdue isn't stored), so it
+     stays a filter over the returned rows. */
+  const [all, customers] = await Promise.all([
+    listInvoices(supabase, { search: q, customerId: customerId || undefined }),
+    listCustomers(supabase),
+  ]);
 
   const filtered =
     status === "all" ? all : all.filter((i) => matchesStatus(i, status));
@@ -90,7 +102,13 @@ const InvoicesPage = async ({
   const result = paginate(sorted, page);
 
   /* Current query, so sorting keeps the filter and vice versa. */
-  const current = { status: status === "all" ? undefined : status, sort, dir };
+  const current = {
+    status: status === "all" ? undefined : status,
+    customer: customerId || undefined,
+    q: q || undefined,
+    sort,
+    dir,
+  };
   const sortHref = (key: string) =>
     mergeQuery("/invoices", current, {
       sort: key,
@@ -99,6 +117,14 @@ const InvoicesPage = async ({
     });
   const pageHref = (p: number) =>
     mergeQuery("/invoices", current, { page: p === 1 ? undefined : String(p) });
+
+  const customerOptions = [
+    { key: "all", label: "All customers" },
+    ...customers.map((c) => ({ key: c.id, label: c.name })),
+  ];
+
+  /* Any narrowing at all — search, customer, or status. */
+  const isFiltered = Boolean(q || customerId || status !== "all");
 
   const statusOptions = [
     { key: "all", label: "All invoices", count: all.length },
@@ -125,12 +151,24 @@ const InvoicesPage = async ({
       {/* Pager lives with the filters so it's reachable without scrolling the
           whole table on a short screen. */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <FilterSelect
-          param="status"
-          options={statusOptions}
-          value={status}
-          aria-label="Filter by status"
-        />
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          <SearchInput
+            placeholder="Search number, customer, notes…"
+            className="w-full sm:max-w-xs"
+          />
+          <FilterSelect
+            param="status"
+            options={statusOptions}
+            value={status}
+            aria-label="Filter by status"
+          />
+          <FilterSelect
+            param="customer"
+            options={customerOptions}
+            value={customerId || "all"}
+            aria-label="Filter by customer"
+          />
+        </div>
         {filtered.length > 0 && (
           <Pagination
             {...result}
@@ -143,14 +181,26 @@ const InvoicesPage = async ({
 
       {filtered.length === 0 ? (
         <EmptyState
-          title={all.length === 0 ? "No invoices yet" : `No ${status} invoices`}
+          /* An empty *result* isn't an empty ledger — a search or filter that
+             matches nothing shouldn't read as "you have no invoices". */
+          title={
+            isFiltered
+              ? "No matches"
+              : all.length === 0
+                ? "No invoices yet"
+                : `No ${status} invoices`
+          }
           description={
-            all.length === 0
-              ? "Create your first invoice to start getting paid."
-              : "Nothing here right now."
+            isFiltered
+              ? q
+                ? `No invoice matches “${q}”.`
+                : "Nothing matches these filters."
+              : all.length === 0
+                ? "Create your first invoice to start getting paid."
+                : "Nothing here right now."
           }
           action={
-            all.length === 0 ? (
+            all.length === 0 && !isFiltered ? (
               <ButtonLink href="/invoices/new">
                 <FileText />
                 New invoice

@@ -4,17 +4,31 @@ import { Invoice } from "@typings/invoice/Invoice";
 import { InvoiceStatus } from "@typings/invoice/InvoiceStatus";
 import { InvoiceInsert } from "@typings/invoice/InvoiceInsert";
 import { InvoiceWithCustomer } from "@interfaces/models/invoice/InvoiceWithCustomer";
+import {
+  DocumentFilters,
+  documentSearchClause,
+} from "@services/supabase/document-filters";
 
 const WITH_CUSTOMER = "*, customers(*)";
 
 export const listInvoices = async (
   sb: SupabaseClient,
+  filters?: DocumentFilters,
 ): Promise<InvoiceWithCustomer[]> => {
-  const { data } = await sb
+  let query = sb
     .from("invoices")
     .select(WITH_CUSTOMER)
     .order("issue_date", { ascending: false })
     .order("created_at", { ascending: false });
+
+  if (filters?.customerId) query = query.eq("customer_id", filters.customerId);
+  if (filters?.from) query = query.gte("issue_date", filters.from);
+  if (filters?.to) query = query.lte("issue_date", filters.to);
+
+  const search = await documentSearchClause(sb, filters?.search, "invoice_number");
+  if (search) query = query.or(search);
+
+  const { data } = await query;
   return (data ?? []) as InvoiceWithCustomer[];
 };
 

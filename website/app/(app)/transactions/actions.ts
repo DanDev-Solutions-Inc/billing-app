@@ -139,3 +139,44 @@ export const deleteTransactionAction = async (formData: FormData) => {
   revalidatePath("/dashboard");
   redirect("/transactions?toast=transaction-deleted");
 };
+
+/* --- Bulk operations ----------------------------------------------------- */
+
+/** Mark every selected transaction reviewed (or reopen them). */
+export const bulkSetStatusAction = async (formData: FormData) => {
+  await getUserOrRedirect();
+  const ids = formData.getAll("ids").map(String).filter(Boolean);
+  const status = String(formData.get("status") ?? "") as TxnStatus;
+  if (!ids.length || !TXN_STATUSES.includes(status)) return;
+
+  const supabase = await createClient();
+  await transactions.setTransactionStatusMany(supabase, ids, status);
+  revalidatePath("/transactions");
+  redirect(
+    `/transactions?toast=${status === "approved" ? "transactions-approved" : "transactions-reopened"}`,
+  );
+};
+
+/**
+ * Apply a description and/or category to every selected transaction.
+ * Blank fields are left untouched rather than blanked — a bulk edit shouldn't
+ * wipe data you didn't intend to change.
+ */
+export const bulkEditAction = async (formData: FormData) => {
+  await getUserOrRedirect();
+  const ids = formData.getAll("ids").map(String).filter(Boolean);
+  if (!ids.length) return;
+
+  const description = String(formData.get("description") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim();
+
+  const values: { description?: string; category?: string } = {};
+  if (description) values.description = description;
+  if (category) values.category = category;
+  if (!Object.keys(values).length) return;
+
+  const supabase = await createClient();
+  await transactions.updateTransactionMany(supabase, ids, values);
+  revalidatePath("/transactions");
+  redirect("/transactions?toast=transactions-updated");
+};
