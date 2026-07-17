@@ -37,7 +37,17 @@ export const getBillingSummaries = async (
   sb: SupabaseClient,
 ): Promise<Map<string, CustomerBillingSummary>> => {
   const { data } = await sb.from("customer_billing_summary").select("*");
-  return new Map((data ?? []).map((r) => [r.customer_id, r]));
+  /* Every column of a view is nullable to Postgres — it can't prove otherwise
+     through the join — so rows without a customer_id are dropped rather than
+     keyed under null. In practice there are none: the view is grouped by
+     customers.id. */
+  return new Map(
+    (data ?? [])
+      .filter((r): r is CustomerBillingSummary & { customer_id: string } =>
+        r.customer_id !== null,
+      )
+      .map((r) => [r.customer_id, r]),
+  );
 };
 
 export const createCustomer = async (
