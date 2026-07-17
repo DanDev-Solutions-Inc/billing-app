@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
@@ -104,6 +105,13 @@ const ReceiptsPage = async ({
   ]);
   const receipts = result.rows;
   const paged = pageOf(receipts, result.total, page, RECEIPT_PAGE_SIZE);
+
+  /* A ?page= past the end (stale link, or the list shrank) queried an empty
+     range and would render "no matches" over a non-empty list. Bounce to the
+     real last page so the URL self-corrects. Outside try/catch by design —
+     redirect() throws NEXT_REDIRECT. */
+  if (page > paged.pages)
+    redirect(query({ source, period, category, q, page: paged.pages }));
 
   /* Any narrowing — an empty result then means "no matches", not "none yet". */
   const isFiltered = Boolean(

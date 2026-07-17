@@ -6,10 +6,34 @@ import { TransactionWithLinks } from "@interfaces/models/transaction/Transaction
 import { TransactionDetail } from "@interfaces/models/transaction/TransactionDetail";
 import { PAGE_SIZE } from "@utils/table";
 import { TransactionFilters } from "@interfaces/services/TransactionFilters";
+import { Filterable } from "@interfaces/services/Filterable";
 
 const WITH_LINKS = "*, receipts(vendor), invoices(invoice_number)";
 const DETAIL =
   "*, receipts(id, vendor, image_url, receipt_date, amount, category), invoices(id, invoice_number, total)";
+
+/**
+ * Apply the shared filters. list and count both go through here on purpose:
+ * when the two drifted, a tab badge would advertise a count the grid can't
+ * produce. Mirrors receipt.ts's narrow().
+ *
+ * Not async — returning the builder from an async fn would await it, firing the
+ * query before the caller adds its own range/order.
+ */
+const narrow = <T extends Filterable<T>>(
+  query: T,
+  filters: TransactionFilters,
+): T => {
+  let q = query;
+  if (filters.direction) q = q.eq("direction", filters.direction);
+  if (filters.status) q = q.eq("status", filters.status);
+  if (filters.from) q = q.gte("txn_date", filters.from);
+  // Commas/parens are the or() grammar's own separators — strip them so a
+  // description can't inject extra conditions.
+  const text = filters.search?.trim().replace(/[,()]/g, " ");
+  if (text) q = q.or(`description.ilike.%${text}%,category.ilike.%${text}%`);
+  return q;
+};
 
 /**
  * A page of transactions, filtered and sorted by Postgres.
@@ -30,7 +54,7 @@ export const listTransactions = async (
   const size = filters.pageSize ?? PAGE_SIZE;
   const from = (page - 1) * size;
 
-  let query = sb
+  const query = sb
     .from("transactions")
     .select(WITH_LINKS, { count: "exact" })
     .order(filters.sort ?? "txn_date", { ascending: filters.dir === "asc" })
@@ -39,15 +63,7 @@ export const listTransactions = async (
     .order("created_at", { ascending: false })
     .range(from, from + size - 1);
 
-  if (filters.direction) query = query.eq("direction", filters.direction);
-  if (filters.status) query = query.eq("status", filters.status);
-  if (filters.from) query = query.gte("txn_date", filters.from);
-
-  // Commas/parens would break PostgREST's or() syntax.
-  const q = filters.search?.trim().replace(/[,()]/g, " ");
-  if (q) query = query.or(`description.ilike.%${q}%,category.ilike.%${q}%`);
-
-  const { data, count } = await query;
+  const { data, count } = await narrow(query, filters);
   return { rows: (data ?? []) as TransactionWithLinks[], total: count ?? 0 };
 };
 
@@ -61,17 +77,11 @@ export const countTransactions = async (
   sb: SupabaseClient,
   filters: TransactionFilters = {},
 ): Promise<number> => {
-  let query = sb
+  const query = sb
     .from("transactions")
     .select("id", { count: "exact", head: true });
 
-  if (filters.direction) query = query.eq("direction", filters.direction);
-  if (filters.status) query = query.eq("status", filters.status);
-  if (filters.from) query = query.gte("txn_date", filters.from);
-  const q = filters.search?.trim().replace(/[,()]/g, " ");
-  if (q) query = query.or(`description.ilike.%${q}%,category.ilike.%${q}%`);
-
-  const { count } = await query;
+  const { count } = await narrow(query, filters);
   return count ?? 0;
 };
 

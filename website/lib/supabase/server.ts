@@ -1,3 +1,7 @@
+// Never bundle the DB client into client code. cookies() already hard-errors
+// in the browser, but every other Supabase-touching module states this
+// explicitly — so this one does too, rather than relying on that side effect.
+import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { Database } from "@typings/Supabase";

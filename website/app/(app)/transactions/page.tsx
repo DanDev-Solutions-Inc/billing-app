@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import {
@@ -91,6 +92,12 @@ const TransactionsPage = async ({
   ]);
   const rows = result.rows;
   const paged = pageOf(rows, result.total, page);
+
+  /* A ?page= past the end (stale bookmark, or the list shrank) queried an empty
+     range and would render "no matches" over a non-empty list. Bounce to the
+     real last page so the URL self-corrects. Outside any try/catch — redirect()
+     throws NEXT_REDIRECT by design. */
+  if (page > paged.pages) redirect(pageHref(paged.pages));
 
   /* Any narrowing at all — an empty result then means "no matches", not "no
      transactions". */

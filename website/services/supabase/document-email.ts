@@ -55,6 +55,11 @@ export const getEmailStates = async (
       .select("*")
       .eq("parent_type", parentType)
       .order("sent_at", { ascending: false })
+      // Stable tiebreak: a recurring batch writes many rows at the same now(),
+      // and fetchAllRows pages with two independent queries — without it, tied
+      // rows can sort differently across the 1000-row boundary and a document's
+      // newest send could be skipped, dropping its icon.
+      .order("id", { ascending: false })
       .range(from, to),
   );
 
