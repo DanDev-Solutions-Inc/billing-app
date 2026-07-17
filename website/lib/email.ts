@@ -76,6 +76,52 @@ export const sendDocumentEmail = async (input: SendDocEmailInput) => {
   return { ok: true as const, emailId: data?.id ?? null };
 };
 
+export interface SendInviteEmailInput {
+  to: string;
+  role: "viewer" | "editor";
+  /** The person doing the inviting — their name or email, for the copy. */
+  invitedBy: string;
+  /** Absolute URL of the signup page. */
+  signupUrl: string;
+}
+
+/**
+ * Tell someone they've been granted access to the owner's books.
+ *
+ * The access grant is a pre-authorization keyed by email: it only takes effect
+ * once they sign up with *this* address. So the email's whole job is to say
+ * that and link them to signup — the mismatch (grant exists, no account) is
+ * exactly what leaves people waiting for an email that never came.
+ */
+export const sendAccessInviteEmail = async (
+  input: SendInviteEmailInput,
+): Promise<{ ok?: true; error?: string }> => {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.INVOICE_FROM_EMAIL;
+  if (!apiKey || !from) {
+    return {
+      error: "Email is not configured (RESEND_API_KEY / INVOICE_FROM_EMAIL).",
+    };
+  }
+
+  const canEdit = input.role === "editor";
+  const access = canEdit
+    ? "view and edit the books"
+    : "view the books (read-only)";
+  const body = inviteEmail(input.invitedBy, access, input.signupUrl, input.to);
+
+  const resend = new Resend(apiKey);
+  const { error } = await resend.emails.send({
+    from: `${BUSINESS.name} <${from}>`,
+    to: input.to,
+    subject: `You've been given access to ${BUSINESS.name}'s billing`,
+    html: body.html,
+    text: body.text,
+  });
+  if (error) return { error: error.message };
+  return { ok: true };
+};
+
 // Brand tokens — mirror app/globals.css (:root).
 const BLUE = "#144783"; // --brand-blue
 const ACCENT = "#2f6fc4"; // --brand-accent (links)
@@ -84,6 +130,53 @@ const MUTED = "#64707d"; // --muted-foreground
 const LINE = "#e3e7ec"; // --border
 const CANVAS = "#f5f6f8"; // --background
 const PANEL = "#eaf0f8"; // --accent (subtle blue tint)
+
+/**
+ * Access-invite email. Same table-based, inline-styled, plain-text-twin shape
+ * as the document email so it renders and lands the same way, but pared down to
+ * one message and one call-to-action.
+ */
+const inviteEmail = (
+  invitedBy: string,
+  access: string,
+  signupUrl: string,
+  email: string,
+) => {
+  const preheader = `You've been given access to ${BUSINESS.name}'s billing on DanDev Billing.`;
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:${CANVAS};">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${preheader}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CANVAS};padding:24px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%;background:#ffffff;border:1px solid ${LINE};border-radius:12px;overflow:hidden;">
+        <tr><td style="background:${BLUE};padding:20px 32px;">
+          <span style="color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;">DanDev Billing</span>
+        </td></tr>
+        <tr><td style="padding:28px 32px 8px;font-family:Arial,Helvetica,sans-serif;color:${INK};font-size:16px;line-height:1.55;">
+          <p style="margin:0 0 14px;">${invitedBy} has invited you to <strong>${access}</strong> for ${BUSINESS.name}.</p>
+          <p style="margin:0 0 20px;color:${MUTED};font-size:14px;">Create an account using <strong style="color:${INK};">${email}</strong> — this exact address — and you'll see their books as soon as you're signed in.</p>
+        </td></tr>
+        <tr><td style="padding:4px 32px 28px;">
+          <a href="${signupUrl}" style="display:inline-block;background:${ACCENT};color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:12px 22px;border-radius:8px;">Create your account</a>
+        </td></tr>
+        <tr><td style="padding:0 32px 28px;font-family:Arial,Helvetica,sans-serif;color:${MUTED};font-size:12px;line-height:1.5;border-top:1px solid ${LINE};padding-top:16px;">
+          If you weren't expecting this, you can ignore it — no account is created until you sign up. Questions? <a href="mailto:${BUSINESS.contactEmail}" style="color:${ACCENT};text-decoration:none;">${BUSINESS.contactEmail}</a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table></body></html>`;
+
+  const text = [
+    `${invitedBy} has invited you to ${access} for ${BUSINESS.name}.`,
+    "",
+    `Create an account using ${email} (this exact address) and you'll see their books once you're signed in:`,
+    signupUrl,
+    "",
+    "If you weren't expecting this, you can ignore it — no account is created until you sign up.",
+    `Questions? ${BUSINESS.contactEmail}`,
+  ].join("\n");
+
+  return { html, text };
+};
 
 /**
  * Transactional invoice/estimate email, styled to the DanDev brand. Table-based
