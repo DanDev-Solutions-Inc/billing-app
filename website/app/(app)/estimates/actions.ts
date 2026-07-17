@@ -6,14 +6,13 @@ import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { renderDocumentPdf } from "@lib/pdf/render";
 import { sendDocumentEmail } from "@lib/email";
-import { parseLineItems, emptyToNull } from "@utils/doc-helpers";
-import { computeTotals, formatMoney } from "@utils/money";
-import { chargesTax } from "@utils/currency";
-import { usdToCadOn } from "@services/fx/boc-rate";
-import { parseCurrency } from "@utils/doc-helpers";
+import { emptyToNull } from "@utils/doc-helpers";
+import { parseDocumentForm } from "@services/documents/parse-document-form";
+import { formatMoney } from "@utils/money";
 import * as estimates from "@services/supabase/estimate";
 import * as invoices from "@services/supabase/invoice";
 import * as lineItems from "@services/supabase/line-item";
+import { recordDocumentEmail } from "@services/supabase/document-email";
 import { EstimateStatus } from "@typings/estimate/EstimateStatus";
 import { DocFormState } from "@components/doc-form";
 
@@ -33,49 +32,32 @@ export const createEstimate = async (
   _prev: DocFormState,
   formData: FormData,
 ): Promise<DocFormState> => {
-  const user = await getUserOrRedirect();
-  const items = parseLineItems(formData);
-  if (items.length === 0) return { error: "Add at least one line item." };
+  const doc = await parseDocumentForm(formData);
+  if (!doc) return { error: "Add at least one line item." };
 
-  /* The tax rate is derived from the currency here, not taken from the form:
-     a USD document is never taxed, and that rule can't live only in the UI. */
-  const currency = parseCurrency(formData.get("currency"));
-  const taxRate = chargesTax(currency)
-    ? Number(formData.get("tax_rate")) || 0
-    : 0;
-  const totals = computeTotals(items, taxRate);
-  /* Stamp the day's official rate so the document reports in CAD at what it was
-     actually worth. CAD is 1 — the identity — so no call is made for it. */
-  const issueDate =
-    emptyToNull(formData.get("issue_date")) ??
-    new Date().toISOString().slice(0, 10);
-  const exchangeRate =
-    currency === "USD" ? await usdToCadOn(issueDate) : 1;
-  const supabase = await createClient();
-
-  const { id, error } = await estimates.createEstimate(supabase, {
-    user_id: user.id,
-    customer_id: emptyToNull(formData.get("customer_id")),
-    estimate_number: emptyToNull(formData.get("number")),
-    issue_date: emptyToNull(formData.get("issue_date")) ?? undefined,
-    expiry_date: emptyToNull(formData.get("second_date")),
-    notes: emptyToNull(formData.get("notes")),
-    currency,
-    exchange_rate: exchangeRate,
-    ...totals,
+  const { id, error } = await estimates.createEstimate(doc.supabase, {
+    user_id: doc.user.id,
+    customer_id: doc.customerId,
+    estimate_number: doc.number,
+    issue_date: doc.issueDate,
+    expiry_date: doc.secondDate,
+    notes: doc.notes,
+    currency: doc.currency,
+    exchange_rate: doc.exchangeRate,
+    ...doc.totals,
   });
   if (error || !id) return { error: error ?? "Failed to save." };
 
-  const { error: liError } = await lineItems.createLineItems(supabase, {
-    userId: user.id,
+  const { error: liError } = await lineItems.createLineItems(doc.supabase, {
+    userId: doc.user.id,
     parentType: "estimate",
     parentId: id,
-    items,
+    items: doc.items,
   });
   if (liError) return { error: liError };
 
   revalidatePath("/estimates");
-  redirect(`/estimates/${id}`);
+  redirect(`/estimates/${id}?toast=estimate-created`);
 };
 
 export const updateEstimate = async (
@@ -83,45 +65,28 @@ export const updateEstimate = async (
   _prev: DocFormState,
   formData: FormData,
 ): Promise<DocFormState> => {
-  const user = await getUserOrRedirect();
-  const items = parseLineItems(formData);
-  if (items.length === 0) return { error: "Add at least one line item." };
+  const doc = await parseDocumentForm(formData);
+  if (!doc) return { error: "Add at least one line item." };
 
-  /* The tax rate is derived from the currency here, not taken from the form:
-     a USD document is never taxed, and that rule can't live only in the UI. */
-  const currency = parseCurrency(formData.get("currency"));
-  const taxRate = chargesTax(currency)
-    ? Number(formData.get("tax_rate")) || 0
-    : 0;
-  const totals = computeTotals(items, taxRate);
-  /* Stamp the day's official rate so the document reports in CAD at what it was
-     actually worth. CAD is 1 — the identity — so no call is made for it. */
-  const issueDate =
-    emptyToNull(formData.get("issue_date")) ??
-    new Date().toISOString().slice(0, 10);
-  const exchangeRate =
-    currency === "USD" ? await usdToCadOn(issueDate) : 1;
-  const supabase = await createClient();
-
-  const { error } = await estimates.updateEstimate(supabase, id, {
-    customer_id: emptyToNull(formData.get("customer_id")),
-    estimate_number: emptyToNull(formData.get("number")),
-    issue_date: emptyToNull(formData.get("issue_date")) ?? undefined,
-    expiry_date: emptyToNull(formData.get("second_date")),
-    notes: emptyToNull(formData.get("notes")),
-    currency,
-    exchange_rate: exchangeRate,
-    ...totals,
+  const { error } = await estimates.updateEstimate(doc.supabase, id, {
+    customer_id: doc.customerId,
+    estimate_number: doc.number,
+    issue_date: doc.issueDate,
+    expiry_date: doc.secondDate,
+    notes: doc.notes,
+    currency: doc.currency,
+    exchange_rate: doc.exchangeRate,
+    ...doc.totals,
   });
   if (error) return { error };
 
   // Replace the line items wholesale (polymorphic table, no cascade).
-  await lineItems.deleteLineItems(supabase, "estimate", id);
-  const { error: liError } = await lineItems.createLineItems(supabase, {
-    userId: user.id,
+  await lineItems.deleteLineItems(doc.supabase, "estimate", id);
+  const { error: liError } = await lineItems.createLineItems(doc.supabase, {
+    userId: doc.user.id,
     parentType: "estimate",
     parentId: id,
-    items,
+    items: doc.items,
   });
   if (liError) return { error: liError };
 
@@ -194,7 +159,7 @@ export const sendEstimate = async (
   _prev: SendState,
   formData: FormData,
 ): Promise<SendState> => {
-  await getUserOrRedirect();
+  const user = await getUserOrRedirect();
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
 
@@ -241,6 +206,18 @@ export const sendEstimate = async (
     pdf,
   });
   if (result.error) return { error: result.error };
+
+  /* Record the send so Resend's delivery webhook has a row to stamp when this
+     is delivered, opened or bounced. */
+  if (result.emailId) {
+    await recordDocumentEmail(supabase, {
+      userId: user.id,
+      parentType: "estimate",
+      parentId: id,
+      resendEmailId: result.emailId,
+      recipient: to,
+    });
+  }
 
   if (estimate.status === "draft") {
     await estimates.updateEstimateStatus(supabase, id, "sent");
