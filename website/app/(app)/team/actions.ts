@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import * as access from "@services/supabase/profile-access";
+import { deleteAccountByEmail } from "@services/supabase/auth-admin";
 import { sendAccessInviteEmail } from "@lib/email";
 import { AccessRole } from "@typings/profile-access/AccessRole";
 import { InviteState } from "@interfaces/forms/InviteState";
@@ -62,6 +63,13 @@ export const removeMemberAction = async (formData: FormData) => {
   if (!isOwner(user.email)) return;
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
+
+  // Read the email before dropping the grant, then delete the account too — a
+  // clean removal that closes their sessions, not just a blocked login. Guard
+  // against ever deleting the owner (a grant is never the owner's, but be sure).
+  const email = await access.getGrantEmail(supabase, id);
   await access.removeGrant(supabase, id);
+  if (email && !isOwner(email)) await deleteAccountByEmail(email);
+
   revalidatePath("/team");
 };

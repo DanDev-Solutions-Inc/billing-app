@@ -29,6 +29,19 @@ export const inviteMember = async (
   return { error: error?.message };
 };
 
+/** The email a grant belongs to — read before removal to also close the account. */
+export const getGrantEmail = async (
+  sb: SupabaseClient,
+  id: string,
+): Promise<string | null> => {
+  const { data } = await sb
+    .from("profile_access")
+    .select("member_email")
+    .eq("id", id)
+    .maybeSingle();
+  return data?.member_email ?? null;
+};
+
 export const removeGrant = async (
   sb: SupabaseClient,
   id: string,
