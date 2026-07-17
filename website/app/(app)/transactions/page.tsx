@@ -25,16 +25,8 @@ import {
   Pagination, FilterBar, RowLink, RowAction } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
-import {
-  parseSort,
-  parseDir,
-  parsePage,
-  sortRows,
-  paginate,
-  mergeQuery,
-  nextDir,
-  Accessors,
-} from "@utils/table";
+import { sortRows, paginate, Accessors, mergeQuery } from "@utils/table";
+import { tableView } from "@utils/table/table-view";
 import { TransactionWithLinks } from "@interfaces/models/transaction/TransactionWithLinks";
 import { deleteTransactionAction } from "./actions";
 import { BulkForm } from "@components/transactions/bulk-form";
@@ -73,10 +65,20 @@ const TransactionsPage = async ({
   const active = TYPES.includes(params.type as (typeof TYPES)[number])
     ? (params.type as string)
     : "all";
-  const sort = parseSort(params.sort, SORT_KEYS, "txn_date");
-  const dir = parseDir(params.dir, "desc");
-  const page = parsePage(params.page);
   const q = params.q?.trim() ?? "";
+
+  const { sort, dir, page, sortHref, pageHref, current } = tableView({
+    basePath: "/transactions",
+    params,
+    sortKeys: SORT_KEYS,
+    defaultSort: "txn_date",
+    /* Defaults are dropped so the plain /transactions URL stays clean. */
+    filters: {
+      type: active === "all" ? undefined : active,
+      period: period === "month" ? undefined : period,
+      q: q || undefined,
+    },
+  });
 
   const supabase = await createClient();
   /* Search runs in Postgres so it reaches every transaction, not just the page.
@@ -95,14 +97,6 @@ const TransactionsPage = async ({
   const sorted = sortRows(rows, sort, dir, ACCESSORS);
   const result = paginate(sorted, page);
 
-  /* Current query, so sorting keeps the filters and vice versa. Defaults are
-     dropped so the plain /transactions URL stays clean. */
-  const current = {
-    type: active === "all" ? undefined : active,
-    period: period === "month" ? undefined : period,
-    sort,
-    dir,
-  };
   /* Switching a filter keeps the sort but not the page — the row you were
      looking at almost certainly isn't on page 3 of the new list. */
   const query = (type: string, p: string) =>
@@ -110,16 +104,6 @@ const TransactionsPage = async ({
       type: type === "all" ? undefined : type,
       period: p === "month" ? undefined : p,
       page: undefined,
-    });
-  const sortHref = (key: string) =>
-    mergeQuery("/transactions", current, {
-      sort: key,
-      dir: nextDir(key, sort, dir),
-      page: undefined, // a new sort order invalidates the current page
-    });
-  const pageHref = (p: number) =>
-    mergeQuery("/transactions", current, {
-      page: p === 1 ? undefined : String(p),
     });
 
   const typeTabs = [

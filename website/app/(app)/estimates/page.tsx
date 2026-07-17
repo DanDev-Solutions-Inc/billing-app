@@ -19,16 +19,9 @@ import {
   FilterTabs, FilterBar, FilterGroup, RowLink } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
-import {
-  parseSort,
-  parseDir,
-  parsePage,
-  sortRows,
-  paginate,
-  mergeQuery,
-  nextDir,
-  Accessors,
-} from "@utils/table";
+import { sortRows, paginate, Accessors } from "@utils/table";
+import { mergeQuery } from "@utils/table";
+import { tableView } from "@utils/table/table-view";
 import { EstimateWithCustomer } from "@interfaces/models/estimate/EstimateWithCustomer";
 
 export const metadata: Metadata = { title: "Estimates" };
@@ -65,9 +58,15 @@ const EstimatesPage = async ({
     params.status && STATUSES.includes(params.status as (typeof STATUSES)[number])
       ? params.status
       : "all";
-  const sort = parseSort(params.sort, SORT_KEYS, "issue_date");
-  const dir = parseDir(params.dir, "desc");
-  const page = parsePage(params.page);
+
+  const { sort, dir, page, sortHref, pageHref, current } = tableView({
+    basePath: "/estimates",
+    params,
+    sortKeys: SORT_KEYS,
+    defaultSort: "issue_date",
+    defaultDir: "desc",
+    filters: { status: status === "all" ? undefined : status },
+  });
 
   const supabase = await createClient();
   const all = await listEstimates(supabase);
@@ -78,21 +77,7 @@ const EstimatesPage = async ({
   const sorted = sortRows(filtered, sort, dir, ACCESSORS);
   const result = paginate(sorted, page);
 
-  /* Current query, so sorting keeps the filters and vice versa. */
-  const current = {
-    status: status === "all" ? undefined : status,
-    period: period === "month" ? undefined : period,
-    sort,
-    dir,
-  };
-  const sortHref = (key: string) =>
-    mergeQuery("/estimates", current, {
-      sort: key,
-      dir: nextDir(key, sort, dir),
-      page: undefined, // a new sort order invalidates the current page
-    });
-  const pageHref = (p: number) =>
-    mergeQuery("/estimates", current, { page: p === 1 ? undefined : String(p) });
+
   const query = (nextStatus: string, nextPeriod: string) =>
     mergeQuery("/estimates", current, {
       status: nextStatus === "all" ? undefined : nextStatus,

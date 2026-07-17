@@ -21,16 +21,8 @@ import {
   TableCell,
   SortableHead,
   Pagination, FilterBar, FilterGroup } from "@components/ui";
-import {
-  parseSort,
-  parseDir,
-  parsePage,
-  sortRows,
-  paginate,
-  mergeQuery,
-  nextDir,
-  Accessors,
-} from "@utils/table";
+import { sortRows, paginate, Accessors } from "@utils/table";
+import { tableView } from "@utils/table/table-view";
 import { formatMoney } from "@utils/money";
 import {
   customerAddressLine,
@@ -65,10 +57,18 @@ const CustomersPage = async ({
 
   /* A directory reads best alphabetically, so name/asc is the default here
      rather than the newest-first used by the document tables. */
-  const sort = parseSort(params.sort, SORT_KEYS, "name");
-  const dir = parseDir(params.dir, "asc");
-  const page = parsePage(params.page);
   const q = params.q?.trim() ?? "";
+
+  /* A directory reads best alphabetically, so name/asc rather than the
+     newest-first the document tables use. */
+  const { sort, dir, page, sortHref, pageHref } = tableView({
+    basePath: "/customers",
+    params,
+    sortKeys: SORT_KEYS,
+    defaultSort: "name",
+    defaultDir: "asc",
+    filters: { q: q || undefined },
+  });
 
   const supabase = await createClient();
   /* Search runs in Postgres; the totals come from a view that aggregates the
@@ -91,16 +91,6 @@ const CustomersPage = async ({
 
   const sorted = sortRows(all, sort, dir, ACCESSORS);
   const result = paginate(sorted, page);
-
-  const current = { sort, dir, q: q || undefined };
-  const sortHref = (key: string) =>
-    mergeQuery("/customers", current, {
-      sort: key,
-      dir: nextDir(key, sort, dir),
-      page: undefined,
-    });
-  const pageHref = (p: number) =>
-    mergeQuery("/customers", current, { page: p === 1 ? undefined : String(p) });
 
   const billedTotal = all.reduce((s, c) => s + c.total_billed, 0);
 

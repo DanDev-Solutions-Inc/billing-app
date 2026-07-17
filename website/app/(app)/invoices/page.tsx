@@ -19,19 +19,15 @@ import {
   FilterSelect,
   FilterCombobox,
   ClearFilters,
-  SearchInput, FilterBar, FilterGroup, RowLink } from "@components/ui";
+  SearchInput,
+  FilterBar,
+  FilterGroup,
+  RowLink,
+} from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { isOverdue } from "@utils/invoice";
-import {
-  parseSort,
-  parseDir,
-  parsePage,
-  sortRows,
-  paginate,
-  mergeQuery,
-  nextDir,
-  Accessors,
-} from "@utils/table";
+import { sortRows, paginate, Accessors } from "@utils/table";
+import { tableView } from "@utils/table/table-view";
 import { InvoiceStatusSelect } from "@components/invoices/status-select";
 import { InvoiceWithCustomer } from "@interfaces/models/invoice/InvoiceWithCustomer";
 
@@ -81,11 +77,19 @@ const InvoicesPage = async ({
     STATUSES.includes(params.status as (typeof STATUSES)[number])
       ? params.status
       : "all";
-  const sort = parseSort(params.sort, SORT_KEYS, "issue_date");
-  const dir = parseDir(params.dir, "desc");
-  const page = parsePage(params.page);
   const q = params.q?.trim() ?? "";
   const customerId = params.customer ?? "";
+  const { sort, dir, page, sortHref, pageHref } = tableView({
+    basePath: "/invoices",
+    params,
+    sortKeys: SORT_KEYS,
+    defaultSort: "issue_date",
+    filters: {
+      status: status === "all" ? undefined : status,
+      customer: customerId || undefined,
+      q: q || undefined,
+    },
+  });
 
   const supabase = await createClient();
   /* Search + customer run in Postgres, so they cover every invoice rather than
@@ -100,23 +104,6 @@ const InvoicesPage = async ({
     status === "all" ? all : all.filter((i) => matchesStatus(i, status));
   const sorted = sortRows(filtered, sort, dir, ACCESSORS);
   const result = paginate(sorted, page);
-
-  /* Current query, so sorting keeps the filter and vice versa. */
-  const current = {
-    status: status === "all" ? undefined : status,
-    customer: customerId || undefined,
-    q: q || undefined,
-    sort,
-    dir,
-  };
-  const sortHref = (key: string) =>
-    mergeQuery("/invoices", current, {
-      sort: key,
-      dir: nextDir(key, sort, dir),
-      page: undefined, // a new sort order invalidates the current page
-    });
-  const pageHref = (p: number) =>
-    mergeQuery("/invoices", current, { page: p === 1 ? undefined : String(p) });
 
   /* FilterCombobox renders the "all" row itself, so only real customers here. */
   const customerOptions = customers.map((c) => ({
