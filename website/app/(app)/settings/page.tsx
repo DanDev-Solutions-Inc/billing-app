@@ -10,12 +10,18 @@ import {
 } from "@components/ui";
 import { CopyField } from "@components/copy-field";
 import { WaveSync } from "@components/wave/wave-sync";
+import { PasswordForm } from "@components/password-form";
 import { BUSINESS } from "@utils/constants";
 
 export const metadata: Metadata = { title: "Settings" };
 
 const SettingsPage = async () => {
   const user = await getUserOrRedirect();
+
+  // The Wave import writes into the owner's books, so only the owner sees it —
+  // matching the server-side guard on syncFromWave.
+  const isOwner =
+    user.email?.toLowerCase() === BUSINESS.contactEmail.toLowerCase();
 
   // Mail for the inbound domain is routed to Resend → /api/inbound/receipts.
   // RECEIPTS_EMAIL overrides it if a friendlier alias is set up to forward there.
@@ -33,14 +39,16 @@ const SettingsPage = async () => {
           address then pushed every card past the screen on a phone instead of
           truncating inside it. */}
       <div className="grid max-w-3xl gap-6 [&>*]:min-w-0">
-        <Card>
-          <CardHeader>
-            <CardTitle>Import from Wave</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <WaveSync />
-          </CardContent>
-        </Card>
+        {isOwner && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Import from Wave</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <WaveSync />
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -70,7 +78,7 @@ const SettingsPage = async () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Account</CardTitle>
+            <CardTitle>Profile</CardTitle>
           </CardHeader>
           <CardContent>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
@@ -87,6 +95,20 @@ const SettingsPage = async () => {
                 <dd className="mt-0.5 text-foreground">{BUSINESS.name}</dd>
               </div>
             </dl>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Password</CardTitle>
+            <CardDescription>
+              Change the password you use to sign in.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="max-w-sm">
+              <PasswordForm submitLabel="Update password" />
+            </div>
           </CardContent>
         </Card>
       </div>

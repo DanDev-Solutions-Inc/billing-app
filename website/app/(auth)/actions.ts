@@ -48,6 +48,58 @@ export const signup = async (
   redirect("/dashboard");
 };
 
+export const requestPasswordReset = async (
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> => {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) return { error: "Email is required." };
+
+  const headerList = await headers();
+  const origin = `${headerList.get("x-forwarded-proto") ?? "https"}://${headerList.get("host")}`;
+
+  const supabase = await createClient();
+  // The recovery link lands on /auth/callback, which exchanges the code for a
+  // (recovery) session and forwards to /reset-password to set a new one.
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  });
+
+  // Always the same reply, whether or not the address has an account — telling
+  // the difference would let anyone probe which emails are registered.
+  return {
+    message:
+      "If that email has an account, a reset link is on its way. Check your inbox.",
+  };
+};
+
+/**
+ * Set a new password for the signed-in user — used both from Settings and by
+ * the recovery flow, where the reset link has already established a session.
+ */
+export const updatePassword = async (
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> => {
+  const password = String(formData.get("password") ?? "");
+  if (password.length < 6)
+    return { error: "Password must be at least 6 characters." };
+
+  const supabase = await createClient();
+  // No session ⇒ getUser() is null ⇒ updateUser 401s. Check first so the
+  // message is "your reset link expired", not a raw auth error.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return { error: "Your session has expired. Request a new reset link." };
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
+
+  return { message: "Password updated." };
+};
+
 export const signInWithGoogle = async () => {
   const headerList = await headers();
   const origin = `${headerList.get("x-forwarded-proto") ?? "https"}://${headerList.get("host")}`;

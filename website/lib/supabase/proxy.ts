@@ -2,8 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { Database } from "@typings/Supabase";
 
-// Public paths reachable without a session.
-const PUBLIC_PREFIXES = ["/login", "/signup", "/auth"];
+// Public paths reachable without a session. /reset-password is deliberately
+// NOT here: the recovery link signs the user in first, so it must stay
+// protected — a public route would bounce the now-"logged-in" user to the
+// dashboard before they can set a new password.
+const PUBLIC_PREFIXES = ["/login", "/signup", "/forgot-password", "/auth"];
 // Route handlers that must run without a UI session (server-to-server).
 const OPEN_API_PREFIXES = ["/api/inbound", "/api/cron", "/api/webhooks"];
 
