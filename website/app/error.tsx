@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertTriangle } from "lucide-react";
+import { CircleAlert, RotateCw, LayoutGrid } from "lucide-react";
 import { Card, Button, ButtonLink } from "@components/ui";
 
 /* Route-level error boundary. Without one, a thrown error renders Next's
@@ -21,9 +21,13 @@ const ErrorBoundary = ({
   return (
     <div className="flex min-h-[60dvh] items-center justify-center px-4">
       <Card className="w-full max-w-md p-7 text-center">
-        <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl border border-brand-red/25 bg-brand-red/10 text-brand-red">
-          <AlertTriangle className="size-6" />
-        </span>
+        {/* Plain glyph, not a boxed tile: the tile shape is the nav's
+            language, and a red-ringed badge overstates a retryable error. */}
+        <CircleAlert
+          className="mx-auto mb-3 size-8 text-brand-red/80"
+          strokeWidth={1.5}
+          aria-hidden
+        />
         <h1 className="font-heading text-lg font-bold text-foreground">
           Something went wrong
         </h1>
@@ -37,9 +41,13 @@ const ErrorBoundary = ({
         )}
         <div className="mt-6 flex items-center justify-center gap-2">
           <ButtonLink href="/dashboard" variant="secondary">
+            <LayoutGrid />
             Go to dashboard
           </ButtonLink>
-          <Button onClick={reset}>Try again</Button>
+          <Button onClick={reset}>
+            <RotateCw />
+            Try again
+          </Button>
         </div>
       </Card>
     </div>

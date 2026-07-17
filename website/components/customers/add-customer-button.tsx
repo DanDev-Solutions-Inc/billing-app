@@ -26,6 +26,7 @@ export const AddCustomerButton = () => {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
+        size="lg"
         title="Add a customer"
         description="Someone you invoice. Only a name is required."
       >

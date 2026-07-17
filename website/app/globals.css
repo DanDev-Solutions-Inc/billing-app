@@ -158,6 +158,20 @@ h6 {
   letter-spacing: -0.01em;
 }
 
+/* Browsers give <button> `cursor: default` — only links get the hand. Set it
+   once here rather than per component: the app has raw <button>s outside the
+   kit (comboboxes, uploaders, close controls), and any new one should feel
+   clickable without remembering a class. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+summary {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 /* --- Vision UI kit primitives ------------------------------------------- */
 
 /* Glassmorphic panel: translucent gradient + hairline. The base for cards,

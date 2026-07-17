@@ -39,7 +39,7 @@ export const Pagination = ({
       className={cn(
         "flex flex-wrap items-center gap-3",
         variant === "footer"
-          ? "justify-between border-t border-white/[0.06] px-6 py-3"
+          ? "justify-between border-t border-white/[0.06] px-3 py-3 sm:px-6"
           : "justify-between",
         className,
       )}

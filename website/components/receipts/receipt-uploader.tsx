@@ -138,7 +138,7 @@ export const ReceiptUploader = () => {
             disabled={busy}
             className="flex min-h-14 items-center justify-center gap-2 rounded-xl bg-brand-accent px-4 text-sm font-semibold text-white transition active:scale-[0.98] disabled:opacity-60"
           >
-            <Camera className="h-5 w-5" />
+            <Camera className="size-5" />
             Take photo
           </button>
           <button
@@ -147,20 +147,20 @@ export const ReceiptUploader = () => {
             disabled={busy}
             className="flex min-h-14 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-foreground transition active:scale-[0.98] disabled:opacity-60"
           >
-            <Upload className="h-5 w-5" />
+            <Upload className="size-5" />
             Image or PDF
           </button>
         </div>
 
         {busy && (
           <p className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
             {phase === "uploading" ? "Uploading…" : "Reading receipt…"}
           </p>
         )}
         {phase === "done" && !readError && blob && (
           <p className="mt-3 flex items-center justify-center gap-2 text-sm text-brand-green">
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="size-4" />
             Details filled in — check them and save.
           </p>
         )}
@@ -260,7 +260,7 @@ export const ReceiptUploader = () => {
             name="as_expense"
             checked={formik.values.as_expense}
             onChange={formik.handleChange}
-            className="h-4 w-4 rounded border-border text-brand-accent"
+            className="vui-checkbox"
           />
           Record as a transaction
         </label>

@@ -16,6 +16,7 @@ export const Modal = ({
   onClose,
   title,
   description,
+  size = "md",
   children,
   className,
 }: ModalProps) => {
@@ -44,7 +45,12 @@ export const Modal = ({
       }}
       aria-label={title}
       className={cn(
-        "vui-glass m-auto w-[min(32rem,calc(100vw-2rem))] rounded-[--radius] p-0 text-foreground shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8)] backdrop:bg-navy-900/70 backdrop:backdrop-blur-sm",
+        "vui-glass m-auto rounded-[--radius] p-0 text-foreground shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8)] backdrop:bg-navy-900/70 backdrop:backdrop-blur-sm",
+        // Width follows the content: a one-line confirmation in a 32rem box
+        // reads as an empty room. calc() keeps a phone margin at every size.
+        size === "sm" && "w-[min(26rem,calc(100vw-2rem))]",
+        size === "md" && "w-[min(32rem,calc(100vw-2rem))]",
+        size === "lg" && "w-[min(40rem,calc(100vw-2rem))]",
         className,
       )}
     >

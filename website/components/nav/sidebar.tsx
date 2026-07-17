@@ -43,6 +43,7 @@ export const Sidebar = ({
   email,
   onNavigate,
   collapsible = true,
+  className,
 }: SidebarProps) => {
   const pathname = usePathname();
   const collapsed = useSidebarCollapsed();
@@ -55,6 +56,7 @@ export const Sidebar = ({
       className={cn(
         "flex h-dvh shrink-0 flex-col border-r border-glass-border bg-sidebar backdrop-blur-2xl transition-[width] duration-200",
         mini ? "w-[76px]" : "w-64",
+        className,
       )}
     >
       <div
@@ -82,7 +84,16 @@ export const Sidebar = ({
         </Link>
       </div>
 
-      <nav className={cn("flex flex-1 flex-col gap-1 py-2", mini ? "px-3" : "px-4")}>
+      {/* min-h-0 + overflow-y-auto: flex-1 alone won't scroll — a flex child's
+          min-height defaults to auto, so the list grows past the rail instead
+          of scrolling. In landscape that put Settings and Sign out below the
+          fold with no way to reach them. */}
+      <nav
+        className={cn(
+          "flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto py-2",
+          mini ? "px-3" : "px-4",
+        )}
+      >
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (

@@ -11,7 +11,7 @@ import {
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listInvoices } from "@services/supabase/invoice";
-import { listTransactions } from "@services/supabase/transaction";
+import { getMonthlyCashFlow } from "@services/supabase/cash-flow";
 import { listRecurring } from "@services/supabase/recurring-invoice";
 import {
   PageHeader,
@@ -29,8 +29,9 @@ import { RecurringCard } from "@components/dashboard/recurring-card";
 import { MobileRangeDefault } from "@components/dashboard/mobile-range-default";
 import {
   parseMonths,
-  totalsForMonths,
-  buildCashFlowMonths,
+  monthsStart,
+  totalsForCashFlow,
+  toCashFlowPoints,
   MONTH_RANGES,
   DEFAULT_MONTHS,
 } from "@utils/period";
@@ -61,11 +62,14 @@ const DashboardPage = async ({
      narrows an unchosen range to 3 months (see MobileRangeDefault). */
   const hasExplicitRange = Boolean(params.months);
   const supabase = await createClient();
+  /* Only the window the chart draws — listTransactions() returns a *page*, so
+     using it here would silently plot the first PAGE_SIZE rows. */
+  const windowStart = monthsStart(months).toISOString().slice(0, 10);
 
   /* Estimates are no longer surfaced here, so we don't pay to fetch them. */
-  const [invoices, transactions, schedules] = await Promise.all([
+  const [invoices, cashFlowMonths, schedules] = await Promise.all([
     listInvoices(supabase),
-    listTransactions(supabase),
+    getMonthlyCashFlow(supabase, months),
     listRecurring(supabase),
   ]);
 
@@ -84,9 +88,10 @@ const DashboardPage = async ({
     (a, b) => Number(isOverdue(b)) - Number(isOverdue(a)),
   );
 
-  /* Chart + the totals under it share one window. */
-  const totals = totalsForMonths(transactions, months);
-  const cashFlow = buildCashFlowMonths(transactions, months);
+  /* Chart + the totals under it share one window, aggregated by Postgres —
+     6 rows rather than every transaction summed in JS. */
+  const totals = totalsForCashFlow(cashFlowMonths);
+  const cashFlow = toCashFlowPoints(cashFlowMonths, months > 12);
 
   /* Only live schedules bill anyone — a paused one has no next invoice, so it
      belongs on the Recurring page, not here. Soonest first. */

@@ -10,4 +10,10 @@
 export const fieldBase =
   "w-full min-w-0 rounded-xl border border-glass-border bg-white/[0.04] text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/70 focus-visible:border-brand-accent/60 focus-visible:bg-white/[0.06] focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&>option]:bg-navy-700 [&>option]:text-foreground";
 
-export const inputClass = `flex ${fieldBase} px-4 py-2.5`;
+/* Single-line controls: h-11 matches the `md` button so an input and a button
+   in the same row share a baseline.
+
+   `h-auto` on a <textarea> — a fixed height would crush it to one line, and
+   several forms pass this class straight to one. The rule targets the element
+   rather than relying on every call site to remember. */
+export const inputClass = `flex h-11 min-h-11 ${fieldBase} px-4 py-2.5 [&:is(textarea)]:h-auto [&:is(textarea)]:min-h-[5rem] [&:is(textarea)]:py-3`;

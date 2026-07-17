@@ -172,8 +172,7 @@ const documentEmail = (
             </td>
           </tr>
           <tr>
-            <td style="padding:16px 32px 0;color:${MUTED};font-size:14px;line-height:1.55;">
-              <p style="margin:6px 0;">Questions about this ${lower}? Email <a href="mailto:${BUSINESS.contactEmail}" style="color:${ACCENT};text-decoration:none;">${BUSINESS.contactEmail}</a> — this message is sent from an unmonitored address.</p>
+            <td style="padding:18px 32px 0;color:${INK};font-size:15px;line-height:1.55;">
               <p style="margin:6px 0;">${BUSINESS.footerNote}</p>
             </td>
           </tr>
@@ -184,7 +183,11 @@ const documentEmail = (
                 <strong style="color:${INK};">${BUSINESS.name}</strong><br />
                 ${address}<br />
                 ${BUSINESS.phoneLabel}: ${BUSINESS.phone} &nbsp;·&nbsp;
-                <a href="https://${url}" style="color:${ACCENT};text-decoration:none;">${url}</a>
+                <a href="https://${url}" style="color:${ACCENT};text-decoration:none;">${url}</a><br />
+                Questions? <a href="mailto:${BUSINESS.contactEmail}" style="color:${ACCENT};text-decoration:none;">${BUSINESS.contactEmail}</a>
+              </div>
+              <div style="color:${MUTED};font-size:11px;line-height:1.5;margin-top:12px;">
+                Sent from an unmonitored address — replies to this message aren't received.
               </div>
             </td>
           </tr>
@@ -211,9 +214,6 @@ const documentEmail = (
     `              Institution ${BUSINESS.bank.institution} · Transit ${BUSINESS.bank.transit} · Account ${BUSINESS.bank.account}`,
     `              SWIFT/BIC ${BUSINESS.bank.swift} (international)`,
     ``,
-    `Questions about this ${lower}? Email ${BUSINESS.contactEmail} — this`,
-    `message is sent from an unmonitored address.`,
-    ``,
     BUSINESS.footerNote,
     ``,
     `—`,
@@ -221,6 +221,9 @@ const documentEmail = (
     address,
     `${BUSINESS.phoneLabel}: ${BUSINESS.phone}`,
     `https://${url}`,
+    `Questions? ${BUSINESS.contactEmail}`,
+    ``,
+    `Sent from an unmonitored address — replies to this message aren't received.`,
   ].join("\n");
 
   return { html, text };

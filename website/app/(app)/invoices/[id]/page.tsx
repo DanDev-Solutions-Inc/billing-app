@@ -77,9 +77,12 @@ const InvoicePage = async ({
          rest are occasional, so they live behind the overflow rather than
          competing as six equal buttons. */
       actionBar={
-        /* Mobile: the two actions share the row and stretch; the overflow keeps
-           its natural width at the end. */
-        <div className="flex w-full items-center gap-2 sm:w-auto sm:flex-wrap [&>form]:flex-1 [&>form>button]:w-full sm:[&>form]:flex-none sm:[&>form>button]:w-auto">
+        /* Mobile: primary + overflow share the top row (the menu pinned to the
+           right so it can't be pushed off-screen), and the long "Email to
+           customer" takes the full row beneath. Inline from sm.
+           Previously one nowrap row — "Email to customer" pushed the menu past
+           the edge and it was unreachable. */
+        <div className="grid w-full grid-cols-[1fr_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-wrap [&>form]:flex-1 [&>form>button]:w-full sm:[&>form]:flex-none sm:[&>form>button]:w-auto">
           {inv.status !== "paid" && (
             <StatusButton
               id={inv.id}
@@ -92,9 +95,10 @@ const InvoicePage = async ({
             id={inv.id}
             action={sendInvoice}
             emails={customerEmails}
+            className="order-last col-span-2 sm:order-none sm:col-auto"
           />
 
-          <Menu>
+          <Menu className="shrink-0">
             {inv.status === "draft" && (
               <MenuItem>
                 <StatusButton

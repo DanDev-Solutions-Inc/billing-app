@@ -13,4 +13,6 @@ export interface SendButtonProps {
    * the choice against the customer record.
    */
   emails?: string[];
+  /** Applied to the trigger button — it's the direct child in a grid/flex row. */
+  className?: string;
 }

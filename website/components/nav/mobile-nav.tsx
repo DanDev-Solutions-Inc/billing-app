@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Menu as MenuIcon, X } from "lucide-react";
 import Link from "next/link";
 import { Sidebar } from "@components/nav/sidebar";
 import { SidebarProps } from "@interfaces/components/SidebarProps";
@@ -33,16 +34,7 @@ export const MobileNav = ({ email }: SidebarProps) => {
           aria-label="Open menu"
           className="rounded-lg p-2 text-foreground transition hover:bg-surface-muted"
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-6 w-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-          >
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <MenuIcon className="size-6" />
         </button>
       </header>
 
@@ -57,10 +49,13 @@ export const MobileNav = ({ email }: SidebarProps) => {
           />
           {/* Drawer slides in from the right — thumb-reachable next to the
               trigger, which also lives on the right of the top bar. */}
-          <div className="absolute right-0 top-0 h-full">
+          {/* Full width on a phone (a 64px peek of the page behind is wasted space
+              you can't read anyway), capped once there's room to see context. */}
+          <div className="absolute right-0 top-0 h-full w-full max-w-sm sm:w-auto">
             <Sidebar
               email={email}
               collapsible={false}
+              className="w-full"
               onNavigate={() => setOpen(false)}
             />
           </div>
@@ -70,16 +65,7 @@ export const MobileNav = ({ email }: SidebarProps) => {
             onClick={() => setOpen(false)}
             className="absolute left-4 top-4 rounded-xl border border-glass-border bg-white/[0.06] p-2 text-foreground backdrop-blur-md"
           >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-            >
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
+            <X className="size-5" />
           </button>
         </div>
       )}

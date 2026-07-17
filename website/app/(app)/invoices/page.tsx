@@ -226,6 +226,7 @@ const InvoicesPage = async ({
                   activeKey={sort}
                   activeDir={dir}
                   href={sortHref("customer")}
+                  className="w-full"
                 />
                 <SortableHead
                   label="Issued"
@@ -233,6 +234,7 @@ const InvoicesPage = async ({
                   activeKey={sort}
                   activeDir={dir}
                   href={sortHref("issue_date")}
+                  className="hidden md:table-cell"
                 />
                 <SortableHead
                   label="Due"
@@ -240,6 +242,7 @@ const InvoicesPage = async ({
                   activeKey={sort}
                   activeDir={dir}
                   href={sortHref("due_date")}
+                  className="hidden sm:table-cell"
                 />
                 <SortableHead
                   label="Status"
@@ -247,6 +250,7 @@ const InvoicesPage = async ({
                   activeKey={sort}
                   activeDir={dir}
                   href={sortHref("status")}
+                  className="hidden sm:table-cell"
                 />
                 <SortableHead
                   label="Total"
@@ -270,20 +274,40 @@ const InvoicesPage = async ({
                       {inv.invoice_number || `#${inv.id.slice(0, 8)}`}
                     </RowLink>
                   </TableCell>
-                  <TableCell>{inv.customers?.name ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">
+                  {/* Customer carries the row on mobile; the dates and status
+                      fold underneath rather than overflowing as columns. */}
+                  <TableCell className="w-full max-w-0">
+                    <span className="block truncate">
+                      {inv.customers?.name ?? "—"}
+                    </span>
+                    <span
+                      className={`mt-0.5 block truncate text-xs sm:hidden ${
+                        isOverdue(inv)
+                          ? "font-medium text-brand-red"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {isOverdue(inv)
+                        ? `Overdue ${formatDate(inv.due_date)}`
+                        : inv.status === "paid"
+                          ? `Paid · ${formatDate(inv.issue_date)}`
+                          : `${inv.status === "sent" ? "Sent" : "Draft"} · due ${formatDate(inv.due_date)}`}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden text-muted-foreground md:table-cell">
                     {formatDate(inv.issue_date)}
                   </TableCell>
                   <TableCell
                     className={
-                      isOverdue(inv)
+                      "hidden sm:table-cell " +
+                      (isOverdue(inv)
                         ? "font-medium text-brand-red"
-                        : "text-muted-foreground"
+                        : "text-muted-foreground")
                     }
                   >
                     {formatDate(inv.due_date)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {/* Editable in place: status is the field that actually
                         changes day to day, and opening the invoice to flip it
                         was the long way round. */}

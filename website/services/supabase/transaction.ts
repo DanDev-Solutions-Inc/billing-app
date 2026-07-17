@@ -1,39 +1,98 @@
 import "server-only";
 import { SupabaseClient } from "@typings/SupabaseClient";
-import { TxnDirection } from "@typings/transaction/TxnDirection";
 import { TxnStatus } from "@typings/transaction/TxnStatus";
+import { Transaction } from "@typings/transaction/Transaction";
 import { TransactionInsert } from "@typings/transaction/TransactionInsert";
 import { TransactionWithLinks } from "@interfaces/models/transaction/TransactionWithLinks";
 import { TransactionDetail } from "@interfaces/models/transaction/TransactionDetail";
-import { fetchAllRows } from "@services/supabase/fetch-all";
+import { PAGE_SIZE } from "@utils/table";
+import { TransactionFilters } from "@interfaces/services/TransactionFilters";
 
 const WITH_LINKS = "*, receipts(vendor), invoices(invoice_number)";
 const DETAIL =
   "*, receipts(id, vendor, image_url, receipt_date, amount, category), invoices(id, invoice_number, total)";
 
+/**
+ * A page of transactions, filtered and sorted by Postgres.
+ *
+ * Everything the list narrows by is a stored column, so none of it belongs in
+ * JS: fetching 4,693 rows to render 10 wasted the transfer, the parse, and two
+ * array copies on every request — and a bare select() silently stopped at
+ * PostgREST's 1,000-row cap, hiding 3,693 of them.
+ *
+ * Returns the total alongside the rows, because the pager needs the count of
+ * what matched, not of what was returned.
+ */
+/**
+ * Every transaction on/after `from`, unpaginated — for the dashboard chart and
+ * its totals, which describe a whole window rather than a page.
+ *
+ * Deliberately separate from `listTransactions`: that one returns a page, so
+ * reusing it here would silently plot only the first PAGE_SIZE rows.
+ */
+export const listTransactionsSince = async (
+  sb: SupabaseClient,
+  from: string,
+): Promise<Transaction[]> => {
+  const { data } = await sb
+    .from("transactions")
+    .select("*")
+    .gte("txn_date", from)
+    .order("txn_date", { ascending: false });
+  return (data ?? []) as Transaction[];
+};
+
 export const listTransactions = async (
   sb: SupabaseClient,
-  direction?: TxnDirection,
-  search?: string,
-): Promise<TransactionWithLinks[]> => {
-  // Commas/parens would break PostgREST's or() syntax.
-  const q = search?.trim().replace(/[,()]/g, " ");
+  filters: TransactionFilters = {},
+): Promise<{ rows: TransactionWithLinks[]; total: number }> => {
+  const page = Math.max(1, filters.page ?? 1);
+  const size = filters.pageSize ?? PAGE_SIZE;
+  const from = (page - 1) * size;
 
-  /* Built per page: a PostgrestFilterBuilder can only be awaited once, so each
-     range needs its own. Paged because a bare select() stops at PostgREST's
-     1,000-row cap *without erroring* — that silently hid 3,693 of 4,693
-     transactions and skewed every all-time total on the dashboard. */
-  return fetchAllRows<TransactionWithLinks>((from, to) => {
-    let query = sb
-      .from("transactions")
-      .select(WITH_LINKS)
-      .order("txn_date", { ascending: false })
-      .order("created_at", { ascending: false })
-      .range(from, to);
-    if (direction) query = query.eq("direction", direction);
-    if (q) query = query.or(`description.ilike.%${q}%,category.ilike.%${q}%`);
-    return query;
-  });
+  let query = sb
+    .from("transactions")
+    .select(WITH_LINKS, { count: "exact" })
+    .order(filters.sort ?? "txn_date", { ascending: filters.dir === "asc" })
+    // Stable tiebreak: without it, rows sharing a date can shuffle between
+    // pages and appear twice (or not at all).
+    .order("created_at", { ascending: false })
+    .range(from, from + size - 1);
+
+  if (filters.direction) query = query.eq("direction", filters.direction);
+  if (filters.status) query = query.eq("status", filters.status);
+  if (filters.from) query = query.gte("txn_date", filters.from);
+
+  // Commas/parens would break PostgREST's or() syntax.
+  const q = filters.search?.trim().replace(/[,()]/g, " ");
+  if (q) query = query.or(`description.ilike.%${q}%,category.ilike.%${q}%`);
+
+  const { data, count } = await query;
+  return { rows: (data ?? []) as TransactionWithLinks[], total: count ?? 0 };
+};
+
+/**
+ * How many transactions match, without fetching any.
+ *
+ * `head: true` asks Postgres for the count and no rows — what the tab badges
+ * need. Three of these is far cheaper than one full fetch.
+ */
+export const countTransactions = async (
+  sb: SupabaseClient,
+  filters: TransactionFilters = {},
+): Promise<number> => {
+  let query = sb
+    .from("transactions")
+    .select("id", { count: "exact", head: true });
+
+  if (filters.direction) query = query.eq("direction", filters.direction);
+  if (filters.status) query = query.eq("status", filters.status);
+  if (filters.from) query = query.gte("txn_date", filters.from);
+  const q = filters.search?.trim().replace(/[,()]/g, " ");
+  if (q) query = query.or(`description.ilike.%${q}%,category.ilike.%${q}%`);
+
+  const { count } = await query;
+  return count ?? 0;
 };
 
 /**

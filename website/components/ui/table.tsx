@@ -61,7 +61,7 @@ export const TableHead = ({
   <th
     data-slot="table-head"
     className={cn(
-      "h-11 whitespace-nowrap px-6 text-left align-middle text-[10px] font-bold uppercase tracking-wider text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      "h-11 whitespace-nowrap px-3 text-left align-middle text-[10px] font-bold uppercase tracking-wider text-muted-foreground sm:px-6 [&:has([role=checkbox])]:pr-0",
       className,
     )}
     {...props}
@@ -75,7 +75,7 @@ export const TableCell = ({
   <td
     data-slot="table-cell"
     className={cn(
-      "whitespace-nowrap px-6 py-3.5 align-middle [&:has([role=checkbox])]:pr-0",
+      "whitespace-nowrap px-3 py-3.5 align-middle sm:px-6 [&:has([role=checkbox])]:pr-0",
       className,
     )}
     {...props}

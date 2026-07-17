@@ -16,16 +16,20 @@ export const runtime = "nodejs";
 export const POST = async (request: Request) => {
   const raw = await request.text(); // raw body — parsing first breaks the signature
 
-  // Same posture as the receipts webhook: this writes to the DB from an
-  // unauthenticated request, so in production a missing secret is a hard failure
-  // rather than a silent skip.
-  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  /* Its own secret, NOT the receipts webhook's: Resend signs each endpoint with
+     a distinct key, so verifying against RESEND_WEBHOOK_SECRET would 401 every
+     delivery event.
+
+     Same posture as the receipts webhook otherwise — this writes to the DB from
+     an unauthenticated request, so in production a missing secret is a hard
+     failure rather than a silent skip. */
+  const secret = process.env.RESEND_EVENTS_WEBHOOK_SECRET;
   if (!secret) {
     if (process.env.NODE_ENV === "production") {
-      console.error("webhooks/resend: RESEND_WEBHOOK_SECRET is not set");
+      console.error("webhooks/resend: RESEND_EVENTS_WEBHOOK_SECRET is not set");
       return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
     }
-    console.warn("webhooks/resend: no RESEND_WEBHOOK_SECRET — skipping signature check (dev only)");
+    console.warn("webhooks/resend: no RESEND_EVENTS_WEBHOOK_SECRET — skipping signature check (dev only)");
   } else {
     try {
       new Webhook(secret).verify(raw, {

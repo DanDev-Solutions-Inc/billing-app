@@ -7,15 +7,19 @@ import { ButtonSize } from "@typings/ui/ButtonSize";
    shadow on the brand gradient so primary actions read as raised glass.
    Variant keys stay stable (primary/secondary/danger/ghost) so existing call
    sites keep working; `glass` and `outline` are new. */
-/* Pill shape is the house style — every button in the app is fully rounded. */
+/* Pill shape is the house style — every button in the app is fully rounded.
+   (cursor lives in globals.css — it applies to raw <button>s too.) */
 export const buttonBase =
-  "inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium outline-none transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4";
+  "inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium outline-none transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4";
 
+/* One height scale shared with the fields (see `fieldBase`), so a button and
+   an input sitting next to each other line up. min-h rather than a bare h:
+   a wrapped label then grows the control instead of overflowing it. */
 export const buttonSizes: Record<ButtonSize, string> = {
-  sm: "h-9 px-4 text-sm",
-  md: "h-10 px-5 text-sm",
-  lg: "h-12 px-6 text-base",
-  icon: "size-9 p-0",
+  sm: "h-10 min-h-10 px-4 text-sm",
+  md: "h-11 min-h-11 px-5 text-sm",
+  lg: "h-12 min-h-12 px-6 text-base",
+  icon: "size-10 min-h-10 p-0",
 };
 
 export const buttonVariants: Record<ButtonVariant, string> = {

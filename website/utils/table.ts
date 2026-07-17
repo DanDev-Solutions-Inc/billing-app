@@ -9,6 +9,9 @@ export type SortDir = "asc" | "desc";
 
 export const PAGE_SIZE = 10;
 
+/** A card grid fits more than a table row, and each card costs an image fetch. */
+export const RECEIPT_PAGE_SIZE = 24;
+
 /** Value a row sorts by, per column key. */
 export type Accessors<T> = Record<string, (row: T) => string | number | null>;
 
@@ -107,3 +110,22 @@ export const nextDir = (
   activeKey: string,
   activeDir: SortDir,
 ): SortDir => (columnKey === activeKey && activeDir === "desc" ? "asc" : "desc");
+
+/**
+ * Describe a page that Postgres already sliced.
+ *
+ * `paginate` builds this from a full in-memory array; when the query does the
+ * work, the rows and the total arrive separately and the display range has to
+ * be derived. Same shape either way, so <Pagination> doesn't care which.
+ */
+export const pageOf = <T>(
+  rows: T[],
+  total: number,
+  page: number,
+  size = PAGE_SIZE,
+): Page<T> => {
+  const pages = Math.max(1, Math.ceil(total / size));
+  const current = Math.min(Math.max(1, page), pages);
+  const from = total === 0 ? 0 : (current - 1) * size + 1;
+  return { rows, page: current, pages, total, from, to: from + rows.length - 1 };
+};

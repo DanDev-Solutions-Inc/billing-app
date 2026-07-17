@@ -1,13 +1,12 @@
 import { Metadata } from "next";
-import { Trash2, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listCustomers, getBillingSummaries } from "@services/supabase/customer";
 import { deleteCustomer } from "./actions";
 import { AddCustomerButton } from "@components/customers/add-customer-button";
-import { EditCustomerButton } from "@components/customers/edit-customer-button";
+import { CustomerRowLink } from "@components/customers/customer-row-link";
 import {
-  Button,
   Card,
   PageHeader,
   EmptyState,
@@ -20,7 +19,7 @@ import {
   TableHead,
   TableCell,
   SortableHead,
-  Pagination, FilterBar, FilterGroup } from "@components/ui";
+  Pagination, FilterBar, FilterGroup, ConfirmButton } from "@components/ui";
 import { sortRows, paginate, Accessors } from "@utils/table";
 import { tableView } from "@utils/table/table-view";
 import { formatMoney } from "@utils/money";
@@ -198,9 +197,8 @@ const CustomersPage = async ({
                   {result.rows.map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="w-full max-w-0">
-                        <span className="block truncate font-medium text-foreground">
-                          {c.name}
-                        </span>
+                        {/* Opens the edit modal from anywhere on the row. */}
+                        <CustomerRowLink customer={c} />
                         {/* Email and invoice count fold under the name on
                             mobile — as columns they left the name ~80px. */}
                         <span className="mt-0.5 block truncate text-xs text-muted-foreground sm:hidden">
@@ -259,20 +257,17 @@ const CustomersPage = async ({
                         ) : null}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center justify-end gap-1">
-                          <EditCustomerButton customer={c} />
-                          <form action={deleteCustomer}>
-                            <input type="hidden" name="id" value={c.id} />
-                            <Button
-                              type="submit"
-                              variant="dangerGhost"
-                              size="icon"
-                              title="Delete customer"
-                              aria-label={`Delete ${c.name}`}
-                            >
-                              <Trash2 />
-                            </Button>
-                          </form>
+                        {/* No edit icon — the row opens the customer. Delete is
+                            muted until hover and asks first: it's irreversible
+                            and sits one row away from every other click. */}
+                        <div className="relative z-10 flex items-center justify-end gap-1">
+                          <ConfirmButton
+                            action={deleteCustomer}
+                            id={c.id}
+                            title={`Delete ${c.name}?`}
+                            description="This removes the customer. Their invoices stay, but lose the link."
+                            triggerLabel={`Delete ${c.name}`}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>

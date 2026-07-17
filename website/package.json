@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "supabase:generate": "npx --yes supabase@latest gen types typescript --project-id xfywhveeknwoclkgczwb --schema public > types/Supabase.ts.tmp && mv types/Supabase.ts.tmp types/Supabase.ts || (rm -f types/Supabase.ts.tmp && echo 'gen types failed \u2014 Supabase.ts left untouched' && exit 1)"
+    "supabase:generate": "npx --yes supabase@latest gen types typescript --project-id xfywhveeknwoclkgczwb --schema public > types/Supabase.ts.tmp && [ -s types/Supabase.ts.tmp ] && mv types/Supabase.ts.tmp types/Supabase.ts || (rm -f types/Supabase.ts.tmp && echo 'gen types failed or returned nothing \u2014 Supabase.ts left untouched' && exit 1)"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.0",

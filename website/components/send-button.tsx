@@ -2,7 +2,7 @@
 
 import { useState, useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, CheckCircle2, Mail } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import {
   Button,
   Modal,
@@ -23,6 +23,7 @@ export const SendButton = ({
   action,
   emails = [],
   label = "Email to customer",
+  className,
 }: SendButtonProps) => {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(action, {});
@@ -38,7 +39,14 @@ export const SendButton = ({
 
   return (
     <>
-      <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
+      {/* className lands here, not on a wrapper: the fragment is transparent,
+          so this button is the direct child a parent grid/flex positions. */}
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={() => setOpen(true)}
+        className={className}
+      >
         <Mail />
         {label}
       </Button>
@@ -46,6 +54,7 @@ export const SendButton = ({
       <Modal
         open={open}
         onClose={() => setOpen(false)}
+        size="sm"
         title={state.ok ? "Sent" : label}
         description={
           state.ok
@@ -55,10 +64,9 @@ export const SendButton = ({
       >
         {state.ok ? (
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3 rounded-xl border border-brand-green/25 bg-brand-green/10 px-4 py-3">
-              <CheckCircle2 className="size-5 shrink-0 text-brand-green" />
-              <span className="text-sm text-foreground">{state.ok}</span>
-            </div>
+            {/* Same Alert every other modal uses — this was a hand-rolled
+                green box saying the same thing a different way. */}
+            <Alert tone="success">{state.ok}</Alert>
             <ModalFooter>
               <Button type="button" onClick={() => setOpen(false)}>
                 Done

@@ -230,7 +230,7 @@ export const RecurringInvoiceForm = ({
             name="auto_send"
             checked={formik.values.auto_send}
             onChange={formik.handleChange}
-            className="h-4 w-4 rounded border-border text-brand-accent"
+            className="vui-checkbox"
           />
           Automatically email the PDF to the customer each time
         </label>

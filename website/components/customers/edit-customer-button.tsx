@@ -32,6 +32,7 @@ export const EditCustomerButton = ({ customer }: { customer: Customer }) => {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
+        size="lg"
         title={`Edit ${customer.name}`}
         description="Update contact details, extra emails, or the address."
       >

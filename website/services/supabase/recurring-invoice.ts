@@ -7,9 +7,15 @@ import { RecurringInvoiceWithCustomer } from "@interfaces/models/recurring-invoi
 export const listRecurring = async (
   sb: SupabaseClient,
 ): Promise<RecurringInvoiceWithCustomer[]> => {
+  /* Soonest next_run first — a schedule list answers "what bills next?", and
+     newest-created put a 2027 renewal above one due next week. Paused rows
+     have a stale next_run, so they sink below the live ones.
+     created_at is the tiebreak for schedules sharing a date. */
   const { data } = await sb
     .from("recurring_invoices")
     .select("*, customers(*)")
+    .order("active", { ascending: false })
+    .order("next_run", { ascending: true })
     .order("created_at", { ascending: false });
   return (data ?? []) as RecurringInvoiceWithCustomer[];
 };

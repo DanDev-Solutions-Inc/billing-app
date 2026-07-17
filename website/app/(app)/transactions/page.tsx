@@ -1,13 +1,14 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
-import { listTransactions } from "@services/supabase/transaction";
-import { FileText, Receipt as ReceiptIcon, Trash2, Plus } from "lucide-react";
+import {
+  listTransactions,
+  countTransactions,
+} from "@services/supabase/transaction";
+import { FileText, Receipt as ReceiptIcon, Plus } from "lucide-react";
 import {
   PageHeader,
   Card,
-  Button,
   ButtonLink,
   StatusPill,
   EmptyState,
@@ -22,12 +23,11 @@ import {
   ClearFilters,
   SortableHead,
   Checkbox,
-  Pagination, FilterBar, RowLink, RowAction } from "@components/ui";
+  Pagination, FilterBar, RowLink, RowAction, ConfirmButton } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
-import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
-import { sortRows, paginate, Accessors, mergeQuery } from "@utils/table";
+import { parsePeriod, periodStartIso, PERIOD_LABEL } from "@utils/period";
+import { pageOf, mergeQuery } from "@utils/table";
 import { tableView } from "@utils/table/table-view";
-import { TransactionWithLinks } from "@interfaces/models/transaction/TransactionWithLinks";
 import { deleteTransactionAction } from "./actions";
 import { BulkForm } from "@components/transactions/bulk-form";
 
@@ -35,17 +35,10 @@ export const metadata: Metadata = { title: "Transactions" };
 
 const TYPES = ["review", "reviewed"] as const;
 
-/* What each sortable column sorts by. Dates sort as ISO strings (lexical ==
-   chronological); amount sorts numerically by magnitude — the +/− shown in the
-   cell is direction, not sign, so signing it here would interleave the two
-   halves of a mixed list rather than rank it by size. */
-const ACCESSORS: Accessors<TransactionWithLinks> = {
-  txn_date: (t) => t.txn_date,
-  description: (t) => t.description?.toLowerCase() ?? "",
-  category: (t) => t.category?.toLowerCase() ?? "",
-  amount: (t) => Number(t.amount),
-};
-const SORT_KEYS = Object.keys(ACCESSORS);
+/* Sortable columns. These are real columns, so Postgres orders by them —
+   there's no accessor map because nothing is sorted in JS. */
+const SORT_COLUMNS = ["txn_date", "description", "category", "amount"];
+
 
 const TransactionsPage = async ({
   searchParams,
@@ -70,7 +63,7 @@ const TransactionsPage = async ({
   const { sort, dir, page, sortHref, pageHref, current } = tableView({
     basePath: "/transactions",
     params,
-    sortKeys: SORT_KEYS,
+    sortKeys: SORT_COLUMNS,
     defaultSort: "txn_date",
     /* Defaults are dropped so the plain /transactions URL stays clean. */
     filters: {
@@ -81,21 +74,27 @@ const TransactionsPage = async ({
   });
 
   const supabase = await createClient();
-  /* Search runs in Postgres so it reaches every transaction, not just the page.
-     Period/type stay client-side filters over the result. */
-  const everything = await listTransactions(supabase, undefined, q);
-  const all = everything.filter((t) => inPeriod(t.txn_date, period));
 
-  const pending = all.filter((t) => t.status === "pending").length;
-  const rows =
-    active === "all"
-      ? all
-      : active === "review"
-        ? all.filter((t) => t.status === "pending")
-        : all.filter((t) => t.status === "approved");
+  /* Everything the list narrows by is a stored column, so Postgres does all of
+     it — filter, sort, and page. This used to fetch every transaction and do
+     the work in JS, which meant 4,693 rows over the wire to render 10, and the
+     newest 1,000 only (PostgREST truncates at that, silently). */
+  const from = periodStartIso(period);
+  const status =
+    active === "review" ? "pending" : active === "reviewed" ? "approved" : undefined;
 
-  const sorted = sortRows(rows, sort, dir, ACCESSORS);
-  const result = paginate(sorted, page);
+  const [result, totalCount, pending] = await Promise.all([
+    listTransactions(supabase, { status, from, search: q, sort, dir, page }),
+    // The tabs count what matches the *window*, independent of the active tab.
+    countTransactions(supabase, { from, search: q }),
+    countTransactions(supabase, { from, search: q, status: "pending" }),
+  ]);
+  const rows = result.rows;
+  const paged = pageOf(rows, result.total, page);
+
+  /* Any narrowing at all — an empty result then means "no matches", not "no
+     transactions". */
+  const isFiltered = Boolean(q || active !== "all" || period !== "month");
 
   /* Switching a filter keeps the sort but not the page — the row you were
      looking at almost certainly isn't on page 3 of the new list. */
@@ -107,7 +106,7 @@ const TransactionsPage = async ({
     });
 
   const typeTabs = [
-    { key: "all", label: "All", href: query("all", period), count: all.length },
+    { key: "all", label: "All", href: query("all", period), count: totalCount },
     {
       key: "review",
       label: "To review",
@@ -118,7 +117,7 @@ const TransactionsPage = async ({
       key: "reviewed",
       label: "Reviewed",
       href: query("reviewed", period),
-      count: all.length - pending,
+      count: totalCount - pending,
     },
   ];
 
@@ -163,7 +162,7 @@ const TransactionsPage = async ({
         </div>
         {rows.length > 0 && (
           <Pagination
-            {...result}
+            {...paged}
             hrefFor={pageHref}
             noun="transaction"
             variant="bar"
@@ -173,18 +172,17 @@ const TransactionsPage = async ({
 
       {rows.length === 0 ? (
         <EmptyState
-          title={
-            everything.length === 0
-              ? "No transactions yet"
-              : "No transactions match these filters"
-          }
+          /* `isFiltered` rather than a total-rows count: with the list paged
+             in Postgres we no longer hold every row, and asking for a bare
+             count purely to word an empty state isn't worth the round trip. */
+          title={isFiltered ? "No transactions match these filters" : "No transactions yet"}
           description={
-            everything.length === 0
-              ? "Paid invoices and receipt expenses show up here automatically, or add one manually."
-              : `Nothing in ${PERIOD_LABEL[period].toLowerCase()}. Try a wider date range.`
+            isFiltered
+              ? `Nothing in ${PERIOD_LABEL[period].toLowerCase()}. Try a wider date range.`
+              : "Paid invoices and receipt expenses show up here automatically, or add one manually."
           }
           action={
-            everything.length === 0 ? (
+            !isFiltered ? (
               <ButtonLink href="/transactions/new" size="sm">
             <Plus />
             New transaction
@@ -287,20 +285,6 @@ const TransactionsPage = async ({
                         >
                           {t.description || "View transaction"}
                         </RowLink>
-                        {source && (
-                          /* Above the row overlay so it opens the source, not
-                             the transaction. */
-                          <RowAction>
-                            <Link
-                              href={source.href}
-                              title={source.title}
-                              aria-label={source.title}
-                              className="shrink-0 text-muted-foreground transition-colors hover:text-brand-accent"
-                            >
-                              <source.Icon className="size-3.5" />
-                            </Link>
-                          </RowAction>
-                        )}
                       </div>
                       {/* Date and category ride under the description on
                           mobile — as columns they ate the width the
@@ -341,24 +325,33 @@ const TransactionsPage = async ({
                       {/* No Edit icon: the whole row opens the transaction
                           (see RowLink). RowAction lifts delete above the row
                           overlay — without it the overlay swallows the click. */}
-                      <RowAction className="justify-end">
-                        {/* formAction + name/value rather than a nested <form>:
-                            these rows live inside the bulk-select form, and a
-                            form inside a form is invalid — the parser drops the
-                            inner one, so this button would have submitted the
-                            bulk form instead of deleting anything. */}
-                        <Button
-                          type="submit"
-                          formAction={deleteTransactionAction}
-                          name="id"
-                          value={t.id}
-                          variant="dangerGhost"
-                          size="icon"
-                          title="Delete transaction"
-                          aria-label={`Delete ${t.description || "transaction"}`}
-                        >
-                          <Trash2 />
-                        </Button>
+                      <RowAction className="justify-end gap-1">
+                        {/* The source document lives with the other row
+                            actions rather than glued to the description —
+                            it's an action, not part of the label. */}
+                        {source && (
+                          <ButtonLink
+                            href={source.href}
+                            variant="ghost"
+                            size="icon"
+                            title={source.title}
+                            aria-label={source.title}
+                          >
+                            <source.Icon />
+                          </ButtonLink>
+                        )}
+                        {/* standalone={false}: this row is inside the
+                            bulk-select form, and a nested <form> is invalid —
+                            the parser drops the inner one, so it would submit
+                            the bulk form instead of deleting. */}
+                        <ConfirmButton
+                          action={deleteTransactionAction}
+                          id={t.id}
+                          standalone={false}
+                          title="Delete this transaction?"
+                          description="Its receipt and stored file go too — the receipt only exists as this transaction's source document."
+                          triggerLabel={`Delete ${t.description || "transaction"}`}
+                        />
                       </RowAction>
                     </TableCell>
                   </TableRow>

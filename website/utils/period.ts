@@ -1,5 +1,7 @@
 import { Transaction } from "@typings/transaction/Transaction";
 import { CashFlowPoint } from "@interfaces/models/dashboard/CashFlowPoint";
+import { CashFlowMonth } from "@interfaces/models/dashboard/CashFlowMonth";
+import { toIsoDate } from "@utils/date";
 import { Period } from "@typings/ui/Period";
 
 const monthKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}`;
@@ -108,3 +110,43 @@ export const inPeriod = (value: string, period: Period, now = new Date()) => {
 };
 
 
+
+/**
+ * Turn the SQL monthly aggregate into chart points.
+ *
+ * The months arrive zero-filled from Postgres, so this only labels them and
+ * derives net — no bucketing, no date parsing per row. The year is shown once
+ * a window spans one, so "Jan" isn't ambiguous across two of them.
+ */
+export const toCashFlowPoints = (
+  months: CashFlowMonth[],
+  showYear = false,
+): CashFlowPoint[] =>
+  months.map((m) => ({
+    label: new Date(`${m.month}T00:00:00`).toLocaleDateString("en-CA", {
+      month: "short",
+      ...(showYear ? { year: "2-digit" as const } : {}),
+    }),
+    income: m.income,
+    expense: m.expense,
+    net: m.income - m.expense,
+  }));
+
+/** Income/expense/net across an already-aggregated window. */
+export const totalsForCashFlow = (months: CashFlowMonth[]) => {
+  const income = months.reduce((s, m) => s + m.income, 0);
+  const expense = months.reduce((s, m) => s + m.expense, 0);
+  return { income, expense, net: income - expense };
+};
+
+/**
+ * The period's start as yyyy-mm-dd, or undefined for "all time".
+ *
+ * The date form (not a Date) because it goes straight into a Postgres
+ * `gte(txn_date, …)` — the window is applied by the query, not by filtering
+ * rows after the fact.
+ */
+export const periodStartIso = (period: Period): string | undefined => {
+  const start = periodStart(period);
+  return start ? toIsoDate(start) : undefined;
+};

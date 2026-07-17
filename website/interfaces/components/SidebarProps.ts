@@ -7,4 +7,6 @@ export interface SidebarProps {
    * width-constrained and where a mini rail would just be confusing.
    */
   collapsible?: boolean;
+  /** Lets the mobile drawer stretch the rail to its own width. */
+  className?: string;
 }
