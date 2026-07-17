@@ -53,7 +53,11 @@ export const MobileNav = ({ email }: SidebarProps) => {
           {/* Drawer slides in from the right — thumb-reachable next to the
               trigger, which also lives on the right of the top bar. */}
           <div className="absolute right-0 top-0 h-full">
-            <Sidebar email={email} onNavigate={() => setOpen(false)} />
+            <Sidebar
+              email={email}
+              collapsible={false}
+              onNavigate={() => setOpen(false)}
+            />
           </div>
           <button
             type="button"

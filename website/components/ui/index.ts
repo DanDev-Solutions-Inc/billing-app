@@ -46,3 +46,4 @@ export { Combobox } from "@components/ui/combobox";
 export type { ComboboxProps, ComboboxOption } from "@interfaces/components/ComboboxProps";
 export { ToastProvider, useToast } from "@components/ui/toast";
 export { ToastFlash } from "@components/ui/toast-flash";
+export { Metric } from "@components/ui/metric";

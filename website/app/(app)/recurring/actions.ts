@@ -48,6 +48,8 @@ export const createRecurringInvoice = async (
     next_run: nextRun,
     net_days: Math.max(0, Number(formData.get("net_days")) || 14),
     auto_send: formData.get("auto_send") === "on",
+    // "" (primary) is stored as null so the schedule follows the customer.
+    send_to: emptyToNull(formData.get("send_to")),
     end_date: emptyToNull(formData.get("end_date")),
   });
   if (error) return { error };

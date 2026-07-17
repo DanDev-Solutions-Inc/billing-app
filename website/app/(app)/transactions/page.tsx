@@ -17,7 +17,6 @@ import {
   TableRow,
   TableHead,
   TableCell,
-  StatCard,
   FilterTabs,
   SortableHead,
   Pagination,
@@ -77,13 +76,6 @@ const TransactionsPage = async ({
   const supabase = await createClient();
   const everything = await listTransactions(supabase);
   const all = everything.filter((t) => inPeriod(t.txn_date, period));
-
-  const income = all
-    .filter((t) => t.direction === "income")
-    .reduce((s, t) => s + Number(t.amount), 0);
-  const expense = all
-    .filter((t) => t.direction === "expense")
-    .reduce((s, t) => s + Number(t.amount), 0);
 
   const pending = all.filter((t) => t.status === "pending").length;
   const rows =
@@ -158,16 +150,6 @@ const TransactionsPage = async ({
           </ButtonLink>
         }
       />
-
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <StatCard label="Income" value={formatMoney(income)} tone="income" />
-        <StatCard label="Expenses" value={formatMoney(expense)} tone="expense" />
-        <StatCard
-          label="Net"
-          value={formatMoney(income - expense)}
-          tone={income - expense >= 0 ? "income" : "expense"}
-        />
-      </div>
 
       {/* Pager sits with the filters so it's reachable without scrolling the
           whole table on a short screen. */}

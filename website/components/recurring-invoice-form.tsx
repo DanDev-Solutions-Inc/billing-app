@@ -3,6 +3,7 @@
 import { useFormik } from "formik";
 import { LineItemsEditor } from "@components/invoices/line-items-editor";
 import { Card, Field, inputClass, Button, Select } from "@components/ui";
+import { Combobox } from "@components/ui/combobox";
 import { recurringSchema } from "@utils/validation/recurringSchema";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { RecurringFormValues } from "@interfaces/forms/RecurringFormValues";
@@ -33,6 +34,7 @@ export const RecurringInvoiceForm = ({
       next_run: today(),
       net_days: 14,
       auto_send: true,
+      send_to: "",
       end_date: "",
       notes: "",
       tax_rate: 13,
@@ -56,12 +58,30 @@ export const RecurringInvoiceForm = ({
       formData.set("notes", values.notes);
       formData.set("end_date", values.end_date);
       if (values.auto_send) formData.set("auto_send", "on");
+      formData.set("send_to", values.send_to);
       const result = await action({}, formData);
       if (result?.error) setStatus({ error: result.error });
     },
   });
 
   const status = formik.status as { error?: string } | undefined;
+
+  /* Every address on file for the chosen customer. "" = follow the primary, so
+     the schedule tracks the customer if that address later changes. */
+  const selectedCustomer = customers.find(
+    (c) => c.id === formik.values.customer_id,
+  );
+  const emailOptions = selectedCustomer
+    ? [
+        ...(selectedCustomer.email
+          ? [{ value: "", label: `${selectedCustomer.email} (primary)` }]
+          : []),
+        ...(selectedCustomer.secondary_emails ?? []).map((e) => ({
+          value: e,
+          label: e,
+        })),
+      ]
+    : [];
 
   const onItemChange = (
     index: number,
@@ -79,24 +99,31 @@ export const RecurringInvoiceForm = ({
   const itemsError =
     typeof formik.errors.items === "string" ? formik.errors.items : undefined;
 
+  const customerOptions = customers.map((c) => ({
+    value: c.id,
+    label: c.name,
+    hint: c.email ?? undefined,
+  }));
+
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-6" noValidate>
-      <Card className="p-6">
+      {/* z-20: `.vui-glass` sets backdrop-filter => a stacking context per Card,
+          so without raising this one the next card paints over the open list. */}
+      <Card className="relative z-20 p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Customer" htmlFor="customer_id">
-            <Select
+            {/* Searchable, matching the invoice/estimate form — scrolling a
+                plain select past ~28 customers is slow. */}
+            <Combobox
               id="customer_id"
               name="customer_id"
+              options={customerOptions}
               value={formik.values.customer_id}
-              onChange={formik.handleChange}
-            >
-              <option value="">— None —</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
+              onChange={(next) => formik.setFieldValue("customer_id", next)}
+              emptyLabel="— None —"
+              placeholder="Search customers…"
+              aria-label="Customer"
+            />
           </Field>
           <Field label="Label (internal)" htmlFor="title">
             <input
@@ -182,6 +209,33 @@ export const RecurringInvoiceForm = ({
           />
           Automatically email the PDF to the customer each time
         </label>
+
+        {/* Which address to bill. Only shown once emailing is on and a customer
+            with an address is chosen — otherwise there's nothing to pick. */}
+        {formik.values.auto_send && emailOptions.length > 0 && (
+          <div className="mt-4 max-w-sm">
+            <Field label="Send to" htmlFor="send_to">
+              <Select
+                id="send_to"
+                name="send_to"
+                value={formik.values.send_to}
+                onChange={formik.handleChange}
+              >
+                {emailOptions.map((e) => (
+                  <option key={e.value} value={e.value}>
+                    {e.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+        )}
+        {formik.values.auto_send && selectedCustomer && emailOptions.length === 0 && (
+          <p className="mt-3 text-sm text-brand-red">
+            {selectedCustomer.name} has no email address — add one before this
+            schedule can send.
+          </p>
+        )}
       </Card>
 
       <Card className="p-6">

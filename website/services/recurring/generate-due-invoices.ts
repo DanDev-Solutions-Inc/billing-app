@@ -69,6 +69,7 @@ export const generateDueInvoices = async (
             schedule.customer_id,
             invoiceId,
             totals.total,
+            schedule.send_to,
           );
           if (emailed) {
             await admin
@@ -96,13 +97,22 @@ const emailInvoice = async (
   customerId: string,
   invoiceId: string,
   total: number,
+  sendTo: string | null,
 ): Promise<boolean> => {
   const { data: customer } = await admin
     .from("customers")
     .select("*")
     .eq("id", customerId)
     .maybeSingle();
-  const to = (customer as Customer | null)?.email;
+  const record = customer as Customer | null;
+
+  // The schedule's chosen address wins, but only while it's still one of the
+  // customer's — an address removed from the customer shouldn't keep receiving
+  // invoices. Otherwise follow the primary, so it tracks any later change.
+  const known = [record?.email, ...(record?.secondary_emails ?? [])].filter(
+    Boolean,
+  );
+  const to = sendTo && known.includes(sendTo) ? sendTo : record?.email;
   if (!to) return false;
 
   const items = await listLineItems(admin, "invoice", invoiceId);

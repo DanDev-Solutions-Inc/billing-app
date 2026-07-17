@@ -9,6 +9,8 @@ export interface RecurringFormValues {
   next_run: string;
   net_days: number;
   auto_send: boolean;
+  /** "" = follow the customer's primary address. */
+  send_to: string;
   end_date: string;
   notes: string;
   tax_rate: number;

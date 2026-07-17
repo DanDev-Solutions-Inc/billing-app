@@ -3,117 +3,78 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import {
+  LayoutGrid,
+  FileText,
+  Repeat,
+  FileSignature,
+  Receipt,
+  ArrowLeftRight,
+  Users,
+  UsersRound,
+  Settings,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 import { logout } from "@app/(auth)/actions";
-import { IconProps } from "@interfaces/components/IconProps";
+import { cn } from "@lib/utils";
+import {
+  useSidebarCollapsed,
+  toggleSidebarCollapsed,
+} from "@hooks/use-sidebar-collapsed";
 import { SidebarProps } from "@interfaces/components/SidebarProps";
 
-/* --- inline icons (stroke = currentColor) --------------------------------- */
-const base = {
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.8,
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
-  viewBox: "0 0 24 24",
-};
-
-const IconGrid = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-    <rect x="14" y="3" width="7" height="7" rx="1.5" />
-    <rect x="14" y="14" width="7" height="7" rx="1.5" />
-    <rect x="3" y="14" width="7" height="7" rx="1.5" />
-  </svg>
-);
-const IconDoc = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-    <path d="M14 3v5h5M9 13h6M9 17h6" />
-  </svg>
-);
-const IconQuote = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <path d="M4 6a2 2 0 0 1 2-2h8l6 6v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
-    <path d="M14 4v6h6M8 14h6" />
-  </svg>
-);
-const IconReceipt = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <path d="M5 3v18l2-1.5L9 21l2-1.5L13 21l2-1.5L17 21l2-1.5V3l-2 1.5L15 3l-2 1.5L11 3 9 4.5 7 3z" />
-    <path d="M8 8h8M8 12h8" />
-  </svg>
-);
-const IconLedger = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <path d="M3 6h18M3 12h18M3 18h18" />
-    <circle cx="8" cy="6" r="0.6" />
-    <circle cx="16" cy="12" r="0.6" />
-    <circle cx="8" cy="18" r="0.6" />
-  </svg>
-);
-const IconUsers = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <circle cx="9" cy="8" r="3" />
-    <path d="M3 20a6 6 0 0 1 12 0M16 3.5a3 3 0 0 1 0 9M21 20a6 6 0 0 0-4-5.7" />
-  </svg>
-);
-const IconCog = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 7 2.6h.1A1.6 1.6 0 0 0 9 1.1V1a2 2 0 1 1 4 0v.1A1.6 1.6 0 0 0 15 2.6a1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1A1.6 1.6 0 0 0 22.9 9H23a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 2z" />
-  </svg>
-);
-const IconLogout = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-  </svg>
-);
-const IconRepeat = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <path d="M17 2l4 4-4 4" />
-    <path d="M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4" />
-    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-  </svg>
-);
-const IconTeam = ({ className }: IconProps) => (
-  <svg {...base} className={className}>
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
+/* Icons are lucide across the whole app — these were hand-rolled SVGs, the one
+   place that didn't match. */
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: IconGrid },
-  { href: "/invoices", label: "Invoices", icon: IconDoc },
-  { href: "/recurring", label: "Recurring", icon: IconRepeat },
-  { href: "/estimates", label: "Estimates", icon: IconQuote },
-  { href: "/receipts", label: "Receipts", icon: IconReceipt },
-  { href: "/transactions", label: "Transactions", icon: IconLedger },
-  { href: "/customers", label: "Customers", icon: IconUsers },
-  { href: "/team", label: "Team", icon: IconTeam },
-  { href: "/settings", label: "Settings", icon: IconCog },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
+  { href: "/invoices", label: "Invoices", icon: FileText },
+  { href: "/recurring", label: "Recurring", icon: Repeat },
+  { href: "/estimates", label: "Estimates", icon: FileSignature },
+  { href: "/receipts", label: "Receipts", icon: Receipt },
+  { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
+  { href: "/customers", label: "Customers", icon: Users },
+  { href: "/team", label: "Team", icon: UsersRound },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
+export const Sidebar = ({
+  email,
+  onNavigate,
+  collapsible = true,
+}: SidebarProps) => {
   const pathname = usePathname();
+  const collapsed = useSidebarCollapsed();
+
+  // The drawer always shows labels — it isn't width-constrained.
+  const mini = collapsible && collapsed;
 
   return (
-    <aside className="flex h-dvh w-64 shrink-0 flex-col border-r border-glass-border bg-sidebar backdrop-blur-2xl">
-      <div className="flex items-center px-5 py-5">
+    <aside
+      className={cn(
+        "flex h-dvh shrink-0 flex-col border-r border-glass-border bg-sidebar backdrop-blur-2xl transition-[width] duration-200",
+        mini ? "w-[76px]" : "w-64",
+      )}
+    >
+      <div
+        className={cn(
+          "flex items-center gap-2 px-5 py-5",
+          mini && "justify-center px-0",
+        )}
+      >
+        {/* Collapsed shows the DD monogram; expanded shows the full wordmark. */}
         <Image
-          src="/brand/DavdevSolutionsDark.png"
+          src={mini ? "/brand/DDDark.png" : "/brand/DavdevSolutionsDark.png"}
           alt="DanDev Solutions"
-          width={1343}
-          height={268}
+          width={mini ? 426 : 1343}
+          height={mini ? 266 : 268}
           priority
-          className="h-8 w-auto invert"
+          className={cn("w-auto invert", mini ? "h-7" : "h-8")}
         />
       </div>
 
-      {/* Vision UI nav: the active row is a raised glass card and its icon sits
-          in a brand-gradient tile; inactive icons ride a quiet navy tile. */}
-      <nav className="flex flex-1 flex-col gap-1 px-4 py-2">
+      <nav className={cn("flex flex-1 flex-col gap-1 py-2", mini ? "px-3" : "px-4")}>
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
@@ -122,47 +83,84 @@ export const Sidebar = ({ email, onNavigate }: SidebarProps) => {
               href={href}
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
-              className={
-                "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring/60 " +
-                (active
+              // Native tooltip carries the label once it's hidden.
+              title={mini ? label : undefined}
+              className={cn(
+                "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring/60",
+                mini && "justify-center px-0",
+                active
                   ? "vui-glass font-bold text-foreground shadow-[0_4px_16px_-6px_rgba(0,0,0,0.6)]"
-                  : "font-medium text-muted-foreground hover:bg-white/[0.04] hover:text-foreground")
-              }
+                  : "font-medium text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
+              )}
             >
               <span
-                className={
-                  "inline-flex size-8 shrink-0 items-center justify-center rounded-lg transition-all " +
-                  (active
+                className={cn(
+                  "inline-flex size-8 shrink-0 items-center justify-center rounded-lg transition-all",
+                  active
                     ? "vui-grad text-white shadow-[0_4px_12px_-3px_rgba(47,111,196,0.8)]"
-                    : "bg-white/[0.06] text-muted-foreground group-hover:text-foreground")
-                }
+                    : "bg-white/[0.06] text-muted-foreground group-hover:text-foreground",
+                )}
               >
-                <Icon className="h-[18px] w-[18px]" />
+                <Icon className="size-[18px]" />
               </span>
-              {label}
+              {!mini && label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-glass-border px-4 py-3">
-        <p
-          className="truncate px-1 pb-2 text-xs text-muted-foreground"
-          title={email}
-        >
-          {email}
-        </p>
+      <div
+        className={cn(
+          "border-t border-glass-border py-3",
+          mini ? "px-3" : "px-4",
+        )}
+      >
+        {!mini && (
+          <p
+            className="truncate px-1 pb-2 text-xs text-muted-foreground"
+            title={email}
+          >
+            {email}
+          </p>
+        )}
         <form action={logout}>
           <button
             type="submit"
-            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-white/[0.04] hover:text-brand-red focus-visible:ring-2 focus-visible:ring-ring/60"
+            title={mini ? "Sign out" : undefined}
+            className={cn(
+              "group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-white/[0.04] hover:text-brand-red focus-visible:ring-2 focus-visible:ring-ring/60",
+              mini && "justify-center px-0",
+            )}
           >
             <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] transition-colors group-hover:bg-brand-red/15">
-              <IconLogout className="h-[18px] w-[18px]" />
+              <LogOut className="size-[18px]" />
             </span>
-            Sign out
+            {!mini && "Sign out"}
           </button>
         </form>
+
+        {collapsible && (
+          <button
+            type="button"
+            onClick={toggleSidebarCollapsed}
+            aria-expanded={!mini}
+            aria-label={mini ? "Expand sidebar" : "Collapse sidebar"}
+            title={mini ? "Expand sidebar" : "Collapse sidebar"}
+            className={cn(
+              "mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-white/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
+              mini && "justify-center px-0",
+            )}
+          >
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]">
+              {mini ? (
+                <PanelLeftOpen className="size-[18px]" />
+              ) : (
+                <PanelLeftClose className="size-[18px]" />
+              )}
+            </span>
+            {!mini && "Collapse"}
+          </button>
+        )}
       </div>
     </aside>
   );

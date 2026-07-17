@@ -43,6 +43,13 @@ export interface Database {
           email: string | null;
           phone: string | null;
           address: string | null;
+          address_line1: string | null;
+          address_line2: string | null;
+          city: string | null;
+          province: string | null;
+          postal_code: string | null;
+          country: string | null;
+          secondary_emails: string[];
           wave_id: string | null;
           created_at: string;
         };
@@ -53,6 +60,13 @@ export interface Database {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          address_line1?: string | null;
+          address_line2?: string | null;
+          city?: string | null;
+          province?: string | null;
+          postal_code?: string | null;
+          country?: string | null;
+          secondary_emails?: string[];
           wave_id?: string | null;
           created_at?: string;
         };
@@ -265,6 +279,7 @@ export interface Database {
           end_date: string | null;
           net_days: number;
           auto_send: boolean;
+          send_to: string | null;
           active: boolean;
           created_at: string;
           updated_at: string;
@@ -284,6 +299,7 @@ export interface Database {
           end_date?: string | null;
           net_days?: number;
           auto_send?: boolean;
+          send_to?: string | null;
           active?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -321,7 +337,21 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      // Invoice count + billed totals per customer, aggregated in Postgres.
+      // security_invoker = on, so RLS on invoices still scopes these rows.
+      customer_billing_summary: {
+        Row: {
+          customer_id: string;
+          user_id: string;
+          invoice_count: number;
+          total_billed: number;
+          total_paid: number;
+          last_invoiced: string | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       delete_transaction_cascade: {
         Args: { txn_id: string };
