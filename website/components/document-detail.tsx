@@ -34,6 +34,7 @@ export const DocumentDetail = ({
   actionBar,
   banner,
   emailActivity,
+  emailStatus,
   backHref,
   backLabel = "Back",
 }: DocumentDetailProps) => {
@@ -50,6 +51,7 @@ export const DocumentDetail = ({
               {number ? ` ${number}` : ""}
             </h1>
             <StatusPill status={status} />
+            {emailStatus}
           </div>
         </div>
         {/* Full-bleed on mobile — this header sits outside PageHeader, so it

@@ -19,6 +19,8 @@ export interface DocumentDetailProps {
   banner?: ReactNode;
   /** Delivery history for emailed copies of this document. Rendered below the totals. */
   emailActivity?: ReactNode;
+  /** Compact email-state icon shown beside the status pill in the header. */
+  emailStatus?: ReactNode;
   /** When set, renders a back link above the heading. */
   backHref?: string;
   /** Label for the back link. Defaults to "Back". */

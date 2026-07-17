@@ -8,6 +8,8 @@ import { listLineItems } from "@services/supabase/line-item";
 import { listDocumentEmails } from "@services/supabase/document-email";
 import { DocumentDetail } from "@components/document-detail";
 import { EmailActivity } from "@components/email-activity";
+import { EmailStatusIcon } from "@components/email-status-icon";
+import { latestEmailState } from "@utils/email-status";
 import {
   Button,
   ButtonLink,
@@ -60,6 +62,7 @@ const InvoicePage = async ({
   return (
     <DocumentDetail
       emailActivity={<EmailActivity emails={emails} />}
+      emailStatus={<EmailStatusIcon state={latestEmailState(emails)} />}
       backHref="/invoices"
       heading="Invoice"
       number={inv.invoice_number}

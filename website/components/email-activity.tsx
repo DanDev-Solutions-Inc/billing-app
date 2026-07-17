@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@components/ui";
 import { formatDateTime } from "@utils/money";
 import { DocumentEmail } from "@typings/document-email/DocumentEmail";
+import { documentEmailState } from "@utils/email-status";
 
 /**
  * What happened to each emailed copy of a document, newest first.
@@ -19,7 +20,7 @@ export const EmailActivity = ({ emails }: { emails: DocumentEmail[] }) => {
       <CardContent>
         <ul className="space-y-3 text-sm">
           {emails.map((email) => {
-            const state = describe(email);
+            const state = documentEmailState(email);
             return (
               <li
                 key={email.id}
@@ -60,24 +61,3 @@ export const EmailActivity = ({ emails }: { emails: DocumentEmail[] }) => {
   );
 };
 
-/* The furthest the message got. Ordered worst-to-best deliberately: a bounce
-   outranks an open, since a bounce after an open means a later attempt failed
-   and that's the part worth acting on. */
-const describe = (email: DocumentEmail) => {
-  if (email.bounced_at)
-    return {
-      label: "Bounced",
-      at: email.bounced_at,
-      tone: "text-brand-red",
-      detail: email.bounce_reason,
-    };
-  if (email.opened_at)
-    return { label: "Opened", at: email.opened_at, tone: "text-foreground" };
-  if (email.delivered_at)
-    return {
-      label: "Delivered",
-      at: email.delivered_at,
-      tone: "text-foreground",
-    };
-  return { label: "Sent", at: email.sent_at, tone: "text-muted-foreground" };
-};

@@ -2,6 +2,9 @@ import "server-only";
 import { SupabaseClient } from "@typings/SupabaseClient";
 import { DocumentEmail } from "@typings/document-email/DocumentEmail";
 import { DocumentEmailEvent } from "@interfaces/services/DocumentEmailEvent";
+import { EmailState } from "@interfaces/models/document-email/EmailState";
+import { latestEmailState } from "@utils/email-status";
+import { fetchAllRows } from "@services/supabase/fetch-all";
 
 export type DocumentParentType = "invoice" | "estimate";
 
@@ -31,6 +34,43 @@ export const recordDocumentEmail = async (
     recipient: input.recipient,
   });
   if (error) console.error("recordDocumentEmail failed", error.message);
+};
+
+/**
+ * One glance-state per document of a kind, for a whole list at once.
+ *
+ * The listing needs "was this invoice viewed" per row; querying each invoice
+ * would be an N+1. Instead this pulls every send for the kind in one go (RLS
+ * scopes it to the user, and one row per send keeps the table small) and
+ * reduces to the latest state per parent. Paged past the 1,000-row cap so a
+ * busy account doesn't silently lose the oldest documents' markers.
+ */
+export const getEmailStates = async (
+  sb: SupabaseClient,
+  parentType: DocumentParentType,
+): Promise<Map<string, EmailState>> => {
+  const rows = await fetchAllRows<DocumentEmail>((from, to) =>
+    sb
+      .from("document_emails")
+      .select("*")
+      .eq("parent_type", parentType)
+      .order("sent_at", { ascending: false })
+      .range(from, to),
+  );
+
+  const byParent = new Map<string, DocumentEmail[]>();
+  for (const row of rows) {
+    const list = byParent.get(row.parent_id);
+    if (list) list.push(row);
+    else byParent.set(row.parent_id, [row]);
+  }
+
+  const states = new Map<string, EmailState>();
+  for (const [parentId, list] of byParent) {
+    const state = latestEmailState(list);
+    if (state) states.set(parentId, state);
+  }
+  return states;
 };
 
 /** Every send of one document, newest first. */

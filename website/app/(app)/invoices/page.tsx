@@ -4,6 +4,8 @@ import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listInvoices } from "@services/supabase/invoice";
 import { listCustomers } from "@services/supabase/customer";
+import { getEmailStates } from "@services/supabase/document-email";
+import { EmailStatusIcon } from "@components/email-status-icon";
 import {
   PageHeader,
   Card,
@@ -95,9 +97,11 @@ const InvoicesPage = async ({
   /* Search + customer run in Postgres, so they cover every invoice rather than
      the page being rendered. Status is derived (overdue isn't stored), so it
      stays a filter over the returned rows. */
-  const [all, customers] = await Promise.all([
+  const [all, customers, emailStates] = await Promise.all([
     listInvoices(supabase, { search: q, customerId: customerId || undefined }),
     listCustomers(supabase),
+    // One query for every invoice's email state, not one per row.
+    getEmailStates(supabase, "invoice"),
   ]);
 
   const filtered =
@@ -266,13 +270,18 @@ const InvoicesPage = async ({
               {result.rows.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell className="font-medium">
-                    {/* Opens from anywhere on the row — see RowLink. */}
-                    <RowLink
-                      href={`/invoices/${inv.id}`}
-                      className="text-brand-accent"
-                    >
-                      {inv.invoice_number || `#${inv.id.slice(0, 8)}`}
-                    </RowLink>
+                    <span className="flex items-center gap-1.5">
+                      {/* Opens from anywhere on the row — see RowLink. */}
+                      <RowLink
+                        href={`/invoices/${inv.id}`}
+                        className="text-brand-accent"
+                      >
+                        {inv.invoice_number || `#${inv.id.slice(0, 8)}`}
+                      </RowLink>
+                      {/* Glance state of the last email for this invoice —
+                          nothing if it was never sent. */}
+                      <EmailStatusIcon state={emailStates.get(inv.id) ?? null} />
+                    </span>
                   </TableCell>
                   {/* Customer carries the row on mobile; the dates and status
                       fold underneath rather than overflowing as columns. */}
