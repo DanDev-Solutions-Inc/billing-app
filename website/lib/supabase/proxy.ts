@@ -70,7 +70,14 @@ export const updateSession = async (request: NextRequest) => {
   }
 
   // If logged in and visiting an auth page, send them to the dashboard.
-  if (user && PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) && pathname !== "/auth/confirm") {
+  // /auth/confirm (verifies a link) and /auth/leave (signs out) are exempt —
+  // both need to run for a user who still has a session.
+  if (
+    user &&
+    PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) &&
+    pathname !== "/auth/confirm" &&
+    pathname !== "/auth/leave"
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

@@ -1,12 +1,14 @@
 import { Suspense } from "react";
-import { getUserOrRedirect } from "@lib/dal";
+import { requireAppAccess } from "@lib/dal";
 import { Sidebar } from "@components/nav/sidebar";
 import { MobileNav } from "@components/nav/mobile-nav";
 import { ToastProvider } from "@components/ui/toast";
 import { ToastFlash } from "@components/ui/toast-flash";
 
 const AppLayout = async ({ children }: { children: React.ReactNode }) => {
-  const user = await getUserOrRedirect();
+  // Gate the whole app shell on access, not just a session — a removed member
+  // still has an account. Every (app) page renders through here.
+  const user = await requireAppAccess();
   const email = user.email ?? "";
 
   return (

@@ -55,15 +55,11 @@ export const requestPasswordReset = async (
   const email = String(formData.get("email") ?? "").trim();
   if (!email) return { error: "Email is required." };
 
-  const headerList = await headers();
-  const origin = `${headerList.get("x-forwarded-proto") ?? "https"}://${headerList.get("host")}`;
-
   const supabase = await createClient();
-  // The recovery link lands on /auth/callback, which exchanges the code for a
-  // (recovery) session and forwards to /reset-password to set a new one.
-  await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/reset-password`,
-  });
+  // The link target lives in the Supabase recovery email template, which points
+  // at /auth/confirm?type=recovery&next=/reset-password (a token-hash flow, not
+  // PKCE — so it works cross-device and doesn't depend on a verifier cookie).
+  await supabase.auth.resetPasswordForEmail(email);
 
   // Always the same reply, whether or not the address has an account — telling
   // the difference would let anyone probe which emails are registered.
