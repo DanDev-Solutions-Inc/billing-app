@@ -25,6 +25,24 @@ const blankItem = (): LineItemFormValues => ({
   unit_price: 0,
 });
 
+/* Payment terms. The due/expiry date is derived from the issue date rather
+   than typed, so the two can't drift out of sync. */
+const TERMS = [7, 15, 30] as const;
+
+const addDays = (iso: string, days: number) => {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  const tz = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
+};
+
+const daysBetween = (from: string, to: string) =>
+  Math.round(
+    (new Date(`${to}T00:00:00`).getTime() -
+      new Date(`${from}T00:00:00`).getTime()) /
+      86_400_000,
+  );
+
 export const DocForm = ({
   kind,
   customers,
@@ -100,6 +118,35 @@ export const DocForm = ({
   const itemsError =
     typeof formik.errors.items === "string" ? formik.errors.items : undefined;
 
+  /* Derive which term is selected from the dates themselves, so editing an
+     existing document shows the right option (and "Custom" for a hand-set
+     date that doesn't line up with a preset). */
+  const { issue_date, second_date } = formik.values;
+  const termDays =
+    issue_date && second_date ? daysBetween(issue_date, second_date) : null;
+  const isPresetTerm =
+    termDays !== null && (TERMS as readonly number[]).includes(termDays);
+  const termValue = !second_date ? "" : isPresetTerm ? String(termDays) : "custom";
+
+  const onTermChange = (value: string) => {
+    if (value === "custom") return; // display-only
+    formik.setFieldValue(
+      "second_date",
+      value === "" ? "" : addDays(issue_date, Number(value)),
+    );
+  };
+
+  /* Moving the issue date keeps a preset term intact by re-deriving the date. */
+  const onIssueDateChange = (next: string) => {
+    formik.setFieldValue("issue_date", next);
+    if (next && isPresetTerm) {
+      formik.setFieldValue("second_date", addDays(next, termDays));
+    }
+  };
+
+  const termLabel = (days: number) =>
+    `${isInvoice ? `Net ${days}` : `${days} days`} · ${addDays(issue_date, days)}`;
+
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-6" noValidate>
       <Card className="p-6">
@@ -143,7 +190,7 @@ export const DocForm = ({
               name="issue_date"
               type="date"
               value={formik.values.issue_date}
-              onChange={formik.handleChange}
+              onChange={(e) => onIssueDateChange(e.target.value)}
               className={inputClass}
             />
             {formik.touched.issue_date && formik.errors.issue_date && (
@@ -152,15 +199,23 @@ export const DocForm = ({
               </p>
             )}
           </Field>
-          <Field label={secondDateLabel} htmlFor="second_date">
-            <input
-              id="second_date"
-              name="second_date"
-              type="date"
-              value={formik.values.second_date}
-              onChange={formik.handleChange}
-              className={inputClass}
-            />
+          <Field label={secondDateLabel} htmlFor="second_date_terms">
+            <Select
+              id="second_date_terms"
+              value={termValue}
+              onChange={(e) => onTermChange(e.target.value)}
+              disabled={!issue_date}
+            >
+              <option value="">No {secondDateLabel.toLowerCase()}</option>
+              {TERMS.map((d) => (
+                <option key={d} value={d}>
+                  {termLabel(d)}
+                </option>
+              ))}
+              {termValue === "custom" && (
+                <option value="custom">Custom · {second_date}</option>
+              )}
+            </Select>
           </Field>
         </div>
       </Card>

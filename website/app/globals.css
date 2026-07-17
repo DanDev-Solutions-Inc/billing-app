@@ -127,6 +127,35 @@ body {
   background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--body-stack);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Type standardisation ------------------------------------------------
+   Form controls do NOT inherit font-family from body — browsers substitute the
+   OS UI font — so without this every input/select/textarea/button silently
+   renders in system-ui instead of the brand face. */
+input,
+select,
+textarea,
+button,
+optgroup {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+/* Headings get the display face by default, so a heading that forgets the
+   `font-heading` utility can't drift back to the body face. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--heading-stack);
+  letter-spacing: -0.01em;
 }
 
 /* --- Vision UI kit primitives ------------------------------------------- */

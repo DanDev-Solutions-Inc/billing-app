@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useFormik } from "formik";
+import { inputClass } from "@components/ui";
 import { login, signup, signInWithGoogle } from "@app/(auth)/actions";
 import { credentialsSchema } from "@utils/validation/credentialsSchema";
 import { CredentialsFormValues } from "@interfaces/forms/CredentialsFormValues";
@@ -42,7 +43,7 @@ export const AuthForm = ({ mode }: { mode: "login" | "signup" }) => {
           value={formik.values.email}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20"
+          className={inputClass}
           placeholder="you@dandev.solutions"
         />
         {formik.touched.email && formik.errors.email && (
@@ -62,7 +63,7 @@ export const AuthForm = ({ mode }: { mode: "login" | "signup" }) => {
           value={formik.values.password}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20"
+          className={inputClass}
           placeholder="••••••••"
         />
         {formik.touched.password && formik.errors.password && (
@@ -102,7 +103,7 @@ export const AuthForm = ({ mode }: { mode: "login" | "signup" }) => {
       <button
         type="button"
         onClick={() => signInWithGoogle()}
-        className="flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-surface-muted"
+        className="flex items-center justify-center gap-2 rounded-xl border border-glass-border bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-foreground backdrop-blur-md transition-colors hover:bg-white/[0.12]"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
           <path
