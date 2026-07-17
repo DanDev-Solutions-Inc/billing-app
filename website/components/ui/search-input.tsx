@@ -44,6 +44,8 @@ export const SearchInput = ({
       const params = new URLSearchParams(searchParams.toString());
       if (value.trim()) params.set(param, value.trim());
       else params.delete(param);
+      params.delete("page"); // new query, new result set — back to page 1
+
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     }, 300);

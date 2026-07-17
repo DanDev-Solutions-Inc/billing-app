@@ -558,7 +558,22 @@ export type Database = {
     Functions: {
       delete_transaction_cascade: { Args: { txn_id: string }; Returns: string }
       has_access: { Args: { target_owner: string }; Returns: boolean }
+      monthly_cash_flow: {
+        Args: { months?: number }
+        Returns: {
+          expense: number
+          income: number
+          month: string
+        }[]
+      }
       next_invoice_number: { Args: { uid: string }; Returns: string }
+      receipt_categories: {
+        Args: never
+        Returns: {
+          category: string
+          count: number
+        }[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }

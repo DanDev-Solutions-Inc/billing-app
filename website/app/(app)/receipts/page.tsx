@@ -2,26 +2,53 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
-import { listReceipts } from "@services/supabase/receipt";
-import { Mail, Upload, Plus } from "lucide-react";
+import {
+  listReceipts,
+  countReceipts,
+} from "@services/supabase/receipt";
+import { parsePage, pageOf, RECEIPT_PAGE_SIZE } from "@utils/table";
+import { Mail, Upload, Plus, FileText } from "lucide-react";
 import {
   PageHeader,
   Card,
   ButtonLink,
   EmptyState,
-  FilterTabs, FilterBar, FilterGroup } from "@components/ui";
+  FilterTabs,
+  FilterBar,
+  FilterGroup,
+  FilterSelect,
+  SearchInput,
+  Pagination,
+} from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
-import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
+import { parsePeriod, periodStartIso, PERIOD_LABEL } from "@utils/period";
 import { isPdfReceipt } from "@utils/receipt-file";
+import { listReceiptCategories } from "@services/supabase/receipt-category";
 
 export const metadata: Metadata = { title: "Receipts" };
 
 const SOURCES = ["email", "upload"] as const;
 
-const query = (source: string, period: string) => {
+/**
+ * Build a /receipts link from the full filter state.
+ *
+ * Every control's href goes through here so switching one filter carries the
+ * others — clicking "Emailed" used to drop the search you'd just typed.
+ * Defaults stay out of the URL to keep shared links readable.
+ */
+const query = (f: {
+  source: string;
+  period: string;
+  category: string;
+  q: string;
+  page?: number;
+}) => {
   const p = new URLSearchParams();
-  if (source !== "all") p.set("source", source);
-  if (period !== "month") p.set("period", period);
+  if (f.source !== "all") p.set("source", f.source);
+  if (f.period !== "month") p.set("period", f.period);
+  if (f.category !== "all") p.set("category", f.category);
+  if (f.q) p.set("q", f.q);
+  if (f.page && f.page > 1) p.set("page", String(f.page));
   const s = p.toString();
   return s ? `/receipts?${s}` : "/receipts";
 };
@@ -29,7 +56,13 @@ const query = (source: string, period: string) => {
 const ReceiptsPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ source?: string; period?: string }>;
+  searchParams: Promise<{
+    source?: string;
+    period?: string;
+    category?: string;
+    q?: string;
+    page?: string;
+  }>;
 }) => {
   await getUserOrRedirect();
   const params = await searchParams;
@@ -38,35 +71,72 @@ const ReceiptsPage = async ({
     params.source && SOURCES.includes(params.source as (typeof SOURCES)[number])
       ? params.source
       : "all";
+  const q = params.q?.trim() ?? "";
 
   const supabase = await createClient();
-  const all = await listReceipts(supabase);
+  const page = parsePage(params.page);
+  const from = periodStartIso(period);
+  const src = source === "all" ? undefined : (source as "email" | "upload");
 
-  const windowed = all.filter((r) => inPeriod(r.receipt_date, period));
-  const receipts =
-    source === "all" ? windowed : windowed.filter((r) => r.source === source);
+  /* Validated against the categories the data actually has — an arbitrary
+     ?category= would return nothing and read as a bug rather than a typo. */
+  const categories = await listReceiptCategories(supabase);
+  const category = categories.some((c) => c.category === params.category)
+    ? (params.category as string)
+    : "all";
+  const cat = category === "all" ? undefined : category;
 
+  /* Paged in Postgres. This page renders a card with an <img> per receipt, and
+     each of those hits an authenticated route that re-checks auth, reads the
+     row and fetches the blob — so rendering all 3,598 meant 3,598 of them. */
+  const [result, totalCount, emailCount, uploadCount] = await Promise.all([
+    listReceipts(supabase, { source: src, category: cat, search: q, from, page }),
+    // The badges count within the *other* filters, so they report what the tab
+    // would actually show rather than an all-time total.
+    countReceipts(supabase, { from, category: cat, search: q }),
+    countReceipts(supabase, { from, category: cat, search: q, source: "email" }),
+    countReceipts(supabase, {
+      from,
+      category: cat,
+      search: q,
+      source: "upload",
+    }),
+  ]);
+  const receipts = result.rows;
+  const paged = pageOf(receipts, result.total, page, RECEIPT_PAGE_SIZE);
+
+  /* Any narrowing — an empty result then means "no matches", not "none yet". */
+  const isFiltered = Boolean(
+    q || source !== "all" || category !== "all" || period !== "month",
+  );
+
+  const rest = { period, category, q };
   const sourceTabs = [
-    { key: "all", label: "All", href: query("all", period), count: windowed.length },
+    {
+      key: "all",
+      label: "All",
+      href: query({ ...rest, source: "all" }),
+      count: totalCount,
+    },
     {
       key: "email",
       label: "Emailed",
-      href: query("email", period),
-      count: windowed.filter((r) => r.source === "email").length,
+      href: query({ ...rest, source: "email" }),
+      count: emailCount,
     },
     {
       key: "upload",
       label: "Uploaded",
-      href: query("upload", period),
-      count: windowed.filter((r) => r.source === "upload").length,
+      href: query({ ...rest, source: "upload" }),
+      count: uploadCount,
     },
   ];
 
-  const periodTabs = [
-    { key: "month", label: "Month", href: query(source, "month") },
-    { key: "year", label: "Year", href: query(source, "year") },
-    { key: "all", label: "All time", href: query(source, "all") },
-  ];
+  const periodTabs = (["month", "year", "all"] as const).map((key) => ({
+    key,
+    label: { month: "Month", year: "Year", all: "All time" }[key],
+    href: query({ source, category, q, period: key }),
+  }));
 
   return (
     <>
@@ -88,6 +158,10 @@ const ReceiptsPage = async ({
       />
 
       <FilterBar>
+        <SearchInput
+          placeholder="Search vendor, category or notes…"
+          className="w-full sm:max-w-xs"
+        />
         <FilterTabs
           tabs={sourceTabs}
           active={source}
@@ -99,27 +173,51 @@ const ReceiptsPage = async ({
           variant="segmented"
           aria-label="Filter by date range"
         />
+        <FilterGroup>
+          <FilterSelect
+            param="category"
+            value={category}
+            aria-label="Filter by category"
+            options={[
+              { key: "all", label: "All categories" },
+              ...categories.map((c) => ({
+                key: c.category,
+                label: c.category,
+                count: c.count,
+              })),
+            ]}
+          />
+        </FilterGroup>
+        {result.total > 0 && (
+          <Pagination
+            {...paged}
+            hrefFor={(p) => query({ source, period, category, q, page: p })}
+            noun="receipt"
+            variant="bar"
+          />
+        )}
       </FilterBar>
 
       {receipts.length === 0 ? (
         <EmptyState
-          title={
-            all.length === 0 ? "No receipts yet" : "No receipts match these filters"
-          }
+          /* isFiltered, not a row count: the list is paged in Postgres now, so
+             we don't hold every row — and a count purely to word an empty state
+             isn't worth the round trip. */
+          title={isFiltered ? "No receipts match these filters" : "No receipts yet"}
           description={
-            all.length === 0
-              ? "Upload a photo of a receipt, or forward one to your receipts inbox."
-              : `Nothing in ${PERIOD_LABEL[period].toLowerCase()}. Try a wider date range.`
+            isFiltered
+              ? `Nothing in ${PERIOD_LABEL[period].toLowerCase()}. Try a wider date range.`
+              : "Upload a photo of a receipt, or forward one to your receipts inbox."
           }
           action={
-            all.length === 0 ? (
+            !isFiltered ? (
               <ButtonLink href="/receipts/new">
                 <Plus />
                 Add receipt
               </ButtonLink>
             ) : (
-              <ButtonLink href="/receipts?period=all" variant="secondary">
-                View all time
+              <ButtonLink href="/receipts" variant="secondary">
+                Clear search and filters
               </ButtonLink>
             )
           }
@@ -140,16 +238,7 @@ const ReceiptsPage = async ({
                     />
                   ) : r.image_url ? (
                     <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-10 w-10"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-                        <path d="M14 3v5h5" />
-                      </svg>
+                      <FileText className="size-10" strokeWidth={1.5} />
                       <span className="text-xs font-medium">PDF</span>
                     </div>
                   ) : (

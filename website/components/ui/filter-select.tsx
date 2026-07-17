@@ -27,6 +27,9 @@ export const FilterSelect = ({
     const params = new URLSearchParams(searchParams.toString());
     if (next === allKey) params.delete(param);
     else params.set(param, next);
+    // A different filter is a different result set, so page 5 of the old one is
+    // meaningless — start over at 1.
+    params.delete("page");
     const qs = params.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
   };
