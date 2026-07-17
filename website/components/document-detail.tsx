@@ -13,6 +13,7 @@ import {
   BackButton,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
+import { splitLineItem } from "@utils/line-item-presets";
 import { DocumentDetailProps } from "@interfaces/components/DocumentDetailProps";
 import { MetaProps } from "@interfaces/components/MetaProps";
 import { TotalRowProps } from "@interfaces/components/TotalRowProps";
@@ -89,7 +90,24 @@ export const DocumentDetail = ({
           <TableBody>
             {items.map((it) => (
               <TableRow key={it.id}>
-                <TableCell>{it.description}</TableCell>
+                <TableCell className="max-w-0">
+                  {/* Title bold, detail as supporting text — matching the PDF. */}
+                  {(() => {
+                    const { title, detail } = splitLineItem(it.description);
+                    return (
+                      <>
+                        <span className="font-medium text-foreground">
+                          {title}
+                        </span>
+                        {detail && (
+                          <span className="mt-0.5 block whitespace-pre-line text-xs text-muted-foreground">
+                            {detail}
+                          </span>
+                        )}
+                      </>
+                    );
+                  })()}
+                </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {it.quantity}
                 </TableCell>

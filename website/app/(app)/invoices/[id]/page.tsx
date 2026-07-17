@@ -40,6 +40,12 @@ const InvoicePage = async ({
   const inv = await getInvoice(supabase, id);
   if (!inv) notFound();
 
+  /* Primary first, then any extras — the picker's order is the fallback order. */
+  const customerEmails = [
+    inv.customers?.email,
+    ...(inv.customers?.secondary_emails ?? []),
+  ].filter(Boolean) as string[];
+
   const items = await listLineItems(supabase, "invoice", id);
 
   return (
@@ -73,7 +79,11 @@ const InvoicePage = async ({
           {inv.status === "paid" && (
             <StatusButton id={inv.id} status="sent" label="Reopen" />
           )}
-          <SendButton id={inv.id} action={sendInvoice} />
+          <SendButton
+            id={inv.id}
+            action={sendInvoice}
+            emails={customerEmails}
+          />
           <ButtonLink href={`/invoices/${inv.id}/edit`} variant="secondary">
             Edit
           </ButtonLink>

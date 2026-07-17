@@ -35,6 +35,7 @@ import {
   nextDir,
   Accessors,
 } from "@utils/table";
+import { InvoiceStatusSelect } from "@components/invoices/status-select";
 import { InvoiceWithCustomer } from "@interfaces/models/invoice/InvoiceWithCustomer";
 
 export const metadata: Metadata = { title: "Invoices" };
@@ -298,8 +299,13 @@ const InvoicesPage = async ({
                     {formatDate(inv.due_date)}
                   </TableCell>
                   <TableCell>
-                    <StatusPill
-                      status={isOverdue(inv) ? "overdue" : inv.status}
+                    {/* Editable in place: status is the field that actually
+                        changes day to day, and opening the invoice to flip it
+                        was the long way round. */}
+                    <InvoiceStatusSelect
+                      id={inv.id}
+                      status={inv.status}
+                      overdue={isOverdue(inv)}
                     />
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">

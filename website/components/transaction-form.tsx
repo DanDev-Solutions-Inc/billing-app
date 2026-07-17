@@ -8,6 +8,7 @@ import { transactionSchema } from "@utils/validation/transactionSchema";
 import { TransactionFormValues } from "@interfaces/forms/TransactionFormValues";
 import { TRANSACTION_CATEGORIES as CATEGORIES } from "@utils/constants";
 import { Card, Field, inputClass, Button, Select } from "@components/ui";
+import { Combobox } from "@components/ui/combobox";
 
 const today = () => {
   const d = new Date();
@@ -15,7 +16,12 @@ const today = () => {
   return new Date(d.getTime() - tz).toISOString().slice(0, 10);
 };
 
-export const TransactionForm = () => {
+export const TransactionForm = ({
+  descriptions = [],
+}: {
+  /** Descriptions already in use — suggestions, not a constraint. */
+  descriptions?: string[];
+}) => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>();
 
@@ -67,6 +73,8 @@ export const TransactionForm = () => {
   });
 
   const status = formik.status as { error?: string } | undefined;
+
+  const descriptionOptions = descriptions.map((d) => ({ value: d, label: d }));
 
   return (
     <Card className="p-6">
@@ -126,12 +134,16 @@ export const TransactionForm = () => {
           </Field>
         </div>
         <Field label="Description" htmlFor="description">
-          <input
+          {/* Suggests descriptions already in use so the same vendor doesn't end
+              up spelled three ways — but any text is still accepted. */}
+          <Combobox
             id="description"
-            name="description"
+            options={descriptionOptions}
             value={formik.values.description}
-            onChange={formik.handleChange}
-            className={inputClass}
+            onChange={(next) => formik.setFieldValue("description", next)}
+            allowCustom
+            placeholder="e.g. Uber, Esso…"
+            aria-label="Description"
           />
         </Field>
 

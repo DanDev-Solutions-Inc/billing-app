@@ -82,3 +82,17 @@ export const Modal = ({
     </dialog>
   );
 };
+
+/**
+ * Standard modal action row: right-aligned, cancel before confirm, one gap.
+ * Every modal was hand-rolling this with slightly different classes, so the
+ * spacing and button order drifted between them.
+ */
+export const ModalFooter = ({
+  className,
+  children,
+}: React.ComponentProps<"div">) => (
+  <div className={cn("mt-5 flex flex-wrap items-center justify-end gap-2", className)}>
+    {children}
+  </div>
+);

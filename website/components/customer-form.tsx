@@ -8,7 +8,7 @@ import { CustomerFormValues } from "@interfaces/forms/CustomerFormValues";
 import { CustomerFormProps } from "@interfaces/components/CustomerFormProps";
 import { AddressFormValues } from "@interfaces/components/AddressFieldsProps";
 import { AddressFields } from "@components/customers/address-fields";
-import { Field, inputClass, Button, Alert } from "@components/ui";
+import { Field, inputClass, Button, Alert, ModalFooter } from "@components/ui";
 
 const blank: CustomerFormValues = {
   name: "",
@@ -110,7 +110,7 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps = {}) =>
         )}
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="flex flex-col gap-4">
         <Field label="Email" htmlFor="email">
           <input
             id="email"
@@ -185,7 +185,7 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps = {}) =>
 
       {status?.error && <Alert tone="error">{status.error}</Alert>}
 
-      <div className="flex justify-end">
+      <ModalFooter className="mt-1">
         <Button type="submit" disabled={formik.isSubmitting}>
           {formik.isSubmitting
             ? "Saving…"
@@ -193,7 +193,7 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps = {}) =>
               ? "Save changes"
               : "Add customer"}
         </Button>
-      </div>
+      </ModalFooter>
     </form>
   );
 };

@@ -162,7 +162,16 @@ export const sendEstimate = async (
   const estimate = await estimates.getEstimate(supabase, id);
   if (!estimate) return { error: "Estimate not found." };
 
-  const to = estimate.customers?.email;
+  /* Send to the address that was picked, but only if it's still one of the
+     customer's — a value posted from a stale form shouldn't email a stranger.
+     Otherwise fall back to the primary. */
+  const chosen = String(formData.get("to") ?? "").trim();
+  const known = [
+    estimate.customers?.email,
+    ...(estimate.customers?.secondary_emails ?? []),
+  ].filter(Boolean) as string[];
+  const to =
+    chosen && known.includes(chosen) ? chosen : estimate.customers?.email;
   if (!to)
     return { error: "This customer has no email address. Add one first." };
 

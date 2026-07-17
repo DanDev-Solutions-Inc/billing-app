@@ -12,6 +12,7 @@ import {
   Rect,
 } from "@react-pdf/renderer";
 import { BUSINESS } from "@utils/constants";
+import { splitLineItem } from "@utils/line-item-presets";
 
 // Light theme with the DanDev brand gradient accent.
 const BG = "#ffffff"; // page background (white)
@@ -263,14 +264,13 @@ export const InvoiceDocument = ({ data }: { data: PdfDocData }) => {
           <Text style={s.cAmt}>Amount</Text>
         </View>
         {data.items.map((it, i) => {
-          const [title, ...rest] = it.description.split("\n");
+          /* Only the title is bold — the rest is supporting detail. */
+          const { title, detail } = splitLineItem(it.description);
           return (
             <View key={i} style={s.row}>
               <View style={s.cDesc}>
                 <Text style={s.itemTitle}>{title}</Text>
-                {rest.length > 0 && (
-                  <Text style={s.muted}>{rest.join("\n")}</Text>
-                )}
+                {detail && <Text style={s.muted}>{detail}</Text>}
               </View>
               <Text style={s.cQty}>{it.quantity}</Text>
               <Text style={s.cRate}>{it.rate}</Text>

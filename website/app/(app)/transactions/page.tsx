@@ -18,6 +18,8 @@ import {
   TableHead,
   TableCell,
   FilterTabs,
+  SearchInput,
+  ClearFilters,
   SortableHead,
   Checkbox,
   Pagination,
@@ -40,7 +42,7 @@ import { BulkForm } from "@components/transactions/bulk-form";
 
 export const metadata: Metadata = { title: "Transactions" };
 
-const TYPES = ["review", "income", "expense"] as const;
+const TYPES = ["review", "reviewed"] as const;
 
 /* What each sortable column sorts by. Dates sort as ISO strings (lexical ==
    chronological); amount sorts numerically by magnitude — the +/− shown in the
@@ -60,6 +62,7 @@ const TransactionsPage = async ({
   searchParams: Promise<{
     type?: string;
     period?: string;
+    q?: string;
     sort?: string;
     dir?: string;
     page?: string;
@@ -74,9 +77,12 @@ const TransactionsPage = async ({
   const sort = parseSort(params.sort, SORT_KEYS, "txn_date");
   const dir = parseDir(params.dir, "desc");
   const page = parsePage(params.page);
+  const q = params.q?.trim() ?? "";
 
   const supabase = await createClient();
-  const everything = await listTransactions(supabase);
+  /* Search runs in Postgres so it reaches every transaction, not just the page.
+     Period/type stay client-side filters over the result. */
+  const everything = await listTransactions(supabase, undefined, q);
   const all = everything.filter((t) => inPeriod(t.txn_date, period));
 
   const pending = all.filter((t) => t.status === "pending").length;
@@ -85,7 +91,7 @@ const TransactionsPage = async ({
       ? all
       : active === "review"
         ? all.filter((t) => t.status === "pending")
-        : all.filter((t) => t.direction === active);
+        : all.filter((t) => t.status === "approved");
 
   const sorted = sortRows(rows, sort, dir, ACCESSORS);
   const result = paginate(sorted, page);
@@ -119,18 +125,17 @@ const TransactionsPage = async ({
 
   const typeTabs = [
     { key: "all", label: "All", href: query("all", period), count: all.length },
-    { key: "review", label: "To review", href: query("review", period), count: pending },
     {
-      key: "income",
-      label: "Income",
-      href: query("income", period),
-      count: all.filter((t) => t.direction === "income").length,
+      key: "review",
+      label: "To review",
+      href: query("review", period),
+      count: pending,
     },
     {
-      key: "expense",
-      label: "Expenses",
-      href: query("expense", period),
-      count: all.filter((t) => t.direction === "expense").length,
+      key: "reviewed",
+      label: "Reviewed",
+      href: query("reviewed", period),
+      count: all.length - pending,
     },
   ];
 
@@ -156,13 +161,21 @@ const TransactionsPage = async ({
       {/* Pager sits with the filters so it's reachable without scrolling the
           whole table on a short screen. */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <FilterTabs tabs={typeTabs} active={active} aria-label="Filter by type" />
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <SearchInput
+            placeholder="Search description, category…"
+            className="w-full sm:max-w-xs"
+          />
+          <FilterTabs tabs={typeTabs} active={active} aria-label="Filter by review state" />
           <FilterTabs
             tabs={periodTabs}
             active={period}
             variant="segmented"
             aria-label="Filter by date range"
+          />
+          <ClearFilters
+            href="/transactions"
+            active={Boolean(q || active !== "all" || period !== "month")}
           />
         </div>
         {rows.length > 0 && (

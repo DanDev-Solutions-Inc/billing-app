@@ -33,9 +33,24 @@ export const BulkForm = ({ children }: { children: React.ReactNode }) => {
     setCount(new FormData(form).getAll("ids").length);
   };
 
+  /* Uncheck everything, including the header box — the DOM is the source of
+     truth for the selection, so clearing it is just unchecking the inputs. */
+  const onClear = () => {
+    const form = formRef.current;
+    if (!form) return;
+    form
+      .querySelectorAll<HTMLInputElement>(
+        'input[name="ids"], input[data-select-all]',
+      )
+      .forEach((box) => {
+        box.checked = false;
+      });
+    setCount(0);
+  };
+
   return (
     <form ref={formRef} onChange={onChange}>
-      <BulkBar count={count} />
+      <BulkBar count={count} onClear={onClear} />
       {children}
     </form>
   );

@@ -13,6 +13,7 @@ const DETAIL =
 export const listTransactions = async (
   sb: SupabaseClient,
   direction?: TxnDirection,
+  search?: string,
 ): Promise<TransactionWithLinks[]> => {
   let query = sb
     .from("transactions")
@@ -20,8 +21,43 @@ export const listTransactions = async (
     .order("txn_date", { ascending: false })
     .order("created_at", { ascending: false });
   if (direction) query = query.eq("direction", direction);
+
+  // Searching in Postgres covers all ~4,700 rows rather than the rendered page.
+  // Commas/parens would break PostgREST's or() syntax.
+  const q = search?.trim().replace(/[,()]/g, " ");
+  if (q) query = query.or(`description.ilike.%${q}%,category.ilike.%${q}%`);
+
   const { data } = await query;
   return (data ?? []) as TransactionWithLinks[];
+};
+
+/**
+ * Descriptions already in use, most-used first — suggestions when entering a
+ * new transaction, so the same vendor doesn't end up spelled three ways.
+ *
+ * Distinct-ing in the app rather than SQL: PostgREST can't express DISTINCT, and
+ * a dedicated view would need maintaining for a list this small.
+ */
+export const listDescriptions = async (
+  sb: SupabaseClient,
+  limit = 200,
+): Promise<string[]> => {
+  const { data } = await sb
+    .from("transactions")
+    .select("description")
+    .not("description", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(2000);
+
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    const d = row.description?.trim();
+    if (d) counts.set(d, (counts.get(d) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([d]) => d);
 };
 
 export const getTransaction = async (

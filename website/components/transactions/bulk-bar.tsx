@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCheck, Undo2, Pencil } from "lucide-react";
+import { CheckCheck, Undo2, Pencil, X } from "lucide-react";
 import {
   Button,
   Modal,
+  ModalFooter,
   Field,
+  Select,
   inputClass,
   Alert,
 } from "@components/ui";
+import { TRANSACTION_CATEGORIES } from "@utils/constants";
 import {
   bulkSetStatusAction,
   bulkEditAction,
@@ -19,16 +22,33 @@ import {
  * row checkboxes, so each submit posts the checked `ids` — no client-side id
  * plumbing, and it still works if JS hasn't hydrated.
  */
-export const BulkBar = ({ count }: { count: number }) => {
+export const BulkBar = ({
+  count,
+  onClear,
+}: {
+  count: number;
+  onClear: () => void;
+}) => {
   const [editing, setEditing] = useState(false);
 
   if (count === 0) return null;
 
   return (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-accent/25 bg-brand-accent/10 px-4 py-2.5">
-      <span className="text-sm font-medium text-brand-accent">
-        {count} selected
-      </span>
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-brand-accent">
+          {count} selected
+        </span>
+        {/* type="button": inside the bulk form, a bare button would submit it. */}
+        <button
+          type="button"
+          onClick={onClear}
+          className="inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-xs font-medium text-brand-accent/80 transition hover:bg-brand-accent/10 hover:text-brand-accent"
+        >
+          <X className="size-3.5" />
+          Clear
+        </button>
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -80,17 +100,21 @@ export const BulkBar = ({ count }: { count: number }) => {
             />
           </Field>
           <Field label="Category" htmlFor="bulk_category">
-            <input
-              id="bulk_category"
-              name="category"
-              placeholder="Leave blank to keep each one's own"
-              className={inputClass}
-            />
+            {/* "" is the no-change signal, so the blank row has to stay first —
+                the action only writes the fields that came back filled. */}
+            <Select id="bulk_category" name="category" defaultValue="">
+              <option value="">Leave blank to keep each one&apos;s own</option>
+              {TRANSACTION_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
           </Field>
           <Alert tone="warning">
             This overwrites the filled fields on all {count} selected.
           </Alert>
-          <div className="flex justify-end gap-2">
+          <ModalFooter>
             <Button
               type="button"
               variant="secondary"
@@ -101,7 +125,7 @@ export const BulkBar = ({ count }: { count: number }) => {
             <Button type="submit" formAction={bulkEditAction}>
               Apply
             </Button>
-          </div>
+          </ModalFooter>
         </div>
       </Modal>
     </div>

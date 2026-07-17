@@ -46,6 +46,12 @@ const EstimatePage = async ({
   const est = await getEstimate(supabase, id);
   if (!est) notFound();
 
+  /* Primary first, then any extras — the picker's order is the fallback order. */
+  const customerEmails = [
+    est.customers?.email,
+    ...(est.customers?.secondary_emails ?? []),
+  ].filter(Boolean) as string[];
+
   const items = await listLineItems(supabase, "estimate", id);
   const converted = Boolean(est.converted_invoice_id);
 
@@ -101,7 +107,11 @@ const EstimatePage = async ({
               </Button>
             </form>
           )}
-          <SendButton id={est.id} action={sendEstimate} />
+          <SendButton
+            id={est.id}
+            action={sendEstimate}
+            emails={customerEmails}
+          />
           <ButtonLink href={`/estimates/${est.id}/edit`} variant="secondary">
             <Pencil />
             Edit

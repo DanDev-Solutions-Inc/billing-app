@@ -133,7 +133,15 @@ export const sendInvoice = async (
   const invoice = await invoices.getInvoice(supabase, id);
   if (!invoice) return { error: "Invoice not found." };
 
-  const to = invoice.customers?.email;
+  /* Send to the address that was picked, but only if it's still one of the
+     customer's — a value posted from a stale form shouldn't email a stranger.
+     Otherwise fall back to the primary. */
+  const chosen = String(formData.get("to") ?? "").trim();
+  const known = [
+    invoice.customers?.email,
+    ...(invoice.customers?.secondary_emails ?? []),
+  ].filter(Boolean) as string[];
+  const to = chosen && known.includes(chosen) ? chosen : invoice.customers?.email;
   if (!to)
     return { error: "This customer has no email address. Add one first." };
 
@@ -164,7 +172,9 @@ export const sendInvoice = async (
   });
   if (result.error) return { error: result.error };
 
-  if (invoice.status === "draft") {
+  /* Emailing it *is* sending it — flag it, unless it's already paid (that would
+     be a downgrade). */
+  if (invoice.status !== "paid" && invoice.status !== "sent") {
     await invoices.updateInvoiceStatus(supabase, id, "sent");
   }
   revalidatePath("/invoices");
