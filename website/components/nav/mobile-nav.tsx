@@ -48,22 +48,30 @@ export const MobileNav = ({ email }: SidebarProps) => {
             className="absolute inset-0 bg-navy-900/70 backdrop-blur-sm"
           />
           {/* Drawer slides in from the right — thumb-reachable next to the
-              trigger, which also lives on the right of the top bar. */}
-          {/* Full width on a phone (a 64px peek of the page behind is wasted space
-              you can't read anyway), capped once there's room to see context. */}
-          <div className="absolute right-0 top-0 h-full w-full max-w-sm sm:w-auto">
+              trigger, which also lives on the right of the top bar.
+
+              Full-bleed on a phone: the sliver of page left showing behind it
+              was unreadable anyway. Capped from sm up, where there's enough
+              width for that peek to actually give you context. */}
+          <div className="absolute inset-y-0 right-0 w-full sm:max-w-sm">
+            {/* h-full, not the Sidebar's own h-dvh: dvh tracks the visual
+                viewport, but this overlay is inset-0 against the layout
+                viewport. While Safari's toolbar is up the two disagree and the
+                panel stops short of the bottom. */}
             <Sidebar
               email={email}
               collapsible={false}
-              className="w-full"
+              className="h-full w-full"
               onNavigate={() => setOpen(false)}
             />
           </div>
+          {/* Sits over the drawer's own header, opposite the logo — at full
+              bleed there's no backdrop left to put it on. */}
           <button
             type="button"
             aria-label="Close menu"
             onClick={() => setOpen(false)}
-            className="absolute left-4 top-4 rounded-xl border border-glass-border bg-white/[0.06] p-2 text-foreground backdrop-blur-md"
+            className="absolute right-4 top-5 rounded-xl border border-glass-border bg-white/[0.06] p-2 text-foreground backdrop-blur-md"
           >
             <X className="size-5" />
           </button>
