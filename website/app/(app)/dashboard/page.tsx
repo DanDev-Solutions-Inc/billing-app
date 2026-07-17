@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -7,8 +6,6 @@ import {
   Plus,
   UserPlus,
   FileText,
-  AlertTriangle,
-  Repeat,
   Receipt,
 } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
@@ -25,9 +22,10 @@ import {
   ButtonLink,
   Metric,
   FilterSelect,
-  CurrencyNote,
 } from "@components/ui";
 import { CashFlowChart } from "@components/charts/cash-flow-chart";
+import { OutstandingCard } from "@components/dashboard/outstanding-card";
+import { RecurringCard } from "@components/dashboard/recurring-card";
 import { MobileRangeDefault } from "@components/dashboard/mobile-range-default";
 import {
   parseMonths,
@@ -36,10 +34,10 @@ import {
   MONTH_RANGES,
   DEFAULT_MONTHS,
 } from "@utils/period";
-import { formatMoney, formatDate, computeTotals } from "@utils/money";
+import { formatMoney, computeTotals } from "@utils/money";
 import { sumInCad, toCad, rateFor } from "@utils/fx";
 import { isOverdue, isOutstanding } from "@utils/invoice";
-import { cadenceLabel } from "@utils/cadence";
+import { yearlyAmount } from "@utils/cadence";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -50,35 +48,6 @@ const MONTH_OPTIONS = MONTH_RANGES.map((m) => ({
   key: String(m),
   label: `${m} months`,
 }));
-
-/* Invoices per year at interval 1, so schedules on different cadences can be
-   summed into one comparable figure. Annual rather than monthly on purpose: a
-   weekly schedule bills 52×, which is 4.33 months' worth — a "per month" number
-   is an average no month ever actually matches. */
-const YEARLY_FACTOR: Record<string, number> = {
-  daily: 365,
-  weekly: 52,
-  monthly: 12,
-  yearly: 1,
-};
-
-/* Relative day count, so "in 3 days" reads at a glance rather than a date. */
-const daysUntil = (iso: string) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round(
-    (new Date(`${iso}T00:00:00`).getTime() - today.getTime()) / 86_400_000,
-  );
-};
-
-const dueLabel = (iso: string) => {
-  const days = daysUntil(iso);
-  if (days < 0) return "Due now";
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  if (days <= 14) return `In ${days} days`;
-  return formatDate(iso);
-};
 
 const DashboardPage = async ({
   searchParams,
@@ -135,13 +104,12 @@ const DashboardPage = async ({
   /* What the live schedules bill in a year. Exact for every cadence, unlike a
      monthly figure — $621.50 weekly is exactly $32,318/yr, but "$2,693.17/mo"
      is an average you'd never see on a statement. */
+  /* Nothing's been invoiced yet, so there's no stored rate — a forward
+     projection uses today's. It's an estimate either way. */
   const yearlyRun = upcoming.reduce(
     (sum, s) =>
       sum +
-      /* Nothing's been invoiced yet, so there's no stored rate — a forward
-         projection uses today's. It's an estimate either way. */
-      (toCad(s.total, rateFor(s.currency)) * YEARLY_FACTOR[s.frequency]) /
-        Math.max(1, s.interval),
+      yearlyAmount({ ...s, total: toCad(s.total, rateFor(s.currency)) }),
     0,
   );
 
@@ -237,163 +205,18 @@ const DashboardPage = async ({
 
         {/* One unpaid panel: the all-time total, overdue called out inside it,
             and the invoices themselves. No separate status breakdown. */}
-        <Card className="flex flex-col">
-          <CardHeader className="flex-row items-start justify-between">
-            <div>
-              <CardTitle>Outstanding</CardTitle>
-              <p className="mt-1.5 text-3xl font-bold tabular-nums tracking-tight text-foreground">
-                {formatMoney(outstanding.cad)}
-              </p>
-              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                <span>{outstandingInvoices.length} unpaid · all time</span>
-                <CurrencyNote total={outstanding} />
-              </p>
-            </div>
-            <Link
-              href="/invoices?status=sent"
-              className="shrink-0 text-xs font-medium text-brand-accent hover:underline"
-            >
-              View all
-            </Link>
-          </CardHeader>
-
-          {overdueInvoices.length > 0 && (
-            <div className="mx-6 mb-3 flex items-center justify-between gap-3 rounded-xl border border-brand-red/25 bg-brand-red/10 px-3 py-2.5">
-              <span className="flex items-center gap-2 text-sm font-medium text-brand-red">
-                <AlertTriangle className="size-4" />
-                {overdueInvoices.length} overdue
-              </span>
-              <span className="text-sm font-bold tabular-nums text-brand-red">
-                {formatMoney(overdue.cad)}
-              </span>
-            </div>
-          )}
-
-          <CardContent className="min-h-0 flex-1 pt-0">
-            {outstandingInvoices.length === 0 ? (
-              <p className="py-2 text-sm text-muted-foreground">
-                Nothing outstanding. Nice.
-              </p>
-            ) : (
-              <ul className="divide-y divide-white/[0.06]">
-                {outstandingSorted.slice(0, 7).map((inv) => (
-                  <li key={inv.id}>
-                    <Link
-                      href={`/invoices/${inv.id}`}
-                      className="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:opacity-80"
-                    >
-                      <span className="min-w-0">
-                        <span className="flex items-center gap-2">
-                          <span className="truncate font-medium text-foreground">
-                            {inv.customers?.name ?? "—"}
-                          </span>
-                          <span className="shrink-0 text-muted-foreground">
-                            {inv.invoice_number || `#${inv.id.slice(0, 8)}`}
-                          </span>
-                        </span>
-                        {/* Due date is the whole point of an unpaid list —
-                            it turns red once it's past. */}
-                        <span
-                          className={`mt-0.5 block text-xs ${
-                            isOverdue(inv)
-                              ? "font-medium text-brand-red"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          {inv.due_date
-                            ? `${isOverdue(inv) ? "Overdue" : "Due"} ${formatDate(inv.due_date)}`
-                            : "No due date"}
-                        </span>
-                      </span>
-                      <span className="shrink-0 font-medium tabular-nums">
-                        {formatMoney(inv.total, inv.currency)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <OutstandingCard
+          outstanding={outstanding}
+          outstandingInvoices={outstandingInvoices}
+          overdue={overdue}
+          overdueInvoices={overdueInvoices}
+          outstandingSorted={outstandingSorted}
+        />
       </div>
 
       {/* Recurring — money that bills itself. The point is what's coming and
           when, so it leads with the next run rather than a status column. */}
-      <Card className="mt-6 flex flex-col">
-        <CardHeader className="flex-row items-start justify-between">
-          <div>
-            <CardTitle>Recurring invoices</CardTitle>
-            <p className="mt-1.5 text-3xl font-bold tabular-nums tracking-tight text-foreground">
-              {formatMoney(yearlyRun)}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              per year · {upcoming.length} active{" "}
-              {upcoming.length === 1 ? "schedule" : "schedules"}
-            </p>
-          </div>
-          <Link
-            href="/recurring"
-            className="shrink-0 text-xs font-medium text-brand-accent hover:underline"
-          >
-            View all
-          </Link>
-        </CardHeader>
-
-        <CardContent className="min-h-0 flex-1 pt-0">
-          {upcoming.length === 0 ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 py-2">
-              <p className="text-sm text-muted-foreground">
-                No active schedules — set one up to bill a customer automatically.
-              </p>
-              <ButtonLink href="/recurring/new" variant="secondary" size="sm">
-                <Repeat />
-                New schedule
-              </ButtonLink>
-            </div>
-          ) : (
-            <ul className="divide-y divide-white/[0.06]">
-              {upcoming.slice(0, 5).map((s) => {
-                const overdueRun = daysUntil(s.next_run) < 0;
-                return (
-                  <li key={s.id}>
-                    <Link
-                      href="/recurring"
-                      className="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:opacity-80"
-                    >
-                      {/* Name owns its own line — cadence and auto-emails
-                          beside it squeezed it to "Quality E…" on mobile. The
-                          rest stacks underneath as one meta line. */}
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-medium text-foreground">
-                          {s.customers?.name ?? s.title ?? "Untitled"}
-                        </span>
-                        <span
-                          className={`mt-0.5 block truncate text-xs ${
-                            overdueRun
-                              ? "font-medium text-brand-red"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          {[
-                            cadenceLabel(s.frequency, s.interval),
-                            s.auto_send ? "auto-emails" : null,
-                            `Next invoice ${dueLabel(s.next_run)}`,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </span>
-                      </span>
-                      <span className="shrink-0 font-medium tabular-nums">
-                        {formatMoney(s.total, s.currency)}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+      <RecurringCard yearlyRun={yearlyRun} upcoming={upcoming} />
     </>
   );
 };

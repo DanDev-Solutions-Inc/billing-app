@@ -1,3 +1,5 @@
+import { formatDate } from "@utils/money";
+
 /**
  * Calendar-date helpers (yyyy-mm-dd).
  *
@@ -36,3 +38,20 @@ export const daysBetween = (from: string, to: string): number =>
       new Date(`${from}T00:00:00`).getTime()) /
       86_400_000,
   );
+
+/** Whole days from today to a yyyy-mm-dd date; negative when it's past. */
+export const daysUntil = (iso: string): number => daysBetween(today(), iso);
+
+/**
+ * A due date as a glanceable phrase — "Tomorrow" reads faster than a date you
+ * have to compare against today. Falls back to the date itself once it's far
+ * enough out that the relative form stops helping.
+ */
+export const dueLabel = (iso: string): string => {
+  const days = daysUntil(iso);
+  if (days < 0) return "Due now";
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  if (days <= 14) return `In ${days} days`;
+  return formatDate(iso);
+};
