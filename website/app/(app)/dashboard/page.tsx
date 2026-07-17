@@ -10,6 +10,7 @@ import {
   FileText,
   AlertTriangle,
   Repeat,
+  Receipt,
 } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
@@ -167,10 +168,16 @@ const DashboardPage = async ({
         title="Dashboard"
         subtitle="Your business at a glance."
         action={
-          <div className="flex flex-wrap items-center gap-2">
+          /* Quick actions stack full-width on mobile so each is a real thumb
+             target, and sit inline from sm up. */
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
             <ButtonLink href="/customers" variant="secondary" size="sm">
               <UserPlus />
               New customer
+            </ButtonLink>
+            <ButtonLink href="/receipts/new" variant="secondary" size="sm">
+              <Receipt />
+              Add receipt
             </ButtonLink>
             <ButtonLink
               href="/transactions/new"
@@ -352,28 +359,27 @@ const DashboardPage = async ({
                       href="/recurring"
                       className="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:opacity-80"
                     >
-                      <span className="min-w-0">
-                        <span className="flex items-center gap-2">
-                          <span className="truncate font-medium text-foreground">
-                            {s.customers?.name ?? s.title ?? "Untitled"}
-                          </span>
-                          <span className="shrink-0 text-muted-foreground">
-                            {cadenceLabel(s.frequency, s.interval)}
-                          </span>
-                          {s.auto_send && (
-                            <span className="shrink-0 text-xs text-muted-foreground">
-                              · auto-emails
-                            </span>
-                          )}
+                      {/* Name owns its own line — cadence and auto-emails
+                          beside it squeezed it to "Quality E…" on mobile. The
+                          rest stacks underneath as one meta line. */}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium text-foreground">
+                          {s.customers?.name ?? s.title ?? "Untitled"}
                         </span>
                         <span
-                          className={`mt-0.5 block text-xs ${
+                          className={`mt-0.5 block truncate text-xs ${
                             overdueRun
                               ? "font-medium text-brand-red"
                               : "text-muted-foreground"
                           }`}
                         >
-                          Next invoice {dueLabel(s.next_run)}
+                          {[
+                            cadenceLabel(s.frequency, s.interval),
+                            s.auto_send ? "auto-emails" : null,
+                            `Next invoice ${dueLabel(s.next_run)}`,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </span>
                       </span>
                       <span className="shrink-0 font-medium tabular-nums">

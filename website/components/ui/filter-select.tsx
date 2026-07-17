@@ -47,12 +47,12 @@ export const FilterSelect = ({
   };
 
   return (
-    <div className={cn("relative inline-flex", className)}>
+    <div className={cn("relative inline-flex w-full sm:w-auto", className)}>
       <select
         aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none rounded-xl border border-glass-border bg-white/[0.04] py-2 pl-4 pr-9 text-sm font-medium text-foreground outline-none backdrop-blur-md transition-all hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30 [&>option]:bg-navy-700 [&>option]:text-foreground"
+        className="w-full appearance-none rounded-xl border border-glass-border bg-white/[0.04] py-2 pl-4 pr-9 text-sm font-medium text-foreground outline-none backdrop-blur-md transition-all hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30 [&>option]:bg-navy-700 [&>option]:text-foreground"
       >
         {options.map((o) => (
           <option key={o.key} value={o.key}>
