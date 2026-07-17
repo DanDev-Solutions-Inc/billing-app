@@ -1,6 +1,7 @@
 import * as Yup from "yup";
 
 export const recurringSchema = Yup.object({
+  currency: Yup.string().oneOf(["CAD", "USD"]).required(),
   frequency: Yup.string()
     .oneOf(["daily", "weekly", "monthly", "yearly"])
     .required("Choose a frequency"),

@@ -50,6 +50,7 @@ export interface Database {
           postal_code: string | null;
           country: string | null;
           secondary_emails: string[];
+          currency: Database["public"]["Enums"]["currency_code"];
           wave_id: string | null;
           created_at: string;
         };
@@ -67,6 +68,7 @@ export interface Database {
           postal_code?: string | null;
           country?: string | null;
           secondary_emails?: string[];
+          currency?: Database["public"]["Enums"]["currency_code"];
           wave_id?: string | null;
           created_at?: string;
         };
@@ -86,6 +88,7 @@ export interface Database {
           subtotal: number;
           tax: number;
           total: number;
+          currency: Database["public"]["Enums"]["currency_code"];
           wave_id: string | null;
           created_at: string;
           updated_at: string;
@@ -102,6 +105,7 @@ export interface Database {
           subtotal?: number;
           tax?: number;
           total?: number;
+          currency?: Database["public"]["Enums"]["currency_code"];
           wave_id?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -130,6 +134,7 @@ export interface Database {
           tax: number;
           total: number;
           converted_invoice_id: string | null;
+          currency: Database["public"]["Enums"]["currency_code"];
           wave_id: string | null;
           created_at: string;
           updated_at: string;
@@ -147,6 +152,7 @@ export interface Database {
           tax?: number;
           total?: number;
           converted_invoice_id?: string | null;
+          currency?: Database["public"]["Enums"]["currency_code"];
           wave_id?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -280,6 +286,7 @@ export interface Database {
           net_days: number;
           auto_send: boolean;
           send_to: string | null;
+          currency: Database["public"]["Enums"]["currency_code"];
           active: boolean;
           created_at: string;
           updated_at: string;
@@ -300,6 +307,7 @@ export interface Database {
           net_days?: number;
           auto_send?: boolean;
           send_to?: string | null;
+          currency?: Database["public"]["Enums"]["currency_code"];
           active?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -367,6 +375,7 @@ export interface Database {
       estimate_status: "draft" | "sent" | "accepted" | "declined";
       txn_direction: "income" | "expense";
       txn_status: "pending" | "approved";
+      currency_code: "CAD" | "USD";
       receipt_source: "upload" | "email";
       recurring_frequency: "daily" | "weekly" | "monthly" | "yearly";
     };

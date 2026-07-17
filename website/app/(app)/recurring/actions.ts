@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
-import { parseLineItems, emptyToNull } from "@utils/doc-helpers";
+import { parseLineItems, emptyToNull, parseCurrency } from "@utils/doc-helpers";
+import { chargesTax } from "@utils/currency";
 import * as recurring from "@services/supabase/recurring-invoice";
 import { RecurringFrequency } from "@typings/recurring-invoice/RecurringFrequency";
 import { Json } from "@typings/Supabase";
@@ -41,7 +42,11 @@ export const createRecurringInvoice = async (
     customer_id: emptyToNull(formData.get("customer_id")),
     title: emptyToNull(formData.get("title")),
     line_items: items as unknown as Json,
-    tax_rate: Number(formData.get("tax_rate")) || 0,
+    currency: parseCurrency(formData.get("currency")),
+    // Rate follows the currency; USD schedules are never taxed.
+    tax_rate: chargesTax(parseCurrency(formData.get("currency")))
+      ? Number(formData.get("tax_rate")) || 0
+      : 0,
     notes: emptyToNull(formData.get("notes")),
     frequency,
     interval: Math.max(1, Number(formData.get("interval")) || 1),

@@ -1,4 +1,5 @@
 import { Customer } from "@typings/customer/Customer";
+import { CurrencyCode } from "@typings/CurrencyCode";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { DocFormState } from "@components/doc-form";
 
@@ -8,6 +9,7 @@ export interface DocFormProps {
   action: (prev: DocFormState, formData: FormData) => Promise<DocFormState>;
   submitLabel?: string;
   defaults?: {
+    currency?: CurrencyCode;
     customerId?: string | null;
     number?: string | null;
     issueDate?: string;

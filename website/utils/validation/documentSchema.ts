@@ -1,6 +1,7 @@
 import * as Yup from "yup";
 
 export const documentSchema = Yup.object({
+  currency: Yup.string().oneOf(["CAD", "USD"]).required(),
   customer_id: Yup.string(),
   number: Yup.string(),
   issue_date: Yup.string().required("Issue date is required"),

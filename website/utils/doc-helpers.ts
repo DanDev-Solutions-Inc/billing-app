@@ -1,5 +1,6 @@
 import "server-only";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
+import { CurrencyCode } from "@typings/CurrencyCode";
 
 /**
  * Reconstruct line items from a submitted form. The editor renders repeated
@@ -28,3 +29,13 @@ export const emptyToNull = (v: FormDataEntryValue | null): string | null => {
   const s = String(v ?? "").trim();
   return s === "" ? null : s;
 };
+
+/**
+ * Read a currency off a form, defaulting to CAD.
+ *
+ * Anything unrecognised falls back rather than throwing — a posted value is
+ * untrusted input, and CAD is the safe default (it's the one that charges tax,
+ * so a bad value can't silently zero the HST).
+ */
+export const parseCurrency = (value: FormDataEntryValue | null): CurrencyCode =>
+  String(value ?? "") === "USD" ? "USD" : "CAD";

@@ -15,6 +15,7 @@ import {
   listLineItems,
 } from "@services/supabase/line-item";
 import { computeTotals, formatMoney } from "@utils/money";
+import { chargesTax } from "@utils/currency";
 import { computeNextRun, addDays } from "@utils/cadence";
 import { renderDocumentPdf } from "@lib/pdf/render";
 import { sendDocumentEmail } from "@lib/email";
@@ -42,7 +43,12 @@ export const generateDueInvoices = async (
     const stillActive = !(schedule.end_date && nextRun > schedule.end_date);
 
     if (items.length > 0) {
-      const totals = computeTotals(items, Number(schedule.tax_rate));
+      /* Currency decides the rate, same as the manual forms — a USD schedule
+         must not start emitting taxed CAD invoices. */
+      const taxRate = chargesTax(schedule.currency)
+        ? Number(schedule.tax_rate)
+        : 0;
+      const totals = computeTotals(items, taxRate);
       const { id: invoiceId } = await createInvoice(admin, {
         user_id: schedule.user_id,
         customer_id: schedule.customer_id,
@@ -51,6 +57,7 @@ export const generateDueInvoices = async (
         issue_date: today,
         due_date: addDays(today, schedule.net_days),
         status: "draft",
+        currency: schedule.currency,
         ...totals,
       });
 

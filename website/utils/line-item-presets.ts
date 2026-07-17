@@ -26,6 +26,12 @@ export const LINE_ITEM_PRESETS: LineItemPreset[] = [
     description:
       "Software design, implementation, testing, and code review.",
   },
+  {
+    id: "annual-support",
+    title: "Annual support",
+    description:
+      "Ongoing maintenance, updates, monitoring, and priority support for twelve months.",
+  },
 ];
 
 /** The text written into a line item's single `description` column. */

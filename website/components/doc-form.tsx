@@ -8,6 +8,8 @@ import { documentSchema } from "@utils/validation/documentSchema";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { DocumentFormValues } from "@interfaces/forms/DocumentFormValues";
 import { DocFormProps } from "@interfaces/components/DocFormProps";
+import { CurrencyCode } from "@typings/CurrencyCode";
+import { CURRENCIES, taxRateFor, chargesTax } from "@utils/currency";
 
 export interface DocFormState {
   error?: string;
@@ -68,6 +70,7 @@ export const DocForm = ({
 
   const formik = useFormik<DocumentFormValues>({
     initialValues: {
+      currency: defaults?.currency ?? "CAD",
       customer_id: defaults?.customerId ?? "",
       number: defaults?.number ?? "",
       issue_date: initialIssueDate,
@@ -75,7 +78,7 @@ export const DocForm = ({
         defaults?.secondDate ??
         (isInvoice ? addDays(initialIssueDate, DEFAULT_INVOICE_TERM) : ""),
       notes: defaults?.notes ?? "",
-      tax_rate: defaults?.taxRate ?? 13,
+      tax_rate: defaults?.taxRate ?? taxRateFor(defaults?.currency ?? "CAD"),
       items:
         defaults?.items && defaults.items.length
           ? defaults.items
@@ -89,6 +92,7 @@ export const DocForm = ({
         formData.append("item_quantity", String(it.quantity));
         formData.append("item_unit_price", String(it.unit_price));
       });
+      formData.set("currency", values.currency);
       formData.set("tax_rate", String(values.tax_rate));
       formData.set("customer_id", values.customer_id);
       formData.set("number", values.number);
@@ -101,6 +105,24 @@ export const DocForm = ({
   });
 
   const status = formik.status as { error?: string } | undefined;
+
+  /* Currency decides the tax rate: US work is billed in USD with no tax. So
+     switching currency rewrites the rate rather than leaving a stale one. */
+  const onCurrencyChange = (next: CurrencyCode) => {
+    formik.setFieldValue("currency", next);
+    formik.setFieldValue("tax_rate", taxRateFor(next));
+  };
+
+  /* Picking a customer adopts their usual currency — a US customer shouldn't
+     need the choice made by hand every time. Only on a real change, so it can't
+     stomp a currency already chosen for this document. */
+  const onCustomerChange = (nextId: string) => {
+    formik.setFieldValue("customer_id", nextId);
+    const customer = customers.find((c) => c.id === nextId);
+    if (customer && customer.currency !== formik.values.currency) {
+      onCurrencyChange(customer.currency);
+    }
+  };
 
   const onItemChange = (
     index: number,
@@ -177,11 +199,26 @@ export const DocForm = ({
               name="customer_id"
               options={customerOptions}
               value={formik.values.customer_id}
-              onChange={(next) => formik.setFieldValue("customer_id", next)}
+              onChange={onCustomerChange}
               emptyLabel="— None —"
               placeholder="Search customers…"
               aria-label="Customer"
             />
+          </Field>
+          <Field label="Currency" htmlFor="currency">
+            <Select
+              id="currency"
+              name="currency"
+              value={formik.values.currency}
+              onChange={(e) => onCurrencyChange(e.target.value as CurrencyCode)}
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                  {chargesTax(c) ? "" : " · no tax"}
+                </option>
+              ))}
+            </Select>
           </Field>
           {isInvoice ? (
             <Field label="Invoice #">
@@ -244,6 +281,7 @@ export const DocForm = ({
         <LineItemsEditor
           items={formik.values.items}
           taxRate={formik.values.tax_rate}
+          currency={formik.values.currency}
           onItemChange={onItemChange}
           onAddRow={onAddRow}
           onRemoveRow={onRemoveRow}

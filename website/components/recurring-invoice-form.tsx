@@ -8,6 +8,8 @@ import { recurringSchema } from "@utils/validation/recurringSchema";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { RecurringFormValues } from "@interfaces/forms/RecurringFormValues";
 import { RecurringInvoiceFormProps } from "@interfaces/components/RecurringInvoiceFormProps";
+import { CurrencyCode } from "@typings/CurrencyCode";
+import { CURRENCIES, taxRateFor, chargesTax } from "@utils/currency";
 
 const today = () => {
   const d = new Date();
@@ -29,6 +31,7 @@ export const RecurringInvoiceForm = ({
 }: RecurringInvoiceFormProps) => {
   const formik = useFormik<RecurringFormValues>({
     initialValues: defaults ?? {
+      currency: "CAD",
       customer_id: "",
       title: "",
       frequency: "monthly",
@@ -56,6 +59,7 @@ export const RecurringInvoiceForm = ({
       formData.set("interval", String(values.interval));
       formData.set("next_run", values.next_run);
       formData.set("net_days", String(values.net_days));
+      formData.set("currency", values.currency);
       formData.set("tax_rate", String(values.tax_rate));
       formData.set("notes", values.notes);
       formData.set("end_date", values.end_date);
@@ -126,6 +130,26 @@ export const RecurringInvoiceForm = ({
               placeholder="Search customers…"
               aria-label="Customer"
             />
+          </Field>
+          <Field label="Currency" htmlFor="currency">
+            <Select
+              id="currency"
+              name="currency"
+              value={formik.values.currency}
+              onChange={(e) => {
+                const next = e.target.value as CurrencyCode;
+                formik.setFieldValue("currency", next);
+                // Currency decides the rate — US work isn't taxed.
+                formik.setFieldValue("tax_rate", taxRateFor(next));
+              }}
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                  {chargesTax(c) ? "" : " · no tax"}
+                </option>
+              ))}
+            </Select>
           </Field>
           <Field label="Label (internal)" htmlFor="title">
             <input
@@ -247,6 +271,7 @@ export const RecurringInvoiceForm = ({
         <LineItemsEditor
           items={formik.values.items}
           taxRate={formik.values.tax_rate}
+          currency={formik.values.currency}
           onItemChange={onItemChange}
           onAddRow={() =>
             formik.setFieldValue("items", [...formik.values.items, blankItem()])

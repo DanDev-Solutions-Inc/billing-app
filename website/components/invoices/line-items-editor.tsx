@@ -1,11 +1,14 @@
 "use client";
 
-import { X } from "lucide-react";
+import { useState } from "react";
+import { X, WrapText, List } from "lucide-react";
 import { formatMoney, computeTotals } from "@utils/money";
 import { cn } from "@lib/utils";
 import { inputClass } from "@components/ui/input-class";
 import { Combobox } from "@components/ui/combobox";
 import { LineItemsEditorProps } from "@interfaces/components/LineItemsEditorProps";
+import { CurrencyCode } from "@typings/CurrencyCode";
+import { chargesTax } from "@utils/currency";
 import { LINE_ITEM_PRESETS, presetText } from "@utils/line-item-presets";
 
 /* Presets as combobox options: the title is what you scan for, the full text
@@ -26,8 +29,18 @@ export const LineItemsEditor = ({
   onAddRow,
   onRemoveRow,
   onTaxRateChange,
+  currency = "CAD",
 }: LineItemsEditorProps) => {
+  const taxable = chargesTax(currency);
   const totals = computeTotals(items, taxRate);
+
+  /* Rows being written as free text. A row that already holds newlines starts
+     there — a single-line combobox would silently flatten it. */
+  const [freeText, setFreeText] = useState<Record<number, boolean>>({});
+  const isFree = (i: number) =>
+    freeText[i] ?? items[i]?.description?.includes("\n") ?? false;
+  const toggleFree = (i: number) =>
+    setFreeText((prev) => ({ ...prev, [i]: !isFree(i) }));
 
   return (
     <div className="flex flex-col gap-3">
@@ -48,18 +61,53 @@ export const LineItemsEditor = ({
             key={index}
             className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_90px_120px_120px_32px] sm:items-center"
           >
-            {/* Presets are suggestions, not a lock-in: any text is accepted.
-                A styled listbox rather than <datalist>, which can't be themed
-                and renders differently in every browser. */}
-            <Combobox
-              options={PRESET_OPTIONS}
-              value={row.description}
-              onChange={(next) => onItemChange(index, "description", next)}
-              allowCustom
-              placeholder="Item or service"
-              aria-label="Description"
-              className="col-span-2 sm:col-span-1"
-            />
+            {/* Pick a preset, or switch to free text to write your own with
+                line breaks. The first line renders as the bold title on the
+                invoice and PDF; the rest is supporting detail. */}
+            <div className="col-span-2 flex items-start gap-1.5 sm:col-span-1">
+              {isFree(index) ? (
+                <textarea
+                  value={row.description}
+                  onChange={(e) =>
+                    onItemChange(index, "description", e.target.value)
+                  }
+                  rows={3}
+                  placeholder={"Title\nSupporting detail…"}
+                  aria-label="Description"
+                  className={cn(inputClass, "min-h-[76px] py-2 leading-snug")}
+                />
+              ) : (
+                <Combobox
+                  options={PRESET_OPTIONS}
+                  value={row.description}
+                  onChange={(next) => onItemChange(index, "description", next)}
+                  allowCustom
+                  placeholder="Item or service"
+                  aria-label="Description"
+                  className="min-w-0 flex-1"
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => toggleFree(index)}
+                aria-pressed={isFree(index)}
+                title={
+                  isFree(index)
+                    ? "Use a preset instead"
+                    : "Write free text with line breaks"
+                }
+                aria-label={
+                  isFree(index) ? "Use a preset instead" : "Write free text"
+                }
+                className="mt-1 shrink-0 rounded-lg p-1.5 text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+              >
+                {isFree(index) ? (
+                  <List className="size-4" />
+                ) : (
+                  <WrapText className="size-4" />
+                )}
+              </button>
+            </div>
             <input
               type="number"
               min="0"
@@ -79,7 +127,7 @@ export const LineItemsEditor = ({
               className={cn(inputClass, "px-3 py-2 text-right tabular-nums")}
             />
             <span className="px-1 text-right text-sm font-medium tabular-nums text-foreground">
-              {formatMoney(amount)}
+              {formatMoney(amount, currency)}
             </span>
             <button
               type="button"
@@ -102,36 +150,58 @@ export const LineItemsEditor = ({
         >
           + Add line
         </button>
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          Tax rate
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={taxRate}
-            onChange={(e) => onTaxRateChange(Number(e.target.value))}
-            className={cn(inputClass, "w-20 px-3 py-1.5 text-right tabular-nums")}
-          />
-          %
-        </label>
+        {/* USD work isn't taxed, so there's no rate to set — the control is
+            hidden rather than shown at a 0 you can't change. */}
+        {taxable ? (
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            Tax rate
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={taxRate}
+              onChange={(e) => onTaxRateChange(Number(e.target.value))}
+              className={cn(inputClass, "w-20 px-3 py-1.5 text-right tabular-nums")}
+            />
+            %
+          </label>
+        ) : (
+          <span className="text-sm text-muted-foreground">
+            No tax on {currency} invoices
+          </span>
+        )}
       </div>
 
       {/* totals */}
       <div className="ml-auto w-full max-w-xs space-y-1 border-t border-border pt-3 text-sm">
-        <TotalRow label="Subtotal" value={totals.subtotal} />
-        <TotalRow label={`Tax (${taxRate || 0}%)`} value={totals.tax} />
+        <TotalRow label="Subtotal" value={totals.subtotal} currency={currency} />
+        {taxable && (
+          <TotalRow
+            label={`Tax (${taxRate || 0}%)`}
+            value={totals.tax}
+            currency={currency}
+          />
+        )}
         <div className="flex items-center justify-between border-t border-border pt-2 font-semibold text-foreground">
           <span>Total</span>
-          <span className="tabular-nums">{formatMoney(totals.total)}</span>
+          <span className="tabular-nums">{formatMoney(totals.total, currency)}</span>
         </div>
       </div>
     </div>
   );
 };
 
-const TotalRow = ({ label, value }: { label: string; value: number }) => (
+const TotalRow = ({
+  label,
+  value,
+  currency,
+}: {
+  label: string;
+  value: number;
+  currency: CurrencyCode;
+}) => (
   <div className="flex items-center justify-between text-muted-foreground">
     <span>{label}</span>
-    <span className="tabular-nums">{formatMoney(value)}</span>
+    <span className="tabular-nums">{formatMoney(value, currency)}</span>
   </div>
 );

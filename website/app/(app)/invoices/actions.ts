@@ -8,6 +8,8 @@ import { renderDocumentPdf } from "@lib/pdf/render";
 import { sendDocumentEmail } from "@lib/email";
 import { parseLineItems, emptyToNull } from "@utils/doc-helpers";
 import { computeTotals, formatMoney } from "@utils/money";
+import { chargesTax } from "@utils/currency";
+import { parseCurrency } from "@utils/doc-helpers";
 import * as invoices from "@services/supabase/invoice";
 import * as lineItems from "@services/supabase/line-item";
 import * as transactions from "@services/supabase/transaction";
@@ -29,7 +31,13 @@ export const createInvoice = async (
   const items = parseLineItems(formData);
   if (items.length === 0) return { error: "Add at least one line item." };
 
-  const totals = computeTotals(items, Number(formData.get("tax_rate")) || 0);
+  /* The tax rate is derived from the currency here, not taken from the form:
+     a USD document is never taxed, and that rule can't live only in the UI. */
+  const currency = parseCurrency(formData.get("currency"));
+  const taxRate = chargesTax(currency)
+    ? Number(formData.get("tax_rate")) || 0
+    : 0;
+  const totals = computeTotals(items, taxRate);
   const supabase = await createClient();
 
   const { id, error } = await invoices.createInvoice(supabase, {
@@ -39,6 +47,7 @@ export const createInvoice = async (
     issue_date: emptyToNull(formData.get("issue_date")) ?? undefined,
     due_date: emptyToNull(formData.get("second_date")),
     notes: emptyToNull(formData.get("notes")),
+    currency,
     ...totals,
   });
   if (error || !id) return { error: error ?? "Failed to save." };
@@ -64,7 +73,13 @@ export const updateInvoice = async (
   const items = parseLineItems(formData);
   if (items.length === 0) return { error: "Add at least one line item." };
 
-  const totals = computeTotals(items, Number(formData.get("tax_rate")) || 0);
+  /* The tax rate is derived from the currency here, not taken from the form:
+     a USD document is never taxed, and that rule can't live only in the UI. */
+  const currency = parseCurrency(formData.get("currency"));
+  const taxRate = chargesTax(currency)
+    ? Number(formData.get("tax_rate")) || 0
+    : 0;
+  const totals = computeTotals(items, taxRate);
   const supabase = await createClient();
 
   const { error } = await invoices.updateInvoice(supabase, id, {
@@ -72,6 +87,7 @@ export const updateInvoice = async (
     issue_date: emptyToNull(formData.get("issue_date")) ?? undefined,
     due_date: emptyToNull(formData.get("second_date")),
     notes: emptyToNull(formData.get("notes")),
+    currency,
     ...totals,
   });
   if (error) return { error };

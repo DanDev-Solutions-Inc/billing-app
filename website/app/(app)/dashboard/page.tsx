@@ -69,13 +69,15 @@ const MONTH_OPTIONS = MONTH_RANGES.map((m) => ({
   label: `${m} months`,
 }));
 
-/* Invoices per month at interval 1, used to express every cadence in the same
-   unit so schedules on different frequencies can be summed. */
-const MONTHLY_FACTOR: Record<string, number> = {
-  daily: 365 / 12,
-  weekly: 52 / 12,
-  monthly: 1,
-  yearly: 1 / 12,
+/* Invoices per year at interval 1, so schedules on different cadences can be
+   summed into one comparable figure. Annual rather than monthly on purpose: a
+   weekly schedule bills 52×, which is 4.33 months' worth — a "per month" number
+   is an average no month ever actually matches. */
+const YEARLY_FACTOR: Record<string, number> = {
+  daily: 365,
+  weekly: 52,
+  monthly: 12,
+  yearly: 1,
 };
 
 /* Relative day count, so "in 3 days" reads at a glance rather than a date. */
@@ -145,10 +147,11 @@ const DashboardPage = async ({
     }))
     .sort((a, b) => a.next_run.localeCompare(b.next_run));
 
-  /* What the live schedules bill each month, however they're each phased —
-     the number that actually answers "what's recurring worth?". */
-  const monthlyRun = upcoming.reduce(
-    (sum, s) => sum + s.total * MONTHLY_FACTOR[s.frequency] / Math.max(1, s.interval),
+  /* What the live schedules bill in a year. Exact for every cadence, unlike a
+     monthly figure — $621.50 weekly is exactly $32,318/yr, but "$2,693.17/mo"
+     is an average you'd never see on a statement. */
+  const yearlyRun = upcoming.reduce(
+    (sum, s) => sum + (s.total * YEARLY_FACTOR[s.frequency]) / Math.max(1, s.interval),
     0,
   );
 
@@ -306,10 +309,10 @@ const DashboardPage = async ({
           <div>
             <CardTitle>Recurring invoices</CardTitle>
             <p className="mt-1.5 text-3xl font-bold tabular-nums tracking-tight text-foreground">
-              {formatMoney(monthlyRun)}
+              {formatMoney(yearlyRun)}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              per month · {upcoming.length} active{" "}
+              per year · {upcoming.length} active{" "}
               {upcoming.length === 1 ? "schedule" : "schedules"}
             </p>
           </div>

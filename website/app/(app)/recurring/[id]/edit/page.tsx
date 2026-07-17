@@ -41,6 +41,7 @@ const EditRecurringPage = async ({
         action={updateRecurringInvoice.bind(null, id)}
         submitLabel="Save changes"
         defaults={{
+          currency: schedule.currency,
           customer_id: schedule.customer_id ?? "",
           title: schedule.title ?? "",
           frequency: schedule.frequency,

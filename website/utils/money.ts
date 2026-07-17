@@ -1,16 +1,24 @@
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
+import { CurrencyCode } from "@typings/CurrencyCode";
 
-const currency = new Intl.NumberFormat("en-CA", {
-  style: "currency",
-  currency: "CAD",
-});
+/* Both render "$", so USD is suffixed to keep the two tellable apart — an
+   invoice reading "$1,234.50" shouldn't be ambiguous about which dollar. */
+const FORMATTERS: Record<CurrencyCode, Intl.NumberFormat> = {
+  CAD: new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }),
+  USD: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }),
+};
 
-/** Format a number as CAD currency, e.g. 1234.5 → "$1,234.50". */
+/**
+ * Format money, e.g. 1234.5 → "$1,234.50" (CAD) or "$1,234.50 USD".
+ * Defaults to CAD — the currency everything predating this was billed in.
+ */
 export const formatMoney = (
   value: number | string | null | undefined,
+  currency: CurrencyCode = "CAD",
 ): string => {
   const n = typeof value === "string" ? parseFloat(value) : (value ?? 0);
-  return currency.format(Number.isFinite(n) ? n : 0);
+  const formatted = FORMATTERS[currency].format(Number.isFinite(n) ? n : 0);
+  return currency === "USD" ? `${formatted} USD` : formatted;
 };
 
 /** Format an ISO date (yyyy-mm-dd) as a readable date, e.g. "Jul 16, 2026". */
