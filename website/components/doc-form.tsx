@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormik } from "formik";
+import { today, addDays, daysBetween } from "@utils/date";
 import { LineItemsEditor } from "@components/invoices/line-items-editor";
 import { Card, Field, inputClass, Button, Select } from "@components/ui";
 import { Combobox } from "@components/ui/combobox";
@@ -20,13 +21,6 @@ export interface DocFormState {
   error?: string;
 }
 
-const today = () => {
-  // Local date as yyyy-mm-dd for the date input default.
-  const d = new Date();
-  const tz = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
-};
-
 const blankItem = (): LineItemFormValues => ({
   description: "",
   quantity: 1,
@@ -39,20 +33,6 @@ const TERMS = [7, 15, 30] as const;
 /* Invoices default to Net 30 — the standard terms, so a new invoice is ready
    to send without touching the date. Estimates have no implied expiry. */
 const DEFAULT_INVOICE_TERM = 30;
-
-const addDays = (iso: string, days: number) => {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  const tz = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
-};
-
-const daysBetween = (from: string, to: string) =>
-  Math.round(
-    (new Date(`${to}T00:00:00`).getTime() -
-      new Date(`${from}T00:00:00`).getTime()) /
-      86_400_000,
-  );
 
 export const DocForm = ({
   kind,

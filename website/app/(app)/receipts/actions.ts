@@ -5,13 +5,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { emptyToNull } from "@utils/doc-helpers";
+import { today } from "@utils/date";
 import { scanReceiptImage } from "@lib/receipts/scan";
 import { deleteReceiptWithFile } from "@services/receipts/delete-receipt";
 import * as receipts from "@services/supabase/receipt";
 import * as transactions from "@services/supabase/transaction";
 import { UploadedReceipt } from "@interfaces/forms/UploadedReceipt";
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 export interface ReceiptFormState {
   error?: string;

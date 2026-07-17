@@ -20,7 +20,7 @@ import {
   FilterSelect,
   FilterCombobox,
   ClearFilters,
-  SearchInput, FilterBar, FilterGroup } from "@components/ui";
+  SearchInput, FilterBar, FilterGroup, RowLink } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { isOverdue } from "@utils/invoice";
 import {
@@ -276,12 +276,13 @@ const InvoicesPage = async ({
               {result.rows.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell className="font-medium">
-                    <Link
+                    {/* Opens from anywhere on the row — see RowLink. */}
+                    <RowLink
                       href={`/invoices/${inv.id}`}
-                      className="text-brand-accent hover:underline"
+                      className="text-brand-accent"
                     >
                       {inv.invoice_number || `#${inv.id.slice(0, 8)}`}
-                    </Link>
+                    </RowLink>
                   </TableCell>
                   <TableCell>{inv.customers?.name ?? "—"}</TableCell>
                   <TableCell className="text-muted-foreground">

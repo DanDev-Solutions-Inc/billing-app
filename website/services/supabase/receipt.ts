@@ -2,17 +2,21 @@ import "server-only";
 import { SupabaseClient } from "@typings/SupabaseClient";
 import { Receipt } from "@typings/receipt/Receipt";
 import { ReceiptInsert } from "@typings/receipt/ReceiptInsert";
+import { fetchAllRows } from "@services/supabase/fetch-all";
 
 export const listReceipts = async (
   sb: SupabaseClient,
-): Promise<Receipt[]> => {
-  const { data } = await sb
-    .from("receipts")
-    .select("*")
-    .order("receipt_date", { ascending: false })
-    .order("created_at", { ascending: false });
-  return data ?? [];
-};
+): Promise<Receipt[]> =>
+  /* Paged past PostgREST's 1,000-row cap, which silently hid 2,598 of 3,598
+     receipts — a bare select() returns the first page without erroring. */
+  fetchAllRows<Receipt>((from, to) =>
+    sb
+      .from("receipts")
+      .select("*")
+      .order("receipt_date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(from, to),
+  );
 
 export const getReceipt = async (
   sb: SupabaseClient,

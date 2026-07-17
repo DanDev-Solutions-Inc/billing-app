@@ -59,7 +59,7 @@ export const LineItemsEditor = ({
         return (
           <div
             key={index}
-            className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_90px_120px_120px_32px] sm:items-center"
+            className="grid grid-cols-2 gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 sm:grid-cols-[1fr_90px_120px_120px_32px] sm:items-center sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
           >
             {/* Pick a preset, or switch to free text to write your own with
                 line breaks. The first line renders as the bold title on the
@@ -108,27 +108,48 @@ export const LineItemsEditor = ({
                 )}
               </button>
             </div>
-            <input
-              type="number"
-              min="0"
-              step="any"
-              value={row.quantity}
-              onChange={(e) => onItemChange(index, "quantity", e.target.value)}
-              aria-label="Quantity"
-              className={cn(inputClass, "px-3 py-2 text-right tabular-nums")}
-            />
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={row.unit_price}
-              onChange={(e) => onItemChange(index, "unit_price", e.target.value)}
-              aria-label="Unit price"
-              className={cn(inputClass, "px-3 py-2 text-right tabular-nums")}
-            />
-            <span className="px-1 text-right text-sm font-medium tabular-nums text-foreground">
-              {formatMoney(amount, currency)}
-            </span>
+            {/* Labelled on mobile — the column headers are desktop-only, so
+                without these Qty and Unit price are two unmarked boxes.
+                `sm:contents` dissolves the wrapper from sm up, keeping the
+                inputs as direct children of the row grid. */}
+            <label className="flex flex-col gap-1 sm:contents">
+              <span className="text-xs text-muted-foreground sm:hidden">Qty</span>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={row.quantity}
+                onChange={(e) => onItemChange(index, "quantity", e.target.value)}
+                aria-label="Quantity"
+                className={cn(inputClass, "px-3 py-2 text-right tabular-nums")}
+              />
+            </label>
+            <label className="flex flex-col gap-1 sm:contents">
+              <span className="text-xs text-muted-foreground sm:hidden">
+                Unit price
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={row.unit_price}
+                onChange={(e) =>
+                  onItemChange(index, "unit_price", e.target.value)
+                }
+                aria-label="Unit price"
+                className={cn(inputClass, "px-3 py-2 text-right tabular-nums")}
+              />
+            </label>
+            {/* Amount + remove share the last mobile row, labelled so the
+                number isn't floating unexplained. */}
+            <div className="col-span-2 flex items-center justify-between border-t border-white/[0.06] pt-2 sm:contents sm:border-0 sm:pt-0">
+              <span className="text-xs text-muted-foreground sm:hidden">
+                Amount
+              </span>
+              <span className="px-1 text-right text-sm font-medium tabular-nums text-foreground">
+                {formatMoney(amount, currency)}
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => onRemoveRow(index)}

@@ -17,7 +17,7 @@ import {
   TableCell,
   SortableHead,
   Pagination,
-  FilterTabs, FilterBar, FilterGroup } from "@components/ui";
+  FilterTabs, FilterBar, FilterGroup, RowLink } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
 import {
@@ -235,12 +235,13 @@ const EstimatesPage = async ({
               {result.rows.map((est) => (
                 <TableRow key={est.id}>
                   <TableCell className="font-medium">
-                    <Link
+                    {/* Opens from anywhere on the row — see RowLink. */}
+                    <RowLink
                       href={`/estimates/${est.id}`}
-                      className="text-brand-accent hover:underline"
+                      className="text-brand-accent"
                     >
                       {est.estimate_number || `#${est.id.slice(0, 8)}`}
-                    </Link>
+                    </RowLink>
                   </TableCell>
                   <TableCell>{est.customers?.name ?? "—"}</TableCell>
                   <TableCell className="text-muted-foreground">

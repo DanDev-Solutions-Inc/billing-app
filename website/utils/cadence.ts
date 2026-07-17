@@ -1,5 +1,9 @@
 import { RecurringFrequency } from "@typings/recurring-invoice/RecurringFrequency";
 
+/* Dates live in @utils/date — re-exported so cadence callers don't need to know
+   that. The copy here wasn't timezone-corrected and drifted from the form's. */
+export { addDays } from "@utils/date";
+
 export const FREQUENCY_LABELS: Record<RecurringFrequency, string> = {
   daily: "day",
   weekly: "week",
@@ -41,9 +45,3 @@ export const computeNextRun = (
   return d.toISOString().slice(0, 10);
 };
 
-/** Add N days to a yyyy-mm-dd date. */
-export const addDays = (from: string, days: number): string => {
-  const d = new Date(`${from}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-};

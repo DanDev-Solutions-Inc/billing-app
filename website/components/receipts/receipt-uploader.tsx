@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useFormik } from "formik";
+import { today } from "@utils/date";
 import { upload } from "@vercel/blob/client";
 import { Camera, Upload, Loader2, FileText, Sparkles } from "lucide-react";
 import { createReceipt } from "@app/(app)/receipts/actions";
@@ -10,12 +11,6 @@ import { ReceiptFormValues } from "@interfaces/forms/ReceiptFormValues";
 import { ReceiptAnalysis } from "@interfaces/models/ai/ReceiptAnalysis";
 import { Card, Field, inputClass, Button, Select } from "@components/ui";
 import { RECEIPT_CATEGORIES as CATEGORIES } from "@utils/constants";
-
-const today = () => {
-  const d = new Date();
-  const tz = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
-};
 
 export const ReceiptUploader = () => {
   const [preview, setPreview] = useState<string>();

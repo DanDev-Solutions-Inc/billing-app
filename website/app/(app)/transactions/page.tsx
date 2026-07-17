@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listTransactions } from "@services/supabase/transaction";
-import { FileText, Receipt as ReceiptIcon, Trash2, Plus, Pencil } from "lucide-react";
+import { FileText, Receipt as ReceiptIcon, Trash2, Plus } from "lucide-react";
 import {
   PageHeader,
   Card,
@@ -22,7 +22,7 @@ import {
   ClearFilters,
   SortableHead,
   Checkbox,
-  Pagination, FilterBar, FilterGroup } from "@components/ui";
+  Pagination, FilterBar, RowLink, RowAction } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
 import {
@@ -284,32 +284,38 @@ const TransactionsPage = async ({
                 return (
                   <TableRow key={t.id}>
                     <TableCell>
-                      <Checkbox
-                        name="ids"
-                        value={t.id}
-                        aria-label={`Select ${t.description || "transaction"}`}
-                      />
+                      <RowAction>
+                        <Checkbox
+                          name="ids"
+                          value={t.id}
+                          aria-label={`Select ${t.description || "transaction"}`}
+                        />
+                      </RowAction>
                     </TableCell>
                     <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {formatDate(t.txn_date)}
                     </TableCell>
                     <TableCell className="max-w-0">
                       <div className="flex items-center gap-2">
-                        <Link
+                        <RowLink
                           href={`/transactions/${t.id}`}
-                          className="truncate font-medium text-foreground transition-colors hover:text-brand-accent"
+                          className="truncate"
                         >
                           {t.description || "View transaction"}
-                        </Link>
+                        </RowLink>
                         {source && (
-                          <Link
-                            href={source.href}
-                            title={source.title}
-                            aria-label={source.title}
-                            className="shrink-0 text-muted-foreground transition-colors hover:text-brand-accent"
-                          >
-                            <source.Icon className="size-3.5" />
-                          </Link>
+                          /* Above the row overlay so it opens the source, not
+                             the transaction. */
+                          <RowAction>
+                            <Link
+                              href={source.href}
+                              title={source.title}
+                              aria-label={source.title}
+                              className="shrink-0 text-muted-foreground transition-colors hover:text-brand-accent"
+                            >
+                              <source.Icon className="size-3.5" />
+                            </Link>
+                          </RowAction>
                         )}
                       </div>
                       {/* Date and category ride under the description on
@@ -348,16 +354,10 @@ const TransactionsPage = async ({
                       {formatMoney(t.amount)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-end gap-1">
-                        <ButtonLink
-                          href={`/transactions/${t.id}`}
-                          variant="ghost"
-                          size="icon"
-                          title="Edit transaction"
-                          aria-label={`Edit ${t.description || "transaction"}`}
-                        >
-                          <Pencil />
-                        </ButtonLink>
+                      {/* No Edit icon: the whole row opens the transaction
+                          (see RowLink). RowAction lifts delete above the row
+                          overlay — without it the overlay swallows the click. */}
+                      <RowAction className="justify-end">
                         {/* formAction + name/value rather than a nested <form>:
                             these rows live inside the bulk-select form, and a
                             form inside a form is invalid — the parser drops the
@@ -375,7 +375,7 @@ const TransactionsPage = async ({
                         >
                           <Trash2 />
                         </Button>
-                      </div>
+                      </RowAction>
                     </TableCell>
                   </TableRow>
                 );

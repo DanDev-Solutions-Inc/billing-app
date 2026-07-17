@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Trash2, Pencil, FileText } from "lucide-react";
+import { Trash2, Pencil, FileText, Pause, Play } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listRecurring } from "@services/supabase/recurring-invoice";
@@ -113,8 +113,20 @@ const RecurringPage = async () => {
                             name="active"
                             value={String(!s.active)}
                           />
-                          <Button type="submit" variant="ghost">
-                            {s.active ? "Pause" : "Resume"}
+                          {/* Icon, like the actions either side of it — it was
+                              the one text button in a row of icons. */}
+                          <Button
+                            type="submit"
+                            variant="ghost"
+                            size="icon"
+                            title={s.active ? "Pause schedule" : "Resume schedule"}
+                            aria-label={
+                              s.active
+                                ? `Pause ${s.title || "schedule"}`
+                                : `Resume ${s.title || "schedule"}`
+                            }
+                          >
+                            {s.active ? <Pause /> : <Play />}
                           </Button>
                         </form>
                         <form action={deleteRecurringAction}>

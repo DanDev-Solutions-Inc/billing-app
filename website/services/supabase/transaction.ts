@@ -5,6 +5,7 @@ import { TxnStatus } from "@typings/transaction/TxnStatus";
 import { TransactionInsert } from "@typings/transaction/TransactionInsert";
 import { TransactionWithLinks } from "@interfaces/models/transaction/TransactionWithLinks";
 import { TransactionDetail } from "@interfaces/models/transaction/TransactionDetail";
+import { fetchAllRows } from "@services/supabase/fetch-all";
 
 const WITH_LINKS = "*, receipts(vendor), invoices(invoice_number)";
 const DETAIL =
@@ -15,20 +16,24 @@ export const listTransactions = async (
   direction?: TxnDirection,
   search?: string,
 ): Promise<TransactionWithLinks[]> => {
-  let query = sb
-    .from("transactions")
-    .select(WITH_LINKS)
-    .order("txn_date", { ascending: false })
-    .order("created_at", { ascending: false });
-  if (direction) query = query.eq("direction", direction);
-
-  // Searching in Postgres covers all ~4,700 rows rather than the rendered page.
   // Commas/parens would break PostgREST's or() syntax.
   const q = search?.trim().replace(/[,()]/g, " ");
-  if (q) query = query.or(`description.ilike.%${q}%,category.ilike.%${q}%`);
 
-  const { data } = await query;
-  return (data ?? []) as TransactionWithLinks[];
+  /* Built per page: a PostgrestFilterBuilder can only be awaited once, so each
+     range needs its own. Paged because a bare select() stops at PostgREST's
+     1,000-row cap *without erroring* — that silently hid 3,693 of 4,693
+     transactions and skewed every all-time total on the dashboard. */
+  return fetchAllRows<TransactionWithLinks>((from, to) => {
+    let query = sb
+      .from("transactions")
+      .select(WITH_LINKS)
+      .order("txn_date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    if (direction) query = query.eq("direction", direction);
+    if (q) query = query.or(`description.ilike.%${q}%,category.ilike.%${q}%`);
+    return query;
+  });
 };
 
 /**

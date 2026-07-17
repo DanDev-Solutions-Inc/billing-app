@@ -154,6 +154,7 @@ const CustomersPage = async ({
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <SortableHead
+                      className="w-full"
                       label="Name"
                       sortKey="name"
                       activeKey={sort}
@@ -166,6 +167,7 @@ const CustomersPage = async ({
                       activeKey={sort}
                       activeDir={dir}
                       href={sortHref("email")}
+                      className="hidden sm:table-cell"
                     />
                     <SortableHead
                       label="Phone"
@@ -189,7 +191,7 @@ const CustomersPage = async ({
                       activeKey={sort}
                       activeDir={dir}
                       href={sortHref("invoices")}
-                      className="text-right"
+                      className="hidden text-right md:table-cell"
                     />
                     <SortableHead
                       label="Billed"
@@ -205,10 +207,24 @@ const CustomersPage = async ({
                 <TableBody>
                   {result.rows.map((c) => (
                     <TableRow key={c.id}>
-                      <TableCell className="font-medium text-foreground">
-                        {c.name}
+                      <TableCell className="w-full max-w-0">
+                        <span className="block truncate font-medium text-foreground">
+                          {c.name}
+                        </span>
+                        {/* Email and invoice count fold under the name on
+                            mobile — as columns they left the name ~80px. */}
+                        <span className="mt-0.5 block truncate text-xs text-muted-foreground sm:hidden">
+                          {[
+                            c.email,
+                            c.invoice_count
+                              ? `${c.invoice_count} invoice${c.invoice_count === 1 ? "" : "s"}`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ") || "No email"}
+                        </span>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="hidden text-muted-foreground sm:table-cell">
                         {c.email || "—"}
                         {c.secondary_emails.length > 0 && (
                           <span className="ml-1.5 text-xs text-muted-foreground/70">
@@ -239,7 +255,7 @@ const CustomersPage = async ({
                           "—"
                         )}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                      <TableCell className="hidden text-right tabular-nums text-muted-foreground md:table-cell">
                         {c.invoice_count || "—"}
                       </TableCell>
                       <TableCell className="text-right font-medium tabular-nums">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFormik } from "formik";
+import { today } from "@utils/date";
 import { upload } from "@vercel/blob/client";
 import { createTransactionAction } from "@app/(app)/transactions/actions";
 import { transactionSchema } from "@utils/validation/transactionSchema";
@@ -9,12 +10,6 @@ import { TransactionFormValues } from "@interfaces/forms/TransactionFormValues";
 import { TRANSACTION_CATEGORIES as CATEGORIES } from "@utils/constants";
 import { Card, Field, inputClass, Button, Select } from "@components/ui";
 import { Combobox } from "@components/ui/combobox";
-
-const today = () => {
-  const d = new Date();
-  const tz = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
-};
 
 export const TransactionForm = ({
   descriptions = [],

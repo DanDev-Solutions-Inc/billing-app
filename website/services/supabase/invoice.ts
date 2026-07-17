@@ -4,6 +4,7 @@ import { Invoice } from "@typings/invoice/Invoice";
 import { InvoiceStatus } from "@typings/invoice/InvoiceStatus";
 import { InvoiceInsert } from "@typings/invoice/InvoiceInsert";
 import { InvoiceWithCustomer } from "@interfaces/models/invoice/InvoiceWithCustomer";
+import { fetchAllRows } from "@services/supabase/fetch-all";
 import {
   DocumentFilters,
   documentSearchClause,
@@ -15,21 +16,25 @@ export const listInvoices = async (
   sb: SupabaseClient,
   filters?: DocumentFilters,
 ): Promise<InvoiceWithCustomer[]> => {
-  let query = sb
-    .from("invoices")
-    .select(WITH_CUSTOMER)
-    .order("issue_date", { ascending: false })
-    .order("created_at", { ascending: false });
-
-  if (filters?.customerId) query = query.eq("customer_id", filters.customerId);
-  if (filters?.from) query = query.gte("issue_date", filters.from);
-  if (filters?.to) query = query.lte("issue_date", filters.to);
-
+  // Resolved once, not per page: the customer match is the same for every range.
   const search = await documentSearchClause(sb, filters?.search, "invoice_number");
-  if (search) query = query.or(search);
 
-  const { data } = await query;
-  return (data ?? []) as InvoiceWithCustomer[];
+  /* Paged past PostgREST's 1,000-row cap. At 548 invoices this changes nothing
+     today — but the cap doesn't error, it truncates, and transactions/receipts
+     both crossed it unnoticed. */
+  return fetchAllRows<InvoiceWithCustomer>((from, to) => {
+    let query = sb
+      .from("invoices")
+      .select(WITH_CUSTOMER)
+      .order("issue_date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    if (filters?.customerId) query = query.eq("customer_id", filters.customerId);
+    if (filters?.from) query = query.gte("issue_date", filters.from);
+    if (filters?.to) query = query.lte("issue_date", filters.to);
+    if (search) query = query.or(search);
+    return query;
+  });
 };
 
 export const getInvoice = async (

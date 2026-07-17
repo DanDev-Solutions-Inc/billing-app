@@ -39,7 +39,7 @@ export const DocumentDetail = ({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           {backHref && (
             <BackButton fallbackHref={backHref} label={backLabel} />
           )}
@@ -51,7 +51,9 @@ export const DocumentDetail = ({
             <StatusPill status={status} />
           </div>
         </div>
-        {actionBar}
+        {/* Full-bleed on mobile — this header sits outside PageHeader, so it
+            needs the same rule. */}
+        {actionBar && <div className="w-full sm:w-auto">{actionBar}</div>}
       </div>
 
       {banner}
@@ -81,16 +83,21 @@ export const DocumentDetail = ({
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Qty</TableHead>
-              <TableHead className="text-right">Unit price</TableHead>
+              <TableHead className="w-full">Description</TableHead>
+              <TableHead className="hidden text-right sm:table-cell">Qty</TableHead>
+              <TableHead className="hidden text-right sm:table-cell">
+                Unit price
+              </TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.map((it) => (
               <TableRow key={it.id}>
-                <TableCell className="max-w-0">
+                {/* whitespace-normal: TableCell is nowrap by default, so a long
+                    description couldn't wrap and spilled across Qty/Unit price.
+                    align-top keeps a wrapped description level with Amount. */}
+                <TableCell className="w-full max-w-0 whitespace-normal align-top">
                   {/* Title bold, detail as supporting text — matching the PDF. */}
                   {(() => {
                     const { title, detail } = splitLineItem(it.description);
@@ -107,14 +114,19 @@ export const DocumentDetail = ({
                       </>
                     );
                   })()}
+                  {/* Qty/price fold under the description on mobile, where
+                      three number columns don't fit beside it. */}
+                  <span className="mt-1 block text-xs tabular-nums text-muted-foreground sm:hidden">
+                    {it.quantity} × {formatMoney(it.unit_price)}
+                  </span>
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="hidden text-right align-top tabular-nums sm:table-cell">
                   {it.quantity}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="hidden text-right align-top tabular-nums sm:table-cell">
                   {formatMoney(it.unit_price)}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-right align-top font-medium tabular-nums">
                   {formatMoney(it.amount)}
                 </TableCell>
               </TableRow>

@@ -73,7 +73,9 @@ const InvoicePage = async ({
          rest are occasional, so they live behind the overflow rather than
          competing as six equal buttons. */
       actionBar={
-        <div className="flex flex-wrap items-center gap-2">
+        /* Mobile: the two actions share the row and stretch; the overflow keeps
+           its natural width at the end. */
+        <div className="flex w-full items-center gap-2 sm:w-auto sm:flex-wrap [&>form]:flex-1 [&>form>button]:w-full sm:[&>form]:flex-none sm:[&>form>button]:w-auto">
           {inv.status !== "paid" && (
             <StatusButton
               id={inv.id}

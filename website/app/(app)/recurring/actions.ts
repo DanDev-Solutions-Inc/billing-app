@@ -37,25 +37,14 @@ export const createRecurringInvoice = async (
   if (!nextRun) return { error: "Choose a start date." };
 
   const supabase = await createClient();
+  /* Same helper as the update path — the two diverging is precisely what let a
+     schedule keep `currency: CAD` while its tax silently went to 0. */
   const { error } = await recurring.createRecurring(supabase, {
+    ...scheduleFrom(formData),
     user_id: user.id,
-    customer_id: emptyToNull(formData.get("customer_id")),
-    title: emptyToNull(formData.get("title")),
     line_items: items as unknown as Json,
-    currency: parseCurrency(formData.get("currency")),
-    // Rate follows the currency; USD schedules are never taxed.
-    tax_rate: chargesTax(parseCurrency(formData.get("currency")))
-      ? Number(formData.get("tax_rate")) || 0
-      : 0,
-    notes: emptyToNull(formData.get("notes")),
     frequency,
-    interval: Math.max(1, Number(formData.get("interval")) || 1),
     next_run: nextRun,
-    net_days: Math.max(0, Number(formData.get("net_days")) || 14),
-    auto_send: formData.get("auto_send") === "on",
-    // "" (primary) is stored as null so the schedule follows the customer.
-    send_to: emptyToNull(formData.get("send_to")),
-    end_date: emptyToNull(formData.get("end_date")),
   });
   if (error) return { error };
 
@@ -66,10 +55,17 @@ export const createRecurringInvoice = async (
 /* The schedule's shape, shared by create and update. `next_run` is deliberately
    editable: it's when the next invoice goes out, and moving it is the whole
    point of editing a live schedule. */
-const scheduleFrom = (formData: FormData) => ({
+const scheduleFrom = (formData: FormData) => {
+  const currency = parseCurrency(formData.get("currency"));
+  return {
+  currency,
   customer_id: emptyToNull(formData.get("customer_id")),
   title: emptyToNull(formData.get("title")),
-  tax_rate: Number(formData.get("tax_rate")) || 0,
+  /* Derived from the currency, never taken raw: this helper omitted `currency`
+     entirely and passed tax_rate through, so switching a schedule to USD wrote
+     tax_rate 0 while currency stayed CAD — a CAD schedule that silently stopped
+     charging HST, for good, with no error. */
+  tax_rate: chargesTax(currency) ? Number(formData.get("tax_rate")) || 0 : 0,
   notes: emptyToNull(formData.get("notes")),
   interval: Math.max(1, Number(formData.get("interval")) || 1),
   net_days: Math.max(0, Number(formData.get("net_days")) || 14),
@@ -77,7 +73,8 @@ const scheduleFrom = (formData: FormData) => ({
   // "" (primary) is stored as null so the schedule follows the customer.
   send_to: emptyToNull(formData.get("send_to")),
   end_date: emptyToNull(formData.get("end_date")),
-});
+  };
+};
 
 export const updateRecurringInvoice = async (
   id: string,

@@ -46,7 +46,8 @@ export const TableRow = ({
   <tr
     data-slot="table-row"
     className={cn(
-      "border-b border-white/[0.06] transition-colors hover:bg-white/[0.03] data-[state=selected]:bg-brand-accent/10",
+      // `relative`: positioning context for <RowLink>'s full-row overlay.
+      "relative border-b border-white/[0.06] transition-colors hover:bg-white/[0.03] data-[state=selected]:bg-brand-accent/10 [&:has(a[class*=after\\:absolute])]:cursor-pointer",
       className,
     )}
     {...props}

@@ -1,7 +1,7 @@
 import "server-only";
 import { SupabaseClient } from "@typings/SupabaseClient";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
-import { Customer } from "@typings/customer/Customer";
+import { EmailInvoiceInput } from "@interfaces/services/EmailInvoiceInput";
 import {
   listDueRecurring,
   advanceRecurring,
@@ -9,13 +9,16 @@ import {
 import {
   createInvoice,
   getNextInvoiceNumber,
+  updateInvoiceStatus,
 } from "@services/supabase/invoice";
+import { getCustomer } from "@services/supabase/customer";
 import {
   createLineItems,
   listLineItems,
 } from "@services/supabase/line-item";
 import { computeTotals, formatMoney } from "@utils/money";
 import { chargesTax } from "@utils/currency";
+import { customerEmails } from "@utils/customer-emails";
 import { usdToCadOn } from "@services/fx/boc-rate";
 import { computeNextRun, addDays } from "@utils/cadence";
 import { renderDocumentPdf } from "@lib/pdf/render";
@@ -55,13 +58,15 @@ export const generateDueInvoices = async (
          was current when the code was written. */
       const exchangeRate =
         schedule.currency === "USD" ? await usdToCadOn(today) : 1;
+      const invoiceNumber = await getNextInvoiceNumber(admin, schedule.user_id);
+      const dueDate = addDays(today, schedule.net_days);
       const { id: invoiceId } = await createInvoice(admin, {
         user_id: schedule.user_id,
         customer_id: schedule.customer_id,
-        invoice_number: await getNextInvoiceNumber(admin, schedule.user_id),
+        invoice_number: invoiceNumber,
         notes: schedule.notes,
         issue_date: today,
-        due_date: addDays(today, schedule.net_days),
+        due_date: dueDate,
         status: "draft",
         currency: schedule.currency,
         exchange_rate: exchangeRate,
@@ -78,18 +83,21 @@ export const generateDueInvoices = async (
         generated += 1;
 
         if (schedule.auto_send && schedule.customer_id) {
-          const emailed = await emailInvoice(
-            admin,
-            schedule.customer_id,
+          const emailed = await emailInvoice(admin, {
+            customerId: schedule.customer_id,
             invoiceId,
-            totals.total,
-            schedule.send_to,
-          );
+            invoiceNumber,
+            issueDate: today,
+            dueDate,
+            currency: schedule.currency,
+            totals,
+            notes: schedule.notes,
+            sendTo: schedule.send_to,
+          });
           if (emailed) {
-            await admin
-              .from("invoices")
-              .update({ status: "sent" })
-              .eq("id", invoiceId);
+            /* Via the service, so marking sent behaves the same as it does
+               anywhere else rather than being a bare column write. */
+            await updateInvoiceStatus(admin, invoiceId, "sent");
             sent += 1;
           }
         }
@@ -106,51 +114,50 @@ export const generateDueInvoices = async (
   return { generated, sent };
 };
 
+/**
+ * Email the invoice a schedule just generated.
+ *
+ * Takes the stored values rather than re-deriving them: this previously
+ * hardcoded `tax: 0`, recomputed the subtotal from line items, and used
+ * `invoiceId.slice(0, 8)` as the number — so a CAD customer received a PDF with
+ * no HST row, a total that disagreed with the invoice record, and a reference
+ * number matching nothing in the app.
+ */
 const emailInvoice = async (
   admin: SupabaseClient,
-  customerId: string,
-  invoiceId: string,
-  total: number,
-  sendTo: string | null,
+  input: EmailInvoiceInput,
 ): Promise<boolean> => {
-  const { data: customer } = await admin
-    .from("customers")
-    .select("*")
-    .eq("id", customerId)
-    .maybeSingle();
-  const record = customer as Customer | null;
+  const customer = await getCustomer(admin, input.customerId);
 
   // The schedule's chosen address wins, but only while it's still one of the
   // customer's — an address removed from the customer shouldn't keep receiving
   // invoices. Otherwise follow the primary, so it tracks any later change.
-  const known = [record?.email, ...(record?.secondary_emails ?? [])].filter(
-    Boolean,
-  );
-  const to = sendTo && known.includes(sendTo) ? sendTo : record?.email;
+  const known = customerEmails(customer);
+  const to =
+    input.sendTo && known.includes(input.sendTo) ? input.sendTo : known[0];
   if (!to) return false;
 
-  const items = await listLineItems(admin, "invoice", invoiceId);
-  const number = invoiceId.slice(0, 8);
+  const items = await listLineItems(admin, "invoice", input.invoiceId);
   const pdf = await renderDocumentPdf({
     kind: "INVOICE",
-    number,
-    issueDate: new Date().toISOString().slice(0, 10),
+    currency: input.currency,
+    number: input.invoiceNumber,
+    issueDate: input.issueDate,
     secondLabel: "Payment Due",
-    secondDate: null,
-    amountDue: total,
-    customer: customer as Customer | null,
+    secondDate: input.dueDate,
+    amountDue: input.totals.total,
+    customer,
     items,
-    subtotal: items.reduce((s, i) => s + Number(i.amount), 0),
-    tax: 0,
-    total,
-    notes: null,
+    ...input.totals,
+    notes: input.notes,
   });
 
+  const number = input.invoiceNumber ?? input.invoiceId.slice(0, 8);
   const result = await sendDocumentEmail({
     to,
     kind: "invoice",
     number,
-    total: formatMoney(total),
+    total: formatMoney(input.totals.total, input.currency),
     filename: `Invoice_${number}.pdf`,
     pdf,
   });
