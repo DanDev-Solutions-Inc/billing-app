@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, FileText } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listRecurring } from "@services/supabase/recurring-invoice";
@@ -87,6 +87,16 @@ const RecurringPage = async () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">
+                        <ButtonLink
+                          href={`/recurring/${s.id}/pdf`}
+                          variant="ghost"
+                          size="icon"
+                          target="_blank"
+                          title="Preview next invoice"
+                          aria-label={`Preview the next invoice for ${s.title || "this schedule"}`}
+                        >
+                          <FileText />
+                        </ButtonLink>
                         <ButtonLink
                           href={`/recurring/${s.id}/edit`}
                           variant="ghost"

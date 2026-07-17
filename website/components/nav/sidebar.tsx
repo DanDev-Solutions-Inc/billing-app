@@ -63,15 +63,23 @@ export const Sidebar = ({
           mini ? "flex-col items-center gap-3 px-0" : "items-center gap-2",
         )}
       >
-        {/* Collapsed shows the DD monogram; expanded shows the full wordmark. */}
-        <Image
-          src={mini ? "/brand/DDDark.png" : "/brand/DavdevSolutionsDark.png"}
-          alt="DanDev Solutions"
-          width={mini ? 426 : 1343}
-          height={mini ? 266 : 268}
-          priority
-          className={cn("w-auto invert", mini ? "h-7" : "h-8")}
-        />
+        {/* The mark is the way home, as it is on every other app.
+            Collapsed shows the DD monogram; expanded the full wordmark. */}
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          aria-label="DanDev Solutions — go to dashboard"
+          className="rounded-lg outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring/60"
+        >
+          <Image
+            src={mini ? "/brand/DDDark.png" : "/brand/DavdevSolutionsDark.png"}
+            alt="DanDev Solutions"
+            width={mini ? 426 : 1343}
+            height={mini ? 266 : 268}
+            priority
+            className={cn("w-auto invert", mini ? "h-7" : "h-8")}
+          />
+        </Link>
       </div>
 
       <nav className={cn("flex flex-1 flex-col gap-1 py-2", mini ? "px-3" : "px-4")}>

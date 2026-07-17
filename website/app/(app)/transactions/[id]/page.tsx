@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileText } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
@@ -18,6 +18,7 @@ import {
   StatusPill,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
+import { isPdfReceipt } from "@utils/receipt-file";
 import { TRANSACTION_CATEGORIES as CATEGORIES } from "@utils/constants";
 import {
   setTransactionStatusAction,
@@ -128,13 +129,37 @@ const TransactionPage = async ({
             </p>
             {txn.receipt_id ? (
               <div className="mt-3 flex flex-col gap-3">
+                {/* A PDF receipt can't render in an <img> — that's what broke
+                    the thumbnail. Same guard the receipts pages use. */}
                 <div className="overflow-hidden rounded-xl border border-border bg-surface-muted">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/api/receipts/${txn.receipt_id}/file`}
-                    alt={txn.receipts?.vendor ?? "Receipt"}
-                    className="max-h-96 w-full object-contain"
-                  />
+                  {isPdfReceipt(txn.receipts?.image_url) ? (
+                    <object
+                      data={`/api/receipts/${txn.receipt_id}/file`}
+                      type="application/pdf"
+                      className="h-96 w-full"
+                    >
+                      <a
+                        href={`/api/receipts/${txn.receipt_id}/file`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-96 items-center justify-center gap-2 text-sm text-brand-accent underline"
+                      >
+                        <FileText className="size-4" />
+                        Open PDF
+                      </a>
+                    </object>
+                  ) : txn.receipts?.image_url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={`/api/receipts/${txn.receipt_id}/file`}
+                      alt={txn.receipts?.vendor ?? "Receipt"}
+                      className="max-h-96 w-full object-contain"
+                    />
+                  ) : (
+                    <p className="flex h-24 items-center justify-center text-sm text-muted-foreground">
+                      No file attached
+                    </p>
+                  )}
                 </div>
                 <ButtonLink
                   href={`/receipts/${txn.receipt_id}`}

@@ -50,8 +50,10 @@ export interface PdfDocData {
     amount: string; // formatted money
   }[];
   subtotal: string;
-  taxLabel: string;
-  tax: string;
+  /* null on a US invoice — no tax applies, so the row is omitted rather
+     than printed as a zero against the HST number. */
+  taxLabel: string | null;
+  tax: string | null;
   total: string;
   notes?: string | null;
   logo?: Buffer | string; // png buffer or data uri
@@ -285,10 +287,12 @@ export const InvoiceDocument = ({ data }: { data: PdfDocData }) => {
             <Text style={s.totalLabelStrong}>Subtotal:</Text>
             <Text style={s.totalValue}>{data.subtotal}</Text>
           </View>
-          <View style={s.totalLine}>
-            <Text style={s.totalLabel}>{data.taxLabel}:</Text>
-            <Text style={s.totalValue}>{data.tax}</Text>
-          </View>
+          {data.taxLabel && (
+            <View style={s.totalLine}>
+              <Text style={s.totalLabel}>{data.taxLabel}:</Text>
+              <Text style={s.totalValue}>{data.tax}</Text>
+            </View>
+          )}
           <View style={s.totalDivider} />
           <View style={s.totalLine}>
             <Text style={s.totalLabelStrong}>Total:</Text>

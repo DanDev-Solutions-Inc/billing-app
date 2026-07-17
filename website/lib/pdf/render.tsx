@@ -5,6 +5,8 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoiceDocument, type PdfDocData } from "@lib/pdf/invoice-document";
 import { formatMoney, formatDate } from "@utils/money";
 import { taxRowLabel } from "@utils/constants";
+import { chargesTax } from "@utils/currency";
+import { CurrencyCode } from "@typings/CurrencyCode";
 import { Customer } from "@typings/customer/Customer";
 import { LineItem } from "@typings/line-item/LineItem";
 
@@ -23,6 +25,8 @@ const loadLogo = (): Buffer | undefined => {
 
 export interface RenderInput {
   kind: "INVOICE" | "ESTIMATE";
+  /** Decides money formatting and whether a tax row appears at all. */
+  currency?: CurrencyCode;
   number: string | null;
   issueDate: string | null;
   secondLabel: string;
@@ -39,8 +43,12 @@ export interface RenderInput {
 export const renderDocumentPdf = async (
   input: RenderInput,
 ): Promise<Buffer> => {
+  const currency = input.currency ?? "CAD";
   const taxRate =
     input.subtotal > 0 ? Math.round((input.tax / input.subtotal) * 100) : 0;
+  /* US work carries no tax, so the HST row is dropped entirely — printing
+     "HST 0% (733803910 RT0001)" on a US invoice would be plainly wrong. */
+  const taxable = chargesTax(currency);
 
   const data: PdfDocData = {
     kind: input.kind,
@@ -48,8 +56,8 @@ export const renderDocumentPdf = async (
     issueDate: formatDate(input.issueDate),
     secondLabel: input.secondLabel,
     secondDate: formatDate(input.secondDate),
-    amountDueLabel: "Amount Due (CAD)",
-    amountDue: formatMoney(input.amountDue),
+    amountDueLabel: `Amount Due (${currency})`,
+    amountDue: formatMoney(input.amountDue, currency),
     customer: input.customer
       ? {
           name: input.customer.name,
@@ -64,13 +72,13 @@ export const renderDocumentPdf = async (
     items: input.items.map((it) => ({
       description: it.description,
       quantity: String(it.quantity),
-      rate: formatMoney(it.unit_price),
-      amount: formatMoney(it.amount),
+      rate: formatMoney(it.unit_price, currency),
+      amount: formatMoney(it.amount, currency),
     })),
-    subtotal: formatMoney(input.subtotal),
-    taxLabel: taxRowLabel(taxRate),
-    tax: formatMoney(input.tax),
-    total: formatMoney(input.total),
+    subtotal: formatMoney(input.subtotal, currency),
+    taxLabel: taxable ? taxRowLabel(taxRate) : null,
+    tax: taxable ? formatMoney(input.tax, currency) : null,
+    total: formatMoney(input.total, currency),
     notes: input.notes,
     logo: loadLogo(),
   };

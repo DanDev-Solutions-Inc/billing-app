@@ -21,6 +21,7 @@ export const GET = async (
   const items = await listLineItems(supabase, "estimate", id);
   const pdf = await renderDocumentPdf({
     kind: "ESTIMATE",
+    currency: estimate.currency,
     number: estimate.estimate_number,
     issueDate: estimate.issue_date,
     secondLabel: "Expires",

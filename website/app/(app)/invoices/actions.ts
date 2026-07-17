@@ -164,6 +164,7 @@ export const sendInvoice = async (
   const items = await lineItems.listLineItems(supabase, "invoice", id);
   const pdf = await renderDocumentPdf({
     kind: "INVOICE",
+    currency: invoice.currency,
     number: invoice.invoice_number,
     issueDate: invoice.issue_date,
     secondLabel: "Payment Due",

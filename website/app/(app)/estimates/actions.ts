@@ -197,6 +197,7 @@ export const sendEstimate = async (
   const items = await lineItems.listLineItems(supabase, "estimate", id);
   const pdf = await renderDocumentPdf({
     kind: "ESTIMATE",
+    currency: estimate.currency,
     number: estimate.estimate_number,
     issueDate: estimate.issue_date,
     secondLabel: "Expires",
