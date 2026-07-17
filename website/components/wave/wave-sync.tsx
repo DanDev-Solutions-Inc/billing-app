@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { syncFromWave, type WaveSyncState } from "@app/(app)/settings/actions";
+import { syncFromWave } from "@app/(app)/settings/actions";
+import { WaveSyncState } from "@interfaces/forms/WaveSyncState";
 import { Button } from "@components/ui";
 
 const initial: WaveSyncState = {};

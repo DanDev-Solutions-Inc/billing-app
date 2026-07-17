@@ -9,7 +9,6 @@ import { recurringSchema } from "@utils/validation/recurringSchema";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { RecurringFormValues } from "@interfaces/forms/RecurringFormValues";
 import { RecurringInvoiceFormProps } from "@interfaces/components/RecurringInvoiceFormProps";
-import { CurrencyCode } from "@typings/CurrencyCode";
 import {
   CURRENCIES,
   taxRateFor,

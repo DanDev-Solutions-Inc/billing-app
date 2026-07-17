@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { cn } from "@lib/utils";
-import { FilterTab } from "@interfaces/components/FilterTab";
 import { FilterTabsProps } from "@interfaces/components/FilterTabsProps";
 
 

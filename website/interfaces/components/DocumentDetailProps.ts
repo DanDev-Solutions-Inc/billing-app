@@ -17,6 +17,8 @@ export interface DocumentDetailProps {
   notes: string | null;
   actionBar?: ReactNode;
   banner?: ReactNode;
+  /** Delivery history for emailed copies of this document. Rendered below the totals. */
+  emailActivity?: ReactNode;
   /** When set, renders a back link above the heading. */
   backHref?: string;
   /** Label for the back link. Defaults to "Back". */

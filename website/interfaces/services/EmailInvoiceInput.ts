@@ -1,6 +1,8 @@
 import { CurrencyCode } from "@typings/CurrencyCode";
 
 export interface EmailInvoiceInput {
+  /** The schedule's owner — the cron has no session, so it can't be inferred. */
+  userId: string;
   customerId: string;
   invoiceId: string;
   invoiceNumber: string | null;

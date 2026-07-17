@@ -1,11 +1,4 @@
-export interface AddressFormValues {
-  address_line1: string;
-  address_line2: string;
-  city: string;
-  province: string;
-  postal_code: string;
-  country: string;
-}
+import { AddressFormValues } from "@interfaces/forms/AddressFormValues";
 
 export interface AddressFieldsProps {
   values: AddressFormValues;

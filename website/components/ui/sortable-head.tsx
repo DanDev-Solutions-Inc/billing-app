@@ -3,7 +3,6 @@ import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { cn } from "@lib/utils";
 import { SortableHeadProps } from "@interfaces/components/SortableHeadProps";
 import { TableHead } from "@components/ui/table";
-import { SortDir } from "@utils/table";
 
 
 /**

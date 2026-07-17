@@ -57,10 +57,12 @@ export const sendDocumentEmail = async (input: SendDocEmailInput) => {
     });
   }
 
-  const { error } = await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: `${BUSINESS.name} <${from}>`,
     to: input.to,
-    replyTo: from, // a real, monitored mailbox — helps deliverability
+    // No replyTo: `from` is a no-reply address on the inbound domain, so a
+    // reply would land on the receipts webhook rather than a mailbox. The
+    // template points clients at BUSINESS.contactEmail instead.
     subject,
     html: body.html,
     text: body.text, // plain-text alternative (multipart) — key spam-filter signal
@@ -68,7 +70,10 @@ export const sendDocumentEmail = async (input: SendDocEmailInput) => {
   });
 
   if (error) return { error: error.message };
-  return { ok: true as const };
+  // Resend's id for this message. Every delivery webhook echoes it back as
+  // `data.email_id`, so it's the only way to tie an open or a bounce to the
+  // document that was sent — see recordDocumentEmail().
+  return { ok: true as const, emailId: data?.id ?? null };
 };
 
 // Brand tokens — mirror app/globals.css (:root).
@@ -168,6 +173,7 @@ const documentEmail = (
           </tr>
           <tr>
             <td style="padding:16px 32px 0;color:${MUTED};font-size:14px;line-height:1.55;">
+              <p style="margin:6px 0;">Questions about this ${lower}? Email <a href="mailto:${BUSINESS.contactEmail}" style="color:${ACCENT};text-decoration:none;">${BUSINESS.contactEmail}</a> — this message is sent from an unmonitored address.</p>
               <p style="margin:6px 0;">${BUSINESS.footerNote}</p>
             </td>
           </tr>
@@ -204,6 +210,9 @@ const documentEmail = (
     `  Wire / EFT  ${BUSINESS.bank.name}`,
     `              Institution ${BUSINESS.bank.institution} · Transit ${BUSINESS.bank.transit} · Account ${BUSINESS.bank.account}`,
     `              SWIFT/BIC ${BUSINESS.bank.swift} (international)`,
+    ``,
+    `Questions about this ${lower}? Email ${BUSINESS.contactEmail} — this`,
+    `message is sent from an unmonitored address.`,
     ``,
     BUSINESS.footerNote,
     ``,

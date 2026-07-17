@@ -33,6 +33,7 @@ export const DocumentDetail = ({
   notes,
   actionBar,
   banner,
+  emailActivity,
   backHref,
   backLabel = "Back",
 }: DocumentDetailProps) => {
@@ -157,6 +158,8 @@ export const DocumentDetail = ({
           </CardContent>
         </Card>
       )}
+
+      {emailActivity}
     </div>
   );
 };

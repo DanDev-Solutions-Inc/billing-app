@@ -6,21 +6,15 @@ import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { renderDocumentPdf } from "@lib/pdf/render";
 import { sendDocumentEmail } from "@lib/email";
-import { parseLineItems, emptyToNull } from "@utils/doc-helpers";
-import { computeTotals, formatMoney } from "@utils/money";
-import { chargesTax } from "@utils/currency";
-import { usdToCadOn } from "@services/fx/boc-rate";
-import { parseCurrency } from "@utils/doc-helpers";
+import { formatMoney } from "@utils/money";
+import { parseDocumentForm } from "@services/documents/parse-document-form";
 import * as invoices from "@services/supabase/invoice";
 import * as lineItems from "@services/supabase/line-item";
 import * as transactions from "@services/supabase/transaction";
+import { recordDocumentEmail } from "@services/supabase/document-email";
 import { InvoiceStatus } from "@typings/invoice/InvoiceStatus";
-import { DocFormState } from "@components/doc-form";
-
-export interface SendState {
-  error?: string;
-  ok?: string;
-}
+import { DocFormState } from "@interfaces/forms/DocFormState";
+import { SendState } from "@interfaces/forms/SendState";
 
 const INVOICE_STATUSES: InvoiceStatus[] = ["draft", "sent", "paid"];
 
@@ -28,44 +22,27 @@ export const createInvoice = async (
   _prev: DocFormState,
   formData: FormData,
 ): Promise<DocFormState> => {
-  const user = await getUserOrRedirect();
-  const items = parseLineItems(formData);
-  if (items.length === 0) return { error: "Add at least one line item." };
+  const doc = await parseDocumentForm(formData);
+  if (!doc) return { error: "Add at least one line item." };
 
-  /* The tax rate is derived from the currency here, not taken from the form:
-     a USD document is never taxed, and that rule can't live only in the UI. */
-  const currency = parseCurrency(formData.get("currency"));
-  const taxRate = chargesTax(currency)
-    ? Number(formData.get("tax_rate")) || 0
-    : 0;
-  const totals = computeTotals(items, taxRate);
-  /* Stamp the day's official rate so the document reports in CAD at what it was
-     actually worth. CAD is 1 — the identity — so no call is made for it. */
-  const issueDate =
-    emptyToNull(formData.get("issue_date")) ??
-    new Date().toISOString().slice(0, 10);
-  const exchangeRate =
-    currency === "USD" ? await usdToCadOn(issueDate) : 1;
-  const supabase = await createClient();
-
-  const { id, error } = await invoices.createInvoice(supabase, {
-    user_id: user.id,
-    customer_id: emptyToNull(formData.get("customer_id")),
-    invoice_number: await invoices.getNextInvoiceNumber(supabase, user.id),
-    issue_date: emptyToNull(formData.get("issue_date")) ?? undefined,
-    due_date: emptyToNull(formData.get("second_date")),
-    notes: emptyToNull(formData.get("notes")),
-    currency,
-    exchange_rate: exchangeRate,
-    ...totals,
+  const { id, error } = await invoices.createInvoice(doc.supabase, {
+    user_id: doc.user.id,
+    customer_id: doc.customerId,
+    invoice_number: await invoices.getNextInvoiceNumber(doc.supabase, doc.user.id),
+    issue_date: doc.issueDate,
+    due_date: doc.secondDate,
+    notes: doc.notes,
+    currency: doc.currency,
+    exchange_rate: doc.exchangeRate,
+    ...doc.totals,
   });
   if (error || !id) return { error: error ?? "Failed to save." };
 
-  const { error: liError } = await lineItems.createLineItems(supabase, {
-    userId: user.id,
+  const { error: liError } = await lineItems.createLineItems(doc.supabase, {
+    userId: doc.user.id,
     parentType: "invoice",
     parentId: id,
-    items,
+    items: doc.items,
   });
   if (liError) return { error: liError };
 
@@ -78,44 +55,27 @@ export const updateInvoice = async (
   _prev: DocFormState,
   formData: FormData,
 ): Promise<DocFormState> => {
-  const user = await getUserOrRedirect();
-  const items = parseLineItems(formData);
-  if (items.length === 0) return { error: "Add at least one line item." };
+  const doc = await parseDocumentForm(formData);
+  if (!doc) return { error: "Add at least one line item." };
 
-  /* The tax rate is derived from the currency here, not taken from the form:
-     a USD document is never taxed, and that rule can't live only in the UI. */
-  const currency = parseCurrency(formData.get("currency"));
-  const taxRate = chargesTax(currency)
-    ? Number(formData.get("tax_rate")) || 0
-    : 0;
-  const totals = computeTotals(items, taxRate);
-  /* Stamp the day's official rate so the document reports in CAD at what it was
-     actually worth. CAD is 1 — the identity — so no call is made for it. */
-  const issueDate =
-    emptyToNull(formData.get("issue_date")) ??
-    new Date().toISOString().slice(0, 10);
-  const exchangeRate =
-    currency === "USD" ? await usdToCadOn(issueDate) : 1;
-  const supabase = await createClient();
-
-  const { error } = await invoices.updateInvoice(supabase, id, {
-    customer_id: emptyToNull(formData.get("customer_id")),
-    issue_date: emptyToNull(formData.get("issue_date")) ?? undefined,
-    due_date: emptyToNull(formData.get("second_date")),
-    notes: emptyToNull(formData.get("notes")),
-    currency,
-    exchange_rate: exchangeRate,
-    ...totals,
+  const { error } = await invoices.updateInvoice(doc.supabase, id, {
+    customer_id: doc.customerId,
+    issue_date: doc.issueDate,
+    due_date: doc.secondDate,
+    notes: doc.notes,
+    currency: doc.currency,
+    exchange_rate: doc.exchangeRate,
+    ...doc.totals,
   });
   if (error) return { error };
 
   // Replace the line items wholesale (polymorphic table, no cascade).
-  await lineItems.deleteLineItems(supabase, "invoice", id);
-  const { error: liError } = await lineItems.createLineItems(supabase, {
-    userId: user.id,
+  await lineItems.deleteLineItems(doc.supabase, "invoice", id);
+  const { error: liError } = await lineItems.createLineItems(doc.supabase, {
+    userId: doc.user.id,
     parentType: "invoice",
     parentId: id,
-    items,
+    items: doc.items,
   });
   if (liError) return { error: liError };
 
@@ -159,7 +119,7 @@ export const sendInvoice = async (
   _prev: SendState,
   formData: FormData,
 ): Promise<SendState> => {
-  await getUserOrRedirect();
+  const user = await getUserOrRedirect();
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
 
@@ -205,6 +165,18 @@ export const sendInvoice = async (
     pdf,
   });
   if (result.error) return { error: result.error };
+
+  /* Record the send so Resend's delivery webhook has a row to stamp when this
+     is delivered, opened or bounced. */
+  if (result.emailId) {
+    await recordDocumentEmail(supabase, {
+      userId: user.id,
+      parentType: "invoice",
+      parentId: id,
+      resendEmailId: result.emailId,
+      recipient: to,
+    });
+  }
 
   /* Emailing it *is* sending it — flag it, unless it's already paid (that would
      be a downgrade). */

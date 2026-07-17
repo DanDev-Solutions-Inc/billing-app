@@ -11,10 +11,7 @@ import * as transactions from "@services/supabase/transaction";
 import * as receipts from "@services/supabase/receipt";
 import { TxnDirection } from "@typings/transaction/TxnDirection";
 import { TxnStatus } from "@typings/transaction/TxnStatus";
-
-export interface TransactionFormState {
-  error?: string;
-}
+import { TransactionFormState } from "@interfaces/forms/TransactionFormState";
 
 const TXN_STATUSES: TxnStatus[] = ["pending", "approved"];
 

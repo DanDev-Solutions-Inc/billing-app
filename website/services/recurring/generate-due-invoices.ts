@@ -16,6 +16,7 @@ import {
   createLineItems,
   listLineItems,
 } from "@services/supabase/line-item";
+import { recordDocumentEmail } from "@services/supabase/document-email";
 import { computeTotals, formatMoney } from "@utils/money";
 import { chargesTax } from "@utils/currency";
 import { customerEmails } from "@utils/customer-emails";
@@ -84,6 +85,7 @@ export const generateDueInvoices = async (
 
         if (schedule.auto_send && schedule.customer_id) {
           const emailed = await emailInvoice(admin, {
+            userId: schedule.user_id,
             customerId: schedule.customer_id,
             invoiceId,
             invoiceNumber,
@@ -161,5 +163,20 @@ const emailInvoice = async (
     filename: `Invoice_${number}.pdf`,
     pdf,
   });
-  return !result.error;
+  if (result.error) return false;
+
+  /* Record the send so Resend's delivery webhook has a row to stamp. This is
+     where it matters most: nobody watches an unattended 8am cron send, so a
+     bounced auto-invoice would otherwise go unnoticed until someone chased the
+     payment. */
+  if (result.emailId) {
+    await recordDocumentEmail(admin, {
+      userId: input.userId,
+      parentType: "invoice",
+      parentId: input.invoiceId,
+      resendEmailId: result.emailId,
+      recipient: to,
+    });
+  }
+  return true;
 };

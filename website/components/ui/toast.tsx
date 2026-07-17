@@ -10,7 +10,8 @@ import {
 } from "react";
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 import { cn } from "@lib/utils";
-import { Toast, ToastTone } from "@interfaces/components/Toast";
+import { Toast } from "@interfaces/components/Toast";
+import { ToastTone } from "@typings/ui/ToastTone";
 
 interface ToastContextValue {
   toast: (message: string, tone?: ToastTone) => void;

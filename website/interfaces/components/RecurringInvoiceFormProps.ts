@@ -1,5 +1,5 @@
 import { Customer } from "@typings/customer/Customer";
-import { RecurringFormState } from "@app/(app)/recurring/actions";
+import { RecurringFormState } from "@interfaces/forms/RecurringFormState";
 
 import { RecurringFormValues } from "@interfaces/forms/RecurringFormValues";
 

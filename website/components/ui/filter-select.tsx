@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@lib/utils";
-import { FilterOption } from "@interfaces/components/FilterOption";
 import { FilterSelectProps } from "@interfaces/components/FilterSelectProps";
 
 

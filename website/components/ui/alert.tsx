@@ -1,6 +1,8 @@
 import * as React from "react";
 import { CheckCircle2, XCircle, AlertTriangle, Info } from "lucide-react";
 import { cn } from "@lib/utils";
+import { AlertTone } from "@typings/ui/AlertTone";
+import { AlertProps } from "@interfaces/components/AlertProps";
 
 /* One shape for every success / error / warning / info message in the app.
 
@@ -10,7 +12,6 @@ import { cn } from "@lib/utils";
 
    Icons are lucide (the app's single icon system) and are fixed per tone, so a
    colour is never the only thing distinguishing a success from a failure. */
-export type AlertTone = "success" | "error" | "warning" | "info";
 
 const TONES: Record<
   AlertTone,
@@ -37,12 +38,6 @@ const TONES: Record<
     icon_: "text-brand-accent",
   },
 };
-
-export interface AlertProps extends React.ComponentProps<"div"> {
-  tone?: AlertTone;
-  /** Optional trailing content, e.g. an amount or an action link. */
-  trailing?: React.ReactNode;
-}
 
 export const Alert = ({
   tone = "info",

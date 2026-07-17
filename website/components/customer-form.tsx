@@ -6,7 +6,7 @@ import { createCustomer, updateCustomerAction } from "@app/(app)/customers/actio
 import { customerSchema } from "@utils/validation/customerSchema";
 import { CustomerFormValues } from "@interfaces/forms/CustomerFormValues";
 import { CustomerFormProps } from "@interfaces/components/CustomerFormProps";
-import { AddressFormValues } from "@interfaces/components/AddressFieldsProps";
+import { AddressFormValues } from "@interfaces/forms/AddressFormValues";
 import { AddressFields } from "@components/customers/address-fields";
 import { Field, inputClass, Button, Alert, ModalFooter } from "@components/ui";
 

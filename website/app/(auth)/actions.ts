@@ -4,11 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@lib/supabase/server";
-
-export interface AuthState {
-  error?: string;
-  message?: string;
-}
+import { AuthState } from "@interfaces/forms/AuthState";
 
 const readCredentials = (formData: FormData) => ({
   email: String(formData.get("email") ?? "").trim(),

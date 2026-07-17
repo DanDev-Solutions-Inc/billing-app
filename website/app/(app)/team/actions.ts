@@ -5,11 +5,7 @@ import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import * as access from "@services/supabase/profile-access";
 import { AccessRole } from "@typings/profile-access/AccessRole";
-
-export interface InviteState {
-  error?: string;
-  ok?: string;
-}
+import { InviteState } from "@interfaces/forms/InviteState";
 
 export const inviteMemberAction = async (
   _prev: InviteState,

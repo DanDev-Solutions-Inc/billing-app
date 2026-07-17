@@ -1,4 +1,5 @@
-import { ButtonVariant, ButtonSize } from "@typings/ui/ButtonVariant";
+import { ButtonVariant } from "@typings/ui/ButtonVariant";
+import { ButtonSize } from "@typings/ui/ButtonSize";
 
 /* Vision UI branded buttons, DanDev palette.
 

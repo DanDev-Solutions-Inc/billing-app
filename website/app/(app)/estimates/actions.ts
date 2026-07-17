@@ -6,7 +6,6 @@ import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { renderDocumentPdf } from "@lib/pdf/render";
 import { sendDocumentEmail } from "@lib/email";
-import { emptyToNull } from "@utils/doc-helpers";
 import { parseDocumentForm } from "@services/documents/parse-document-form";
 import { formatMoney } from "@utils/money";
 import * as estimates from "@services/supabase/estimate";
@@ -14,12 +13,8 @@ import * as invoices from "@services/supabase/invoice";
 import * as lineItems from "@services/supabase/line-item";
 import { recordDocumentEmail } from "@services/supabase/document-email";
 import { EstimateStatus } from "@typings/estimate/EstimateStatus";
-import { DocFormState } from "@components/doc-form";
-
-export interface SendState {
-  error?: string;
-  ok?: string;
-}
+import { DocFormState } from "@interfaces/forms/DocFormState";
+import { SendState } from "@interfaces/forms/SendState";
 
 const ESTIMATE_STATUSES: EstimateStatus[] = [
   "draft",

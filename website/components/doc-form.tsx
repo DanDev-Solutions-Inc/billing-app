@@ -17,10 +17,6 @@ import {
   toCurrency,
 } from "@utils/currency";
 
-export interface DocFormState {
-  error?: string;
-}
-
 const blankItem = (): LineItemFormValues => ({
   description: "",
   quantity: 1,

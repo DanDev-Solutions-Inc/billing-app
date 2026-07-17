@@ -1,4 +1,4 @@
-export type ToastTone = "success" | "error" | "info";
+import { ToastTone } from "@typings/ui/ToastTone";
 
 export interface Toast {
   id: number;

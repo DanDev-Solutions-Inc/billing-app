@@ -1,7 +1,7 @@
 import { Customer } from "@typings/customer/Customer";
 import { CurrencyCode } from "@typings/CurrencyCode";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
-import { DocFormState } from "@components/doc-form";
+import { DocFormState } from "@interfaces/forms/DocFormState";
 
 export interface DocFormProps {
   kind: "invoice" | "estimate";

@@ -1,4 +1,4 @@
-import { ToastTone } from "@interfaces/components/Toast";
+import { ToastTone } from "@typings/ui/ToastTone";
 
 /**
  * Messages a Server Action can flash after redirecting, keyed by a short token

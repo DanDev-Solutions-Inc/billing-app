@@ -4,12 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { importWaveBusiness } from "@services/wave/import-wave-business";
-import { WaveImportSummary } from "@interfaces/models/wave/WaveImportSummary";
-
-export interface WaveSyncState {
-  error?: string;
-  summary?: WaveImportSummary;
-}
+import { WaveSyncState } from "@interfaces/forms/WaveSyncState";
 
 export const syncFromWave = async (
   _prev: WaveSyncState,

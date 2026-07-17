@@ -11,15 +11,8 @@ import { deleteReceiptWithFile } from "@services/receipts/delete-receipt";
 import * as receipts from "@services/supabase/receipt";
 import * as transactions from "@services/supabase/transaction";
 import { UploadedReceipt } from "@interfaces/forms/UploadedReceipt";
-
-export interface ReceiptFormState {
-  error?: string;
-}
-
-export interface BulkReceiptState {
-  error?: string;
-  count?: number;
-}
+import { ReceiptFormState } from "@interfaces/forms/ReceiptFormState";
+import { BulkReceiptState } from "@interfaces/forms/BulkReceiptState";
 
 export const createReceiptsFromUploads = async (
   uploads: UploadedReceipt[],

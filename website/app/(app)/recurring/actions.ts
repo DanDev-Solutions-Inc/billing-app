@@ -9,10 +9,7 @@ import { chargesTax } from "@utils/currency";
 import * as recurring from "@services/supabase/recurring-invoice";
 import { RecurringFrequency } from "@typings/recurring-invoice/RecurringFrequency";
 import { Json } from "@typings/Supabase";
-
-export interface RecurringFormState {
-  error?: string;
-}
+import { RecurringFormState } from "@interfaces/forms/RecurringFormState";
 
 const FREQUENCIES: RecurringFrequency[] = [
   "daily",

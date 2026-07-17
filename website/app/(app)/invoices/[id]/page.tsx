@@ -5,7 +5,9 @@ import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { getInvoice } from "@services/supabase/invoice";
 import { listLineItems } from "@services/supabase/line-item";
+import { listDocumentEmails } from "@services/supabase/document-email";
 import { DocumentDetail } from "@components/document-detail";
+import { EmailActivity } from "@components/email-activity";
 import {
   Button,
   ButtonLink,
@@ -53,9 +55,11 @@ const InvoicePage = async ({
   ].filter(Boolean) as string[];
 
   const items = await listLineItems(supabase, "invoice", id);
+  const emails = await listDocumentEmails(supabase, "invoice", id);
 
   return (
     <DocumentDetail
+      emailActivity={<EmailActivity emails={emails} />}
       backHref="/invoices"
       heading="Invoice"
       number={inv.invoice_number}

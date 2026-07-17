@@ -5,10 +5,7 @@ import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { emptyToNull } from "@utils/doc-helpers";
 import * as customers from "@services/supabase/customer";
-
-export interface CustomerFormState {
-  error?: string;
-}
+import { CustomerFormState } from "@interfaces/forms/CustomerFormState";
 
 /** Address parts + extra contacts, shared by create and update. */
 const detailsFrom = (formData: FormData) => ({

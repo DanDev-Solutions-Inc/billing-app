@@ -1,4 +1,4 @@
-import { ComboboxOption } from "@interfaces/components/ComboboxProps";
+import { ComboboxOption } from "@interfaces/components/ComboboxOption";
 
 export interface FilterComboboxProps {
   /** Query-string key this control drives (e.g. "customer"). */

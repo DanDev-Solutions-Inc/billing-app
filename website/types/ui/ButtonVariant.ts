@@ -7,5 +7,3 @@ export type ButtonVariant =
   | "ghost"
   | "glass"
   | "outline";
-
-export type ButtonSize = "sm" | "md" | "lg" | "icon";

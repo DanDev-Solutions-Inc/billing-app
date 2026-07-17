@@ -38,6 +38,22 @@ export const formatDate = (value: string | null | undefined): string => {
   });
 };
 
+/**
+ * An instant, not a business date — so unlike formatDate it keeps the time.
+ * Used for email delivery events, where "opened at 2:14 p.m." is the point.
+ */
+export const formatDateTime = (value: string | null | undefined): string => {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString("en-CA", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
 export const round2 = (n: number): number =>
   Math.round((n + Number.EPSILON) * 100) / 100;
 

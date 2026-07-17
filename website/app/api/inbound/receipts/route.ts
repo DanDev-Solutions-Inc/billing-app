@@ -55,7 +55,17 @@ export const POST = async (request: Request) => {
   //      the plain address is accepted regardless of which account it was sent
   //      from (people forward from whatever mail app is to hand)
   //   3. the sender's own address, as a last resort
-  const token = extractToken(collectRecipients(data));
+  const recipients = collectRecipients(data);
+
+  // Sending and receiving share one domain, so a client replying to a no-reply
+  // invoice arrives here too. Only mail actually addressed to the receipts
+  // mailbox may be filed — without this, a reply carrying any attachment (a
+  // remittance advice, or the quoted copy of our own logo) would fall through
+  // to RECEIPTS_OWNER_USER_ID below and book a bogus transaction.
+  if (!recipients.some(isReceiptsAddress))
+    return NextResponse.json({ ok: true, skipped: "not addressed to receipts" });
+
+  const token = extractToken(recipients);
   const owner = process.env.RECEIPTS_OWNER_USER_ID;
   const userId = token
     ? (await getProfileByInboundToken(admin, token))?.user_id
@@ -131,6 +141,12 @@ const collectRecipients = (data: Record<string, unknown>): string[] => {
   }
   return out;
 };
+
+// True for `receipts@…` and `receipts+<token>@…` only. Recipients arrive either
+// bare or as "Name <addr>", so the local part is anchored to a boundary rather
+// than to the start of the string.
+const isReceiptsAddress = (recipient: string): boolean =>
+  /(^|[<\s,;])receipts(\+[a-z0-9]+)?@/i.test(recipient);
 
 const extractToken = (recipients: string[]): string | null => {
   for (const r of recipients) {

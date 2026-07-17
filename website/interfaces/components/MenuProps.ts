@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 export interface MenuProps {
-  children: React.ReactNode;
+  children: ReactNode;
   label?: string;
   className?: string;
   /** Align the panel to the trigger's right edge (default) or left. */

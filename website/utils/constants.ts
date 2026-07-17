@@ -6,6 +6,9 @@ export const BUSINESS = {
   phoneLabel: "Mobile",
   phone: "416 399 8601",
   website: "www.dandev.solutions",
+  // Where clients should write with questions. Documents are sent from a
+  // no-reply address, so this is the only route back to a monitored mailbox.
+  contactEmail: "karpienia@dandev.solutions",
   taxLabel: "HST",
   taxRate: 13, // percent — default applied to new documents
   taxNumber: "733803910 RT0001",
