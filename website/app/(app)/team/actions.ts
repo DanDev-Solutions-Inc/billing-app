@@ -8,12 +8,20 @@ import * as access from "@services/supabase/profile-access";
 import { sendAccessInviteEmail } from "@lib/email";
 import { AccessRole } from "@typings/profile-access/AccessRole";
 import { InviteState } from "@interfaces/forms/InviteState";
+import { BUSINESS } from "@utils/constants";
+
+/** Only the account owner manages team access — members granted access can't
+ *  re-share it. The owner is the business contact address. */
+const isOwner = (email?: string | null) =>
+  email?.toLowerCase() === BUSINESS.contactEmail.toLowerCase();
 
 export const inviteMemberAction = async (
   _prev: InviteState,
   formData: FormData,
 ): Promise<InviteState> => {
   const user = await getUserOrRedirect();
+  if (!isOwner(user.email))
+    return { error: "Only the account owner can invite team members." };
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
@@ -48,7 +56,10 @@ export const inviteMemberAction = async (
 };
 
 export const removeMemberAction = async (formData: FormData) => {
-  await getUserOrRedirect();
+  const user = await getUserOrRedirect();
+  // Same gate as inviting — a member can't revoke others' access. Server-side
+  // because a Server Action is directly POST-reachable, not just UI-hidden.
+  if (!isOwner(user.email)) return;
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
   await access.removeGrant(supabase, id);
