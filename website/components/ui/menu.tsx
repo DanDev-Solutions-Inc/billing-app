@@ -3,14 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { cn } from "@lib/utils";
+import { MenuProps } from "@interfaces/components/MenuProps";
 
-export interface MenuProps {
-  children: React.ReactNode;
-  label?: string;
-  className?: string;
-  /** Align the panel to the trigger's right edge (default) or left. */
-  align?: "start" | "end";
-}
 
 /**
  * Overflow menu for secondary actions. Dependency-free like the Combobox —

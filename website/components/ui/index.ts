@@ -19,9 +19,11 @@ export { Select } from "@components/ui/select";
 export { Label } from "@components/ui/label";
 export { IconTile } from "@components/ui/icon-tile";
 export { FilterTabs } from "@components/ui/filter-tabs";
-export type { FilterTab, FilterTabsProps } from "@components/ui/filter-tabs";
+export type { FilterTab } from "@interfaces/components/FilterTab";
+export type { FilterTabsProps } from "@interfaces/components/FilterTabsProps";
 export { FilterSelect } from "@components/ui/filter-select";
-export type { FilterOption, FilterSelectProps } from "@components/ui/filter-select";
+export type { FilterOption } from "@interfaces/components/FilterOption";
+export type { FilterSelectProps } from "@interfaces/components/FilterSelectProps";
 export {
   Table,
   TableHeader,

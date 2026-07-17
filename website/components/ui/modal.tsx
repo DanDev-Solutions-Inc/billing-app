@@ -3,15 +3,8 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@lib/utils";
+import { ModalProps } from "@interfaces/components/ModalProps";
 
-export interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  description?: string;
-  children: React.ReactNode;
-  className?: string;
-}
 
 /**
  * Built on the native <dialog> element, which gives focus trapping, Esc to

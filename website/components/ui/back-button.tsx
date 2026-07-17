@@ -3,13 +3,8 @@
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "@lib/utils";
+import { BackButtonProps } from "@interfaces/components/BackButtonProps";
 
-export interface BackButtonProps {
-  /** Where to go when there's no history to pop (direct load, new tab). */
-  fallbackHref: string;
-  label?: string;
-  className?: string;
-}
 
 /**
  * Goes back to wherever you actually came from, rather than a hardcoded

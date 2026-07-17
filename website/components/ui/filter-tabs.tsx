@@ -1,25 +1,8 @@
 import Link from "next/link";
 import { cn } from "@lib/utils";
+import { FilterTab } from "@interfaces/components/FilterTab";
+import { FilterTabsProps } from "@interfaces/components/FilterTabsProps";
 
-export interface FilterTab {
-  key: string;
-  label: string;
-  href: string;
-  /** Optional count shown as a quiet trailing badge. */
-  count?: number;
-}
-
-export interface FilterTabsProps {
-  tabs: FilterTab[];
-  active: string;
-  /**
-   * `chips`     — borderless, free-flowing filters (status / source).
-   * `segmented` — compact enclosed switch (the period window).
-   */
-  variant?: "chips" | "segmented";
-  className?: string;
-  "aria-label"?: string;
-}
 
 /**
  * Server-rendered, link-based filter control. State lives in the URL, so it is

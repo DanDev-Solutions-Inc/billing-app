@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { cn } from "@lib/utils";
+import { RowLinkProps } from "@interfaces/components/RowLinkProps";
 
-export interface RowLinkProps extends React.ComponentProps<typeof Link> {
-  children: React.ReactNode;
-}
 
 /**
  * Makes the whole table row open this link.

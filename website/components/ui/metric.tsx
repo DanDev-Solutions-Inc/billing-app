@@ -1,15 +1,8 @@
 import { ReactNode } from "react";
 import { IconTile } from "@components/ui/icon-tile";
 import { cn } from "@lib/utils";
+import { MetricProps } from "@interfaces/components/MetricProps";
 
-export interface MetricProps {
-  label: string;
-  value: string;
-  icon?: ReactNode;
-  /** Text class for the value, e.g. "text-brand-green". */
-  tone?: string;
-  className?: string;
-}
 
 /**
  * Compact inline metric: gradient icon tile + label over value. Used where a

@@ -3,23 +3,9 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@lib/utils";
+import { FilterOption } from "@interfaces/components/FilterOption";
+import { FilterSelectProps } from "@interfaces/components/FilterSelectProps";
 
-export interface FilterOption {
-  key: string;
-  label: string;
-  count?: number;
-}
-
-export interface FilterSelectProps {
-  /** Query-string key this control drives (e.g. "status"). */
-  param: string;
-  options: FilterOption[];
-  value: string;
-  /** Option key treated as "no filter" — removed from the URL. */
-  allKey?: string;
-  className?: string;
-  "aria-label"?: string;
-}
 
 /**
  * Compact native <select> that writes its value to the URL. Native on purpose:
