@@ -104,12 +104,11 @@ export const TransactionForm = () => {
             />
           </Field>
           <Field label="Category" htmlFor="category">
-            <select
+            <Select
               id="category"
               name="category"
               value={formik.values.category}
               onChange={formik.handleChange}
-              className={inputClass}
             >
               <option value="">— None —</option>
               {CATEGORIES.map((c) => (
@@ -117,7 +116,7 @@ export const TransactionForm = () => {
                   {c}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </div>
         <Field label="Description" htmlFor="description">

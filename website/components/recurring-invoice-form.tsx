@@ -2,7 +2,7 @@
 
 import { useFormik } from "formik";
 import { LineItemsEditor } from "@components/invoices/line-items-editor";
-import { Card, Field, inputClass, Button } from "@components/ui";
+import { Card, Field, inputClass, Button, Select } from "@components/ui";
 import { recurringSchema } from "@utils/validation/recurringSchema";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { RecurringFormValues } from "@interfaces/forms/RecurringFormValues";
@@ -84,12 +84,11 @@ export const RecurringInvoiceForm = ({
       <Card className="p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Customer" htmlFor="customer_id">
-            <select
+            <Select
               id="customer_id"
               name="customer_id"
               value={formik.values.customer_id}
               onChange={formik.handleChange}
-              className={inputClass}
             >
               <option value="">— None —</option>
               {customers.map((c) => (
@@ -97,7 +96,7 @@ export const RecurringInvoiceForm = ({
                   {c.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label="Label (internal)" htmlFor="title">
             <input
@@ -129,18 +128,17 @@ export const RecurringInvoiceForm = ({
             />
           </Field>
           <Field label="Frequency" htmlFor="frequency">
-            <select
+            <Select
               id="frequency"
               name="frequency"
               value={formik.values.frequency}
               onChange={formik.handleChange}
-              className={inputClass}
             >
               <option value="daily">Day(s)</option>
               <option value="weekly">Week(s)</option>
               <option value="monthly">Month(s)</option>
               <option value="yearly">Year(s)</option>
-            </select>
+            </Select>
           </Field>
           <Field label="First invoice on" htmlFor="next_run">
             <input

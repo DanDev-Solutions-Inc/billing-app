@@ -8,7 +8,7 @@ import { createReceipt } from "@app/(app)/receipts/actions";
 import { receiptSchema } from "@utils/validation/receiptSchema";
 import { ReceiptFormValues } from "@interfaces/forms/ReceiptFormValues";
 import { ReceiptAnalysis } from "@interfaces/models/ai/ReceiptAnalysis";
-import { Card, Field, inputClass, Button } from "@components/ui";
+import { Card, Field, inputClass, Button, Select } from "@components/ui";
 import { RECEIPT_CATEGORIES as CATEGORIES } from "@utils/constants";
 
 const today = () => {
@@ -238,12 +238,11 @@ export const ReceiptUploader = () => {
             />
           </Field>
           <Field label="Category" htmlFor="category">
-            <select
+            <Select
               id="category"
               name="category"
               value={formik.values.category}
               onChange={formik.handleChange}
-              className={inputClass}
             >
               <option value="">— None —</option>
               {CATEGORIES.map((c) => (
@@ -251,7 +250,7 @@ export const ReceiptUploader = () => {
                   {c}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </div>
         <Field label="Notes" htmlFor="notes">

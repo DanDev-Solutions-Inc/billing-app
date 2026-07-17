@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import { inviteMemberAction } from "@app/(app)/team/actions";
 import { inviteSchema } from "@utils/validation/inviteSchema";
 import { InviteFormValues } from "@interfaces/forms/InviteFormValues";
-import { Field, inputClass, Button } from "@components/ui";
+import { Field, inputClass, Button, Select } from "@components/ui";
 
 export const TeamInviteForm = () => {
   const formik = useFormik<InviteFormValues>({
@@ -48,16 +48,15 @@ export const TeamInviteForm = () => {
           )}
         </Field>
         <Field label="Access" htmlFor="role">
-          <select
+          <Select
             id="role"
             name="role"
             value={formik.values.role}
             onChange={formik.handleChange}
-            className={inputClass}
           >
             <option value="viewer">View &amp; export</option>
             <option value="editor">Full edit</option>
-          </select>
+          </Select>
         </Field>
       </div>
 

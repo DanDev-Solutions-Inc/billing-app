@@ -41,8 +41,9 @@ const barLabel = (v: unknown) => {
 };
 
 export const CashFlowChart = ({ data }: CashFlowChartProps) => {
-  /* Direct labels only while they can breathe — past ~6 months the pairs get
-     too tight and the numbers collide. The tooltip still has every value. */
+  /* Direct labels need room: each label is ~25px wide, and the gap between a
+     month's two bar centres shrinks as the range grows. Past 6 months the
+     pairs overlap ("$622$502"), so drop to the tooltip instead. */
   const showLabels = data.length <= 6;
 
   return (
@@ -52,8 +53,8 @@ export const CashFlowChart = ({ data }: CashFlowChartProps) => {
         <BarChart
           data={data}
           margin={{ top: 20, right: 4, bottom: 0, left: 0 }}
-          barGap={6}
-          barCategoryGap="26%"
+          barGap={8}
+          barCategoryGap="30%"
         >
           <defs>
             <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
@@ -114,7 +115,7 @@ export const CashFlowChart = ({ data }: CashFlowChartProps) => {
                 dataKey="income"
                 position="top"
                 formatter={barLabel}
-                style={{ fill: "#ffffff", fontSize: 11, fontWeight: 600 }}
+                style={{ fill: "#ffffff", fontSize: 10, fontWeight: 600 }}
               />
             )}
           </Bar>
@@ -130,7 +131,7 @@ export const CashFlowChart = ({ data }: CashFlowChartProps) => {
                 dataKey="expense"
                 position="top"
                 formatter={barLabel}
-                style={{ fill: "#ffffff", fontSize: 11, fontWeight: 600 }}
+                style={{ fill: "#ffffff", fontSize: 10, fontWeight: 600 }}
               />
             )}
           </Bar>

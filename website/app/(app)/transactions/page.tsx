@@ -19,27 +19,50 @@ import {
   TableCell,
   StatCard,
   FilterTabs,
+  SortableHead,
+  Pagination,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
+import {
+  parseSort,
+  parseDir,
+  parsePage,
+  sortRows,
+  paginate,
+  mergeQuery,
+  nextDir,
+  Accessors,
+} from "@utils/table";
+import { TransactionWithLinks } from "@interfaces/models/transaction/TransactionWithLinks";
 import { deleteTransactionAction } from "./actions";
 
 export const metadata: Metadata = { title: "Transactions" };
 
 const TYPES = ["review", "income", "expense"] as const;
 
-const query = (type: string, period: string) => {
-  const p = new URLSearchParams();
-  if (type !== "all") p.set("type", type);
-  if (period !== "month") p.set("period", period);
-  const s = p.toString();
-  return s ? `/transactions?${s}` : "/transactions";
+/* What each sortable column sorts by. Dates sort as ISO strings (lexical ==
+   chronological); amount sorts numerically by magnitude — the +/− shown in the
+   cell is direction, not sign, so signing it here would interleave the two
+   halves of a mixed list rather than rank it by size. */
+const ACCESSORS: Accessors<TransactionWithLinks> = {
+  txn_date: (t) => t.txn_date,
+  description: (t) => t.description?.toLowerCase() ?? "",
+  category: (t) => t.category?.toLowerCase() ?? "",
+  amount: (t) => Number(t.amount),
 };
+const SORT_KEYS = Object.keys(ACCESSORS);
 
 const TransactionsPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; period?: string }>;
+  searchParams: Promise<{
+    type?: string;
+    period?: string;
+    sort?: string;
+    dir?: string;
+    page?: string;
+  }>;
 }) => {
   await getUserOrRedirect();
   const params = await searchParams;
@@ -47,6 +70,9 @@ const TransactionsPage = async ({
   const active = TYPES.includes(params.type as (typeof TYPES)[number])
     ? (params.type as string)
     : "all";
+  const sort = parseSort(params.sort, SORT_KEYS, "txn_date");
+  const dir = parseDir(params.dir, "desc");
+  const page = parsePage(params.page);
 
   const supabase = await createClient();
   const everything = await listTransactions(supabase);
@@ -66,6 +92,36 @@ const TransactionsPage = async ({
       : active === "review"
         ? all.filter((t) => t.status === "pending")
         : all.filter((t) => t.direction === active);
+
+  const sorted = sortRows(rows, sort, dir, ACCESSORS);
+  const result = paginate(sorted, page);
+
+  /* Current query, so sorting keeps the filters and vice versa. Defaults are
+     dropped so the plain /transactions URL stays clean. */
+  const current = {
+    type: active === "all" ? undefined : active,
+    period: period === "month" ? undefined : period,
+    sort,
+    dir,
+  };
+  /* Switching a filter keeps the sort but not the page — the row you were
+     looking at almost certainly isn't on page 3 of the new list. */
+  const query = (type: string, p: string) =>
+    mergeQuery("/transactions", current, {
+      type: type === "all" ? undefined : type,
+      period: p === "month" ? undefined : p,
+      page: undefined,
+    });
+  const sortHref = (key: string) =>
+    mergeQuery("/transactions", current, {
+      sort: key,
+      dir: nextDir(key, sort, dir),
+      page: undefined, // a new sort order invalidates the current page
+    });
+  const pageHref = (p: number) =>
+    mergeQuery("/transactions", current, {
+      page: p === 1 ? undefined : String(p),
+    });
 
   const typeTabs = [
     { key: "all", label: "All", href: query("all", period), count: all.length },
@@ -153,18 +209,46 @@ const TransactionsPage = async ({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[110px]">Date</TableHead>
+                <SortableHead
+                  label="Date"
+                  sortKey="txn_date"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("txn_date")}
+                  className="w-[110px]"
+                />
                 {/* w-full makes Description absorb slack so Amount never clips */}
-                <TableHead className="w-full">Description</TableHead>
-                <TableHead className="hidden md:table-cell">Category</TableHead>
+                <SortableHead
+                  label="Description"
+                  sortKey="description"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("description")}
+                  className="w-full"
+                />
+                <SortableHead
+                  label="Category"
+                  sortKey="category"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("category")}
+                  className="hidden md:table-cell"
+                />
                 {/* Status column only earns its width when something needs review */}
                 {pending > 0 && <TableHead className="w-[90px]">Status</TableHead>}
-                <TableHead className="text-right">Amount</TableHead>
+                <SortableHead
+                  label="Amount"
+                  sortKey="amount"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("amount")}
+                  align="right"
+                />
                 <TableHead className="w-[52px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((t) => {
+              {result.rows.map((t) => {
                 /* Source link becomes a quiet icon — the description already
                    names the vendor, so repeating it was pure noise. */
                 const source = t.invoice_id
@@ -252,6 +336,7 @@ const TransactionsPage = async ({
               })}
             </TableBody>
           </Table>
+          <Pagination {...result} hrefFor={pageHref} noun="transaction" />
         </Card>
       )}
     </>

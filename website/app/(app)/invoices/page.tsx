@@ -14,12 +14,24 @@ import {
   TableHeader,
   TableBody,
   TableRow,
-  TableHead,
   TableCell,
+  SortableHead,
+  Pagination,
   FilterSelect,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { isOverdue } from "@utils/invoice";
+import {
+  parseSort,
+  parseDir,
+  parsePage,
+  sortRows,
+  paginate,
+  mergeQuery,
+  nextDir,
+  Accessors,
+} from "@utils/table";
+import { InvoiceWithCustomer } from "@interfaces/models/invoice/InvoiceWithCustomer";
 
 export const metadata: Metadata = { title: "Invoices" };
 
@@ -35,22 +47,58 @@ const matchesStatus = (
   status: string,
 ) => (status === "overdue" ? isOverdue(inv) : inv.status === status);
 
+/* What each sortable column sorts by. Dates sort as ISO strings (lexical ==
+   chronological); money sorts numerically, not as text. */
+const ACCESSORS: Accessors<InvoiceWithCustomer> = {
+  invoice_number: (i) => i.invoice_number ?? i.id,
+  customer: (i) => i.customers?.name?.toLowerCase() ?? "",
+  issue_date: (i) => i.issue_date,
+  due_date: (i) => i.due_date,
+  status: (i) => (isOverdue(i) ? "overdue" : i.status),
+  total: (i) => Number(i.total),
+};
+const SORT_KEYS = Object.keys(ACCESSORS);
+
 const InvoicesPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    sort?: string;
+    dir?: string;
+    page?: string;
+  }>;
 }) => {
   await getUserOrRedirect();
   const params = await searchParams;
+
   const status =
-    params.status && STATUSES.includes(params.status as (typeof STATUSES)[number])
+    params.status &&
+    STATUSES.includes(params.status as (typeof STATUSES)[number])
       ? params.status
       : "all";
+  const sort = parseSort(params.sort, SORT_KEYS, "issue_date");
+  const dir = parseDir(params.dir, "desc");
+  const page = parsePage(params.page);
 
   const supabase = await createClient();
   const all = await listInvoices(supabase);
-  const invoices =
+
+  const filtered =
     status === "all" ? all : all.filter((i) => matchesStatus(i, status));
+  const sorted = sortRows(filtered, sort, dir, ACCESSORS);
+  const result = paginate(sorted, page);
+
+  /* Current query, so sorting keeps the filter and vice versa. */
+  const current = { status: status === "all" ? undefined : status, sort, dir };
+  const sortHref = (key: string) =>
+    mergeQuery("/invoices", current, {
+      sort: key,
+      dir: nextDir(key, sort, dir),
+      page: undefined, // a new sort order invalidates the current page
+    });
+  const pageHref = (p: number) =>
+    mergeQuery("/invoices", current, { page: p === 1 ? undefined : String(p) });
 
   const statusOptions = [
     { key: "all", label: "All invoices", count: all.length },
@@ -81,16 +129,11 @@ const InvoicesPage = async ({
           value={status}
           aria-label="Filter by status"
         />
-        <span className="text-xs text-muted-foreground">
-          {invoices.length} invoice{invoices.length === 1 ? "" : "s"}
-        </span>
       </div>
 
-      {invoices.length === 0 ? (
+      {filtered.length === 0 ? (
         <EmptyState
-          title={
-            all.length === 0 ? "No invoices yet" : `No ${status} invoices`
-          }
+          title={all.length === 0 ? "No invoices yet" : `No ${status} invoices`}
           description={
             all.length === 0
               ? "Create your first invoice to start getting paid."
@@ -114,16 +157,53 @@ const InvoicesPage = async ({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>Invoice</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Issued</TableHead>
-                <TableHead>Due</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <SortableHead
+                  label="Invoice"
+                  sortKey="invoice_number"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("invoice_number")}
+                />
+                <SortableHead
+                  label="Customer"
+                  sortKey="customer"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("customer")}
+                />
+                <SortableHead
+                  label="Issued"
+                  sortKey="issue_date"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("issue_date")}
+                />
+                <SortableHead
+                  label="Due"
+                  sortKey="due_date"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("due_date")}
+                />
+                <SortableHead
+                  label="Status"
+                  sortKey="status"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("status")}
+                />
+                <SortableHead
+                  label="Total"
+                  sortKey="total"
+                  activeKey={sort}
+                  activeDir={dir}
+                  href={sortHref("total")}
+                  align="right"
+                />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((inv) => (
+              {result.rows.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell className="font-medium">
                     <Link
@@ -158,6 +238,7 @@ const InvoicesPage = async ({
               ))}
             </TableBody>
           </Table>
+          <Pagination {...result} hrefFor={pageHref} noun="invoice" />
         </Card>
       )}
     </>

@@ -7,7 +7,7 @@
 
 export type SortDir = "asc" | "desc";
 
-export const PAGE_SIZE = 25;
+export const PAGE_SIZE = 10;
 
 /** Value a row sorts by, per column key. */
 export type Accessors<T> = Record<string, (row: T) => string | number | null>;

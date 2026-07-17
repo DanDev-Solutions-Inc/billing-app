@@ -28,6 +28,9 @@ const blankItem = (): LineItemFormValues => ({
 /* Payment terms. The due/expiry date is derived from the issue date rather
    than typed, so the two can't drift out of sync. */
 const TERMS = [7, 15, 30] as const;
+/* Invoices default to Net 30 — the standard terms, so a new invoice is ready
+   to send without touching the date. Estimates have no implied expiry. */
+const DEFAULT_INVOICE_TERM = 30;
 
 const addDays = (iso: string, days: number) => {
   const d = new Date(`${iso}T00:00:00`);
@@ -54,12 +57,16 @@ export const DocForm = ({
   const secondDateLabel = isInvoice ? "Due date" : "Expiry date";
   const numberLabel = isInvoice ? "Invoice #" : "Estimate #";
 
+  const initialIssueDate = defaults?.issueDate ?? today();
+
   const formik = useFormik<DocumentFormValues>({
     initialValues: {
       customer_id: defaults?.customerId ?? "",
       number: defaults?.number ?? "",
-      issue_date: defaults?.issueDate ?? today(),
-      second_date: defaults?.secondDate ?? "",
+      issue_date: initialIssueDate,
+      second_date:
+        defaults?.secondDate ??
+        (isInvoice ? addDays(initialIssueDate, DEFAULT_INVOICE_TERM) : ""),
       notes: defaults?.notes ?? "",
       tax_rate: defaults?.taxRate ?? 13,
       items:

@@ -36,3 +36,6 @@ export {
   TableCell,
   TableCaption,
 } from "@components/ui/table";
+export { SortableHead } from "@components/ui/sortable-head";
+export { Pagination } from "@components/ui/pagination";
+export { Alert, AlertIcon } from "@components/ui/alert";

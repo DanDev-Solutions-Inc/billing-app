@@ -49,23 +49,31 @@ export const POST = async (request: Request) => {
 
   const admin = createAdminClient();
 
-  // Prefer the per-user alias token (receipts+<token>@…); otherwise fall back to
-  // matching the sender's address (plain receipts@dandev.solutions).
+  // Who owns the receipt:
+  //   1. the per-user alias token (receipts+<token>@…) — used for team members
+  //   2. RECEIPTS_OWNER_USER_ID — the business inbox, so anything forwarded to
+  //      the plain address is accepted regardless of which account it was sent
+  //      from (people forward from whatever mail app is to hand)
+  //   3. the sender's own address, as a last resort
   const token = extractToken(collectRecipients(data));
-  const profile = token
-    ? await getProfileByInboundToken(admin, token)
-    : await matchBySender(admin, data);
-  if (!profile)
-    return NextResponse.json({ ok: true, skipped: "unrecognised sender" });
+  const owner = process.env.RECEIPTS_OWNER_USER_ID;
+  const userId = token
+    ? (await getProfileByInboundToken(admin, token))?.user_id
+    : (owner ?? (await matchBySender(admin, data))?.user_id);
+  if (!userId)
+    return NextResponse.json({ ok: true, skipped: "no owner for receipt" });
 
-  const attachments = extractReceiptAttachments(data);
+  // Resend webhooks carry attachment METADATA only — no content, no url. The
+  // bytes come from the Receiving API as time-limited pre-signed download URLs.
+  const emailId = typeof data.email_id === "string" ? data.email_id : null;
+  const attachments = await fetchAttachments(emailId, data);
   if (attachments.length === 0)
     return NextResponse.json({ ok: true, skipped: "no receipt attachments" });
 
   const subject = typeof data.subject === "string" ? data.subject : null;
   let created = 0;
 
-  const messageId = typeof data.message_id === "string" ? data.message_id : null;
+  const messageId = emailId ?? (typeof data.message_id === "string" ? data.message_id : null);
 
   for (const [index, att] of attachments.entries()) {
     const bytes = await attachmentBytes(att);
@@ -74,7 +82,7 @@ export const POST = async (request: Request) => {
     // Store, AI-read, and file the transaction — shared with the Gmail poller
     // so both inbound paths behave identically.
     const result = await ingestAttachment(admin, {
-      userId: profile.user_id,
+      userId,
       filename: att.filename,
       contentType: att.contentType,
       bytes,
@@ -157,12 +165,44 @@ const matchBySender = async (
   return email ? getProfileByEmail(admin, email) : null;
 };
 
+/**
+ * Get the attachments for an inbound email, with content we can actually read.
+ *
+ * Resend's webhook carries metadata ONLY — no base64 content and no url — so
+ * the bytes have to be fetched from the Receiving API, which answers with
+ * time-limited pre-signed download URLs. The webhook payload is used only as a
+ * fallback (and for providers that do inline the content).
+ */
+const fetchAttachments = async (
+  emailId: string | null,
+  data: Record<string, unknown>,
+): Promise<ReceiptAttachment[]> => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (emailId && apiKey) {
+    try {
+      const res = await fetch(
+        `https://api.resend.com/emails/receiving/${emailId}/attachments?limit=100`,
+        { headers: { authorization: `Bearer ${apiKey}` } },
+      );
+      if (res.ok) {
+        const json = (await res.json()) as { data?: unknown[] };
+        const list = toAttachments(json.data);
+        if (list.length > 0) return list;
+      } else {
+        console.error(
+          `inbound/receipts: attachments API ${res.status} for ${emailId}`,
+        );
+      }
+    } catch (error) {
+      console.error("inbound/receipts: attachments API failed", error);
+    }
+  }
+  return toAttachments(data.attachments);
+};
+
 // Keep image and PDF attachments — emailed receipts are very often PDFs.
 // Anything else (signatures, .ics, docs) is ignored.
-const extractReceiptAttachments = (
-  data: Record<string, unknown>,
-): ReceiptAttachment[] => {
-  const raw = data.attachments;
+const toAttachments = (raw: unknown): ReceiptAttachment[] => {
   if (!Array.isArray(raw)) return [];
   const out: ReceiptAttachment[] = [];
   raw.forEach((a, i) => {
@@ -180,10 +220,10 @@ const extractReceiptAttachments = (
       contentType,
       content: typeof o.content === "string" ? o.content : undefined,
       url:
-        typeof o.url === "string"
-          ? o.url
-          : typeof o.download_url === "string"
-            ? o.download_url
+        typeof o.download_url === "string"
+          ? o.download_url
+          : typeof o.url === "string"
+            ? o.url
             : undefined,
     });
   });
