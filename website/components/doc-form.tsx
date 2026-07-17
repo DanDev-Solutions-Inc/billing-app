@@ -9,7 +9,12 @@ import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { DocumentFormValues } from "@interfaces/forms/DocumentFormValues";
 import { DocFormProps } from "@interfaces/components/DocFormProps";
 import { CurrencyCode } from "@typings/CurrencyCode";
-import { CURRENCIES, taxRateFor, chargesTax } from "@utils/currency";
+import {
+  CURRENCIES,
+  taxRateFor,
+  chargesTax,
+  toCurrency,
+} from "@utils/currency";
 
 export interface DocFormState {
   error?: string;
@@ -210,7 +215,7 @@ export const DocForm = ({
               id="currency"
               name="currency"
               value={formik.values.currency}
-              onChange={(e) => onCurrencyChange(e.target.value as CurrencyCode)}
+              onChange={(e) => onCurrencyChange(toCurrency(e.target.value))}
             >
               {CURRENCIES.map((c) => (
                 <option key={c} value={c}>

@@ -1,4 +1,5 @@
 import { CurrencyCode } from "@typings/CurrencyCode";
+import { toCurrency } from "@utils/currency";
 
 /**
  * Fallback USD→CAD, used only when the Bank of Canada lookup is unreachable.
@@ -13,8 +14,8 @@ import { CurrencyCode } from "@typings/CurrencyCode";
  */
 export const USD_TO_CAD = 1.37;
 
-export const rateFor = (currency: CurrencyCode): number =>
-  currency === "USD" ? USD_TO_CAD : 1;
+export const rateFor = (currency: CurrencyCode | null | undefined): number =>
+  toCurrency(currency) === "USD" ? USD_TO_CAD : 1;
 
 /** A row's value in CAD — the reporting currency. */
 export const toCad = (amount: number, exchangeRate: number): number =>
@@ -41,8 +42,8 @@ export const sumInCad = (
   for (const r of rows) {
     const amount = Number(r.total) || 0;
     out.cad += toCad(amount, Number(r.exchange_rate));
-    if (r.currency !== "CAD")
-      out.foreign[r.currency] = (out.foreign[r.currency] ?? 0) + amount;
+    const code = toCurrency(r.currency);
+    if (code !== "CAD") out.foreign[code] = (out.foreign[code] ?? 0) + amount;
   }
   return out;
 };

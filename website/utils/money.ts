@@ -1,5 +1,6 @@
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { CurrencyCode } from "@typings/CurrencyCode";
+import { toCurrency } from "@utils/currency";
 
 /* Both render "$", so USD is suffixed to keep the two tellable apart — an
    invoice reading "$1,234.50" shouldn't be ambiguous about which dollar. */
@@ -14,11 +15,15 @@ const FORMATTERS: Record<CurrencyCode, Intl.NumberFormat> = {
  */
 export const formatMoney = (
   value: number | string | null | undefined,
-  currency: CurrencyCode = "CAD",
+  currency?: CurrencyCode | null,
 ): string => {
+  /* Normalised rather than defaulted: a `= "CAD"` parameter only covers
+     undefined, so an explicit null — or a row written before the column
+     existed — would index FORMATTERS with junk and throw. */
+  const code = toCurrency(currency);
   const n = typeof value === "string" ? parseFloat(value) : (value ?? 0);
-  const formatted = FORMATTERS[currency].format(Number.isFinite(n) ? n : 0);
-  return currency === "USD" ? `${formatted} USD` : formatted;
+  const formatted = FORMATTERS[code].format(Number.isFinite(n) ? n : 0);
+  return code === "USD" ? `${formatted} USD` : formatted;
 };
 
 /** Format an ISO date (yyyy-mm-dd) as a readable date, e.g. "Jul 16, 2026". */

@@ -9,7 +9,12 @@ import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { RecurringFormValues } from "@interfaces/forms/RecurringFormValues";
 import { RecurringInvoiceFormProps } from "@interfaces/components/RecurringInvoiceFormProps";
 import { CurrencyCode } from "@typings/CurrencyCode";
-import { CURRENCIES, taxRateFor, chargesTax } from "@utils/currency";
+import {
+  CURRENCIES,
+  taxRateFor,
+  chargesTax,
+  toCurrency,
+} from "@utils/currency";
 
 const today = () => {
   const d = new Date();
@@ -137,7 +142,7 @@ export const RecurringInvoiceForm = ({
               name="currency"
               value={formik.values.currency}
               onChange={(e) => {
-                const next = e.target.value as CurrencyCode;
+                const next = toCurrency(e.target.value);
                 formik.setFieldValue("currency", next);
                 // Currency decides the rate — US work isn't taxed.
                 formik.setFieldValue("tax_rate", taxRateFor(next));

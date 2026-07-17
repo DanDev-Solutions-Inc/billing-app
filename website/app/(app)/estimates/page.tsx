@@ -17,8 +17,7 @@ import {
   TableCell,
   SortableHead,
   Pagination,
-  FilterTabs,
-} from "@components/ui";
+  FilterTabs, FilterBar, FilterGroup } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
 import {
@@ -133,8 +132,8 @@ const EstimatesPage = async ({
 
       {/* Pager sits with the filters so it's reachable without scrolling the
           whole table on a short screen. */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <div className="flex flex-wrap items-center gap-3">
+      <FilterBar>
+        <FilterGroup>
           <FilterTabs
             tabs={statusTabs}
             active={status}
@@ -146,7 +145,7 @@ const EstimatesPage = async ({
             variant="segmented"
             aria-label="Filter by date range"
           />
-        </div>
+        </FilterGroup>
         {filtered.length > 0 && (
           <Pagination
             {...result}
@@ -155,7 +154,7 @@ const EstimatesPage = async ({
             variant="bar"
           />
         )}
-      </div>
+      </FilterBar>
 
       {filtered.length === 0 ? (
         <EmptyState

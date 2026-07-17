@@ -1,6 +1,7 @@
 import "server-only";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { CurrencyCode } from "@typings/CurrencyCode";
+import { toCurrency } from "@utils/currency";
 
 /**
  * Reconstruct line items from a submitted form. The editor renders repeated
@@ -38,4 +39,4 @@ export const emptyToNull = (v: FormDataEntryValue | null): string | null => {
  * so a bad value can't silently zero the HST).
  */
 export const parseCurrency = (value: FormDataEntryValue | null): CurrencyCode =>
-  String(value ?? "") === "USD" ? "USD" : "CAD";
+  toCurrency(String(value ?? ""));

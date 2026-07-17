@@ -9,8 +9,7 @@ import {
   Card,
   ButtonLink,
   EmptyState,
-  FilterTabs,
-} from "@components/ui";
+  FilterTabs, FilterBar, FilterGroup } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
 import { isPdfReceipt } from "@utils/receipt-file";
@@ -88,7 +87,7 @@ const ReceiptsPage = async ({
         }
       />
 
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+      <FilterBar>
         <FilterTabs
           tabs={sourceTabs}
           active={source}
@@ -100,7 +99,7 @@ const ReceiptsPage = async ({
           variant="segmented"
           aria-label="Filter by date range"
         />
-      </div>
+      </FilterBar>
 
       {receipts.length === 0 ? (
         <EmptyState

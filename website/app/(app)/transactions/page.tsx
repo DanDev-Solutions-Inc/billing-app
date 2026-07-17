@@ -22,8 +22,7 @@ import {
   ClearFilters,
   SortableHead,
   Checkbox,
-  Pagination,
-} from "@components/ui";
+  Pagination, FilterBar, FilterGroup } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { parsePeriod, inPeriod, PERIOD_LABEL } from "@utils/period";
 import {
@@ -160,7 +159,7 @@ const TransactionsPage = async ({
 
       {/* Pager sits with the filters so it's reachable without scrolling the
           whole table on a short screen. */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+      <FilterBar>
         <div className="flex flex-1 flex-wrap items-center gap-3">
           <SearchInput
             placeholder="Search description, category…"
@@ -186,7 +185,7 @@ const TransactionsPage = async ({
             variant="bar"
           />
         )}
-      </div>
+      </FilterBar>
 
       {rows.length === 0 ? (
         <EmptyState

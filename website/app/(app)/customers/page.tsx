@@ -20,8 +20,7 @@ import {
   TableHead,
   TableCell,
   SortableHead,
-  Pagination,
-} from "@components/ui";
+  Pagination, FilterBar, FilterGroup } from "@components/ui";
 import {
   parseSort,
   parseDir,
@@ -123,15 +122,15 @@ const CustomersPage = async ({
         />
       ) : (
         <>
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-            <div className="flex flex-1 flex-wrap items-center gap-2">
+          <FilterBar>
+            <FilterGroup className="flex-1">
               <SearchInput
                 placeholder="Search name, email, phone, city…"
                 className="w-full sm:max-w-xs"
               />
               <ClearFilters href="/customers" active={Boolean(q)} />
-            </div>
-            <div className="flex items-center gap-4">
+            </FilterGroup>
+            <FilterGroup className="sm:gap-4">
               <span className="hidden text-sm text-muted-foreground sm:inline">
                 {formatMoney(billedTotal)} billed
               </span>
@@ -141,8 +140,8 @@ const CustomersPage = async ({
                 noun="customer"
                 variant="bar"
               />
-            </div>
-          </div>
+            </FilterGroup>
+          </FilterBar>
 
           {all.length === 0 ? (
             <EmptyState

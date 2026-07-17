@@ -9,7 +9,6 @@ import {
   PageHeader,
   Card,
   ButtonLink,
-  StatusPill,
   EmptyState,
   Table,
   TableHeader,
@@ -21,8 +20,7 @@ import {
   FilterSelect,
   FilterCombobox,
   ClearFilters,
-  SearchInput,
-} from "@components/ui";
+  SearchInput, FilterBar, FilterGroup } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { isOverdue } from "@utils/invoice";
 import {
@@ -155,9 +153,9 @@ const InvoicesPage = async ({
 
       {/* Pager lives with the filters so it's reachable without scrolling the
           whole table on a short screen. */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+      <FilterBar>
         {/* Narrowing on the left, then status + the pager on the right. */}
-        <div className="flex flex-1 flex-wrap items-center gap-2">
+        <FilterGroup className="flex-1">
           <SearchInput
             placeholder="Search number, customer, notes…"
             className="w-full sm:max-w-xs"
@@ -174,8 +172,8 @@ const InvoicesPage = async ({
             aria-label="Filter by customer"
           />
           <ClearFilters href="/invoices" active={isFiltered} />
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
+        </FilterGroup>
+        <FilterGroup>
           <FilterSelect
             param="status"
             options={statusOptions}
@@ -188,8 +186,8 @@ const InvoicesPage = async ({
             noun="invoice"
             variant="bar"
           />
-        </div>
-      </div>
+        </FilterGroup>
+      </FilterBar>
 
       {filtered.length === 0 ? (
         <EmptyState
