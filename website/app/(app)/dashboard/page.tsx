@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { ReactNode } from "react";
 import Link from "next/link";
 import {
   ArrowDownLeft,
@@ -24,7 +23,7 @@ import {
   CardTitle,
   CardContent,
   ButtonLink,
-  IconTile,
+  Metric,
   FilterSelect,
   CurrencyNote,
 } from "@components/ui";
@@ -45,28 +44,7 @@ import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-/* Vision UI in-card metric: gradient icon tile + label over value. */
-const Metric = ({
-  label,
-  value,
-  icon,
-  tone = "text-foreground",
-}: {
-  label: string;
-  value: string;
-  icon: ReactNode;
-  tone?: string;
-}) => (
-  <div className="flex items-center gap-3">
-    <IconTile className="size-9 rounded-lg [&_svg]:size-4">{icon}</IconTile>
-    <div className="min-w-0">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`truncate text-sm font-bold tabular-nums ${tone}`}>
-        {value}
-      </p>
-    </div>
-  </div>
-);
+
 
 const MONTH_OPTIONS = MONTH_RANGES.map((m) => ({
   key: String(m),

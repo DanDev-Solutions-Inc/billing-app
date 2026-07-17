@@ -84,19 +84,6 @@ export const createTransaction = async (
   await sb.from("transactions").insert(values);
 };
 
-/** Insert a transaction and return its new id (for linking a receipt). */
-export const createTransactionReturningId = async (
-  sb: SupabaseClient,
-  values: TransactionInsert,
-): Promise<string | null> => {
-  const { data } = await sb
-    .from("transactions")
-    .insert(values)
-    .select("id")
-    .single();
-  return data?.id ?? null;
-};
-
 export const setTransactionStatus = async (
   sb: SupabaseClient,
   id: string,
@@ -131,13 +118,6 @@ export const updateTransaction = async (
   values: Partial<TransactionInsert>,
 ): Promise<void> => {
   await sb.from("transactions").update(values).eq("id", id);
-};
-
-export const deleteTransaction = async (
-  sb: SupabaseClient,
-  id: string,
-): Promise<void> => {
-  await sb.from("transactions").delete().eq("id", id);
 };
 
 /**

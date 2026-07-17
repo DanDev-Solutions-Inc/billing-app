@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import { FileText } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
