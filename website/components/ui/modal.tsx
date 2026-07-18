@@ -26,7 +26,24 @@ export const Modal = ({
     const el = ref.current;
     if (!el) return;
     // showModal() is what enables the top layer + focus trap; `open` alone doesn't.
-    if (open && !el.open) el.showModal();
+    if (open && !el.open) {
+      el.showModal();
+      /* showModal() focuses the dialog's first focusable node, which in this
+         layout is the header's close button — so every form modal opened with
+         the cursor on the X, and typing went nowhere until you clicked into a
+         field. A child's autoFocus can't win that race: showModal() runs from
+         this effect, and child effects run before parent ones, so anything the
+         field focused on mount is taken straight back.
+
+         Moving focus to the first control is also what the field expects — the
+         dialog exists to be filled in. A modal with no control (a delete
+         confirmation) keeps the native behaviour: focus stays on the close
+         button rather than landing on the destructive action. */
+      const field = el.querySelector<HTMLElement>(
+        'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])',
+      );
+      field?.focus();
+    }
     if (!open && el.open) el.close();
   }, [open]);
 

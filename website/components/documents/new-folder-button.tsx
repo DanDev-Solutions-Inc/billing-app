@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FolderPlus } from "lucide-react";
 import { Button, Modal, ModalFooter, Input, Field } from "@components/ui";
@@ -13,19 +13,7 @@ export const NewFolderButton = ({ parentId }: NewFolderButtonProps) => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  /* autoFocus is not enough here. Modal opens the dialog with showModal(),
-     which focuses the first focusable node — the close button — and it does so
-     from the Modal's own effect. Child effects run before parent ones, so any
-     focus we set synchronously is taken back a moment later. A frame later is
-     after both, and the field is where typing should go: opening this dialog
-     to then click into its one input is a step nobody wants. */
-  useEffect(() => {
-    if (!open) return;
-    const frame = requestAnimationFrame(() => inputRef.current?.focus());
-    return () => cancelAnimationFrame(frame);
-  }, [open]);
+  /* Focus is Modal's job — it moves the cursor to the first field on open. */
 
   const submit = async () => {
     setBusy(true);
@@ -66,7 +54,6 @@ export const NewFolderButton = ({ parentId }: NewFolderButtonProps) => {
         <Field label="Name" htmlFor="folder-name">
           <Input
             id="folder-name"
-            ref={inputRef}
             value={name}
             placeholder="e.g. FY2026 statements"
             onChange={(e) => setName(e.target.value)}
