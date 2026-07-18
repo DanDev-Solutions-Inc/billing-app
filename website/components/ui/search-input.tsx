@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { cn } from "@lib/utils";
 import { SearchInputProps } from "@interfaces/components/SearchInputProps";
+import { controlHeight } from "@components/ui/input-class";
 
 /**
  * Debounced search box that writes `q` to the URL — state stays shareable and
@@ -63,7 +64,7 @@ export const SearchInput = ({
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="w-full rounded-xl border border-glass-border bg-white/[0.04] py-2 pl-9 pr-9 text-sm text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30 [&::-webkit-search-cancel-button]:hidden"
+        className={`${controlHeight} w-full rounded-xl border border-glass-border bg-white/[0.04] pl-9 pr-9 text-sm text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30 [&::-webkit-search-cancel-button]:hidden`}
       />
       {value && (
         <button

@@ -4,4 +4,6 @@ export interface TransactionFormValues {
   txn_date: string;
   category: string;
   description: string;
+  /** Whether `amount` is HST-inclusive — drives the subtotal/tax breakdown. */
+  tax_included: boolean;
 }

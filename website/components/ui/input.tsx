@@ -12,7 +12,7 @@ export const Input = ({
   <input
     type={type}
     data-slot="input"
-    className={cn(inputClass, "h-9 py-1", className)}
+    className={cn(inputClass, className)}
     {...props}
   />
 );

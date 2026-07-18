@@ -5,7 +5,8 @@ import { updateReceiptAction } from "@app/(app)/receipts/actions";
 import { receiptEditSchema } from "@utils/validation/receiptEditSchema";
 import { ReceiptEditFormValues } from "@interfaces/forms/ReceiptEditFormValues";
 import { ReceiptEditFormProps } from "@interfaces/components/ReceiptEditFormProps";
-import { Field, inputClass, Button, Select } from "@components/ui";
+import { Field, inputClass, Button, Select, Checkbox } from "@components/ui";
+import { BUSINESS } from "@utils/constants";
 
 /**
  * Correct a receipt's details, with the image beside it.
@@ -24,6 +25,7 @@ export const ReceiptEditForm = ({
       receipt_date: receipt.receipt_date,
       category: receipt.category ?? "",
       notes: receipt.notes ?? "",
+      tax_included: receipt.tax_included ?? true,
     },
     enableReinitialize: true,
     validationSchema: receiptEditSchema,
@@ -37,6 +39,7 @@ export const ReceiptEditForm = ({
       formData.set("receipt_date", values.receipt_date);
       formData.set("category", values.category);
       formData.set("notes", values.notes);
+      formData.set("tax_included", values.tax_included ? "1" : "");
       await updateReceiptAction(formData);
     },
   });
@@ -100,6 +103,26 @@ export const ReceiptEditForm = ({
           </Select>
         </Field>
       </div>
+
+      {/* Most Ontario purchases carry HST, so this stays on unless the user
+          says otherwise — groceries, insurance and bank fees are the exceptions
+          worth un-ticking. Toggling it re-splits the same total; it never
+          changes what was paid. */}
+      <label
+        htmlFor="tax_included"
+        className="flex items-start gap-2.5 text-sm text-muted-foreground"
+      >
+        <Checkbox
+          id="tax_included"
+          name="tax_included"
+          checked={formik.values.tax_included}
+          onChange={formik.handleChange}
+          className="mt-0.5"
+        />
+        <span>
+          Amount includes {BUSINESS.taxLabel} ({BUSINESS.taxRate}%)
+        </span>
+      </label>
 
       <Field label="Notes" htmlFor="notes">
         <textarea

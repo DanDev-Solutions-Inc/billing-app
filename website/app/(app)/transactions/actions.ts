@@ -31,6 +31,12 @@ export const createTransactionAction = async (
   const txnDate = emptyToNull(formData.get("txn_date"));
   const description = emptyToNull(formData.get("description"));
   let category = emptyToNull(formData.get("category"));
+  /* Absent means the form never offered the choice, which isn't the same as the
+     user un-ticking it — fall back to the default rather than reading absence
+     as "no HST". */
+  const taxIncluded = formData.has("tax_included")
+    ? formData.get("tax_included") === "1"
+    : true;
 
   // Optional attached image → store it as a receipt, scan it to fill any blank
   // fields, and link the transaction back to it.
@@ -48,6 +54,7 @@ export const createTransactionAction = async (
       image_url: imageUrl,
       image_pathname: imagePathname,
       source: "upload",
+      tax_included: taxIncluded,
     });
     receiptId = receipt.id ?? null;
     if (analysis?.is_receipt) {
@@ -66,6 +73,7 @@ export const createTransactionAction = async (
     txn_date: txnDate ?? undefined,
     description,
     category,
+    tax_included: taxIncluded,
     receipt_id: receiptId,
   });
 
@@ -88,6 +96,7 @@ export const updateTransactionAction = async (formData: FormData) => {
     txn_date: emptyToNull(formData.get("txn_date")) ?? undefined,
     description: emptyToNull(formData.get("description")),
     category: emptyToNull(formData.get("category")),
+    tax_included: formData.get("tax_included") === "1",
   });
   revalidatePath("/transactions");
   revalidatePath(`/transactions/${id}`);
@@ -139,16 +148,29 @@ export const deleteTransactionAction = async (formData: FormData) => {
 
 /* --- Bulk operations ----------------------------------------------------- */
 
-/** Mark every selected transaction reviewed (or reopen them). */
-export const bulkSetStatusAction = async (formData: FormData) => {
+/**
+ * Mark every selected transaction reviewed (or reopen them).
+ *
+ * `status` is a *bound* argument, not a form field. It used to ride on the
+ * submitting button as name/value, which silently never arrived: React nulls
+ * the submitter when that same button carries a function `formAction`, so the
+ * synthetic name/value input is never added to the FormData. The guard below
+ * then saw an empty status and returned before writing — no error, no toast,
+ * and the row stayed pending. Keep the value off the button.
+ */
+export const bulkSetStatusAction = async (
+  status: TxnStatus,
+  formData: FormData,
+) => {
   await getUserOrRedirect();
   const ids = formData.getAll("ids").map(String).filter(Boolean);
-  const status = String(formData.get("status") ?? "") as TxnStatus;
   if (!ids.length || !TXN_STATUSES.includes(status)) return;
 
   const supabase = await createClient();
   await transactions.setTransactionStatusMany(supabase, ids, status);
   revalidatePath("/transactions");
+  // Every sibling action revalidates this too — dashboard figures read status.
+  revalidatePath("/dashboard");
   redirect(
     `/transactions?toast=${status === "approved" ? "transactions-approved" : "transactions-reopened"}`,
   );

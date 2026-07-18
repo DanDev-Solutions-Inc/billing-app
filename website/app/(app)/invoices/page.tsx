@@ -71,7 +71,10 @@ const InvoicesPage = async ({
     page?: string;
   }>;
 }) => {
-  await getUserOrRedirect();
+  /* Started, not awaited — see the note in transactions/page.tsx. The result is
+     unused (RLS scopes the queries), so blocking here only serialised an auth
+     round-trip in front of the data. Resolved in the Promise.all below. */
+  const authGate = getUserOrRedirect();
   const params = await searchParams;
 
   const status =
@@ -97,7 +100,8 @@ const InvoicesPage = async ({
   /* Search + customer run in Postgres, so they cover every invoice rather than
      the page being rendered. Status is derived (overdue isn't stored), so it
      stays a filter over the returned rows. */
-  const [all, customers, emailStates] = await Promise.all([
+  const [, all, customers, emailStates] = await Promise.all([
+    authGate,
     listInvoices(supabase, { search: q, customerId: customerId || undefined }),
     listCustomers(supabase),
     // One query for every invoice's email state, not one per row.

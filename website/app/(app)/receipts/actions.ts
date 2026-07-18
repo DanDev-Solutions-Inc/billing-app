@@ -47,11 +47,18 @@ export const createReceipt = async (
   const formVendor = emptyToNull(formData.get("vendor"));
   const formCategory = emptyToNull(formData.get("category"));
   const formDate = emptyToNull(formData.get("receipt_date"));
+  /* Absent means the form never offered the choice (bulk upload, older form) —
+     that's not the same as the user un-ticking it, so fall back to the default
+     rather than reading absence as "no HST". */
+  const taxIncluded = formData.has("tax_included")
+    ? formData.get("tax_included") === "1"
+    : true;
 
   const { id, error } = await receipts.createReceipt(supabase, {
     user_id: user.id,
     vendor: formVendor,
     amount: formAmount,
+    tax_included: taxIncluded,
     receipt_date: formDate ?? undefined,
     category: formCategory,
     notes: emptyToNull(formData.get("notes")),
@@ -100,6 +107,9 @@ export const createReceipt = async (
       direction: isRefund ? "income" : "expense",
       status: "pending",
       category,
+      // Same money, so the same tax treatment — a receipt marked exempt must
+      // not spawn a ledger entry claiming 13% HST was paid.
+      tax_included: taxIncluded,
       receipt_id: id,
     });
     revalidatePath("/transactions");
@@ -122,6 +132,7 @@ export const updateReceiptAction = async (formData: FormData) => {
     receipt_date: emptyToNull(formData.get("receipt_date")) ?? undefined,
     category: emptyToNull(formData.get("category")),
     notes: emptyToNull(formData.get("notes")),
+    tax_included: formData.get("tax_included") === "1",
   });
 
   // The linked transaction is a separate record — correcting a receipt doesn't

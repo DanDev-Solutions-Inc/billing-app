@@ -1,5 +1,6 @@
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { CurrencyCode } from "@typings/CurrencyCode";
+import { BUSINESS } from "@utils/constants";
 import { toCurrency } from "@utils/currency";
 
 /* Both render "$", so USD is suffixed to keep the two tellable apart — an
@@ -56,6 +57,33 @@ export const formatDateTime = (value: string | null | undefined): string => {
 
 export const round2 = (n: number): number =>
   Math.round((n + Number.EPSILON) * 100) / 100;
+
+/**
+ * Split a tax-*inclusive* amount into its subtotal and tax parts.
+ *
+ * Receipts and transactions store one gross number — what was actually paid,
+ * tax and all (see the analyze-receipt prompt). This backs the tax out of it
+ * rather than adding to it, so the total never moves: a $113.00 receipt is
+ * $100.00 + $13.00, still $113.00.
+ *
+ * Tax is derived from the *rounded* subtotal so the two parts always re-add to
+ * the gross exactly — the display can never show a breakdown that doesn't sum.
+ * (computeTotals rounds the other way round, which is right for that direction:
+ * there the line items are the source of truth and the total is derived.)
+ *
+ * A zero/negative rate means no tax applies: subtotal is the whole amount.
+ */
+export const splitTaxInclusive = (
+  gross: number | string | null | undefined,
+  taxRatePercent: number = BUSINESS.taxRate,
+): { subtotal: number; tax: number; total: number } => {
+  const n = typeof gross === "string" ? parseFloat(gross) : (gross ?? 0);
+  const total = round2(Number.isFinite(n) ? n : 0);
+  const rate = Number(taxRatePercent) || 0;
+  if (rate <= 0) return { subtotal: total, tax: 0, total };
+  const subtotal = round2(total / (1 + rate / 100));
+  return { subtotal, tax: round2(total - subtotal), total };
+};
 
 /** Compute subtotal / tax / total from line items and a tax rate (percent). */
 export const computeTotals = (

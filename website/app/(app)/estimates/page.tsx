@@ -58,7 +58,10 @@ const EstimatesPage = async ({
     page?: string;
   }>;
 }) => {
-  await getUserOrRedirect();
+  /* Started, not awaited — see the note in transactions/page.tsx. The result is
+     unused (RLS scopes the query), so blocking here only serialised an auth
+     round-trip in front of the data. Resolved alongside it below. */
+  const authGate = getUserOrRedirect();
   const params = await searchParams;
   const period = parsePeriod(params.period);
   const status =
@@ -76,7 +79,7 @@ const EstimatesPage = async ({
   });
 
   const supabase = await createClient();
-  const all = await listEstimates(supabase);
+  const [, all] = await Promise.all([authGate, listEstimates(supabase)]);
 
   const windowed = all.filter((e) => inPeriod(e.issue_date, period));
   const filtered =

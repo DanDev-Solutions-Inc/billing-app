@@ -24,9 +24,15 @@ import { toggleRecurring, deleteRecurringAction } from "./actions";
 export const metadata: Metadata = { title: "Recurring invoices" };
 
 const RecurringPage = async () => {
-  await getUserOrRedirect();
+  /* Started, not awaited — see the note in transactions/page.tsx. The result is
+     unused (RLS scopes the query), so blocking here only serialised an auth
+     round-trip in front of the data. Resolved alongside it below. */
+  const authGate = getUserOrRedirect();
   const supabase = await createClient();
-  const schedules = await listRecurring(supabase);
+  const [, schedules] = await Promise.all([
+    authGate,
+    listRecurring(supabase),
+  ]);
 
   return (
     <>

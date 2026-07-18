@@ -51,7 +51,10 @@ const CustomersPage = async ({
     q?: string;
   }>;
 }) => {
-  await getUserOrRedirect();
+  /* Started, not awaited — see the note in transactions/page.tsx. The result is
+     unused (RLS scopes the queries), so blocking here only serialised an auth
+     round-trip in front of the data. Resolved in the Promise.all below. */
+  const authGate = getUserOrRedirect();
   const params = await searchParams;
 
   /* A directory reads best alphabetically, so name/asc is the default here
@@ -72,7 +75,8 @@ const CustomersPage = async ({
   const supabase = await createClient();
   /* Search runs in Postgres; the totals come from a view that aggregates the
      invoices there too, rather than pulling 548 rows in to count them. */
-  const [customers, summaries] = await Promise.all([
+  const [, customers, summaries] = await Promise.all([
+    authGate,
     listCustomers(supabase, q),
     getBillingSummaries(supabase),
   ]);

@@ -369,6 +369,7 @@ export type Database = {
           receipt_date: string
           source: string
           source_message_id: string | null
+          tax_included: boolean
           user_id: string
           vendor: string | null
         }
@@ -383,6 +384,7 @@ export type Database = {
           receipt_date?: string
           source?: string
           source_message_id?: string | null
+          tax_included?: boolean
           user_id: string
           vendor?: string | null
         }
@@ -397,6 +399,7 @@ export type Database = {
           receipt_date?: string
           source?: string
           source_message_id?: string | null
+          tax_included?: boolean
           user_id?: string
           vendor?: string | null
         }
@@ -494,6 +497,7 @@ export type Database = {
           invoice_id: string | null
           receipt_id: string | null
           status: Database["public"]["Enums"]["txn_status"]
+          tax_included: boolean
           txn_date: string
           user_id: string
         }
@@ -507,6 +511,7 @@ export type Database = {
           invoice_id?: string | null
           receipt_id?: string | null
           status?: Database["public"]["Enums"]["txn_status"]
+          tax_included?: boolean
           txn_date?: string
           user_id: string
         }
@@ -520,6 +525,7 @@ export type Database = {
           invoice_id?: string | null
           receipt_id?: string | null
           status?: Database["public"]["Enums"]["txn_status"]
+          tax_included?: boolean
           txn_date?: string
           user_id?: string
         }
@@ -557,6 +563,24 @@ export type Database = {
     }
     Functions: {
       delete_transaction_cascade: { Args: { txn_id: string }; Returns: string }
+      fiscal_year_summary: {
+        Args: {
+          year_end_month?: number
+          tax_rate?: number
+          corp_tax_rate?: number
+        }
+        Returns: {
+          fy_start: string
+          fy_end: string
+          income: number
+          expenses: number
+          hst_collected: number
+          hst_paid: number
+          hst_payable: number
+          net_income: number
+          corporate_tax: number
+        }[]
+      }
       has_access: { Args: { target_owner: string }; Returns: boolean }
       monthly_cash_flow: {
         Args: { months?: number }

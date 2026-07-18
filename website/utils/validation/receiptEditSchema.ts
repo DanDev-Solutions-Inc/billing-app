@@ -10,4 +10,5 @@ export const receiptEditSchema = Yup.object({
   receipt_date: Yup.string().required("Date is required"),
   category: Yup.string(),
   notes: Yup.string(),
+  tax_included: Yup.boolean(),
 });

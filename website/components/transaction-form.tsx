@@ -7,8 +7,8 @@ import { upload } from "@vercel/blob/client";
 import { createTransactionAction } from "@app/(app)/transactions/actions";
 import { transactionSchema } from "@utils/validation/transactionSchema";
 import { TransactionFormValues } from "@interfaces/forms/TransactionFormValues";
-import { TRANSACTION_CATEGORIES as CATEGORIES } from "@utils/constants";
-import { Card, Field, inputClass, Button, Select } from "@components/ui";
+import { TRANSACTION_CATEGORIES as CATEGORIES, BUSINESS } from "@utils/constants";
+import { Card, Field, inputClass, Button, Select, Checkbox } from "@components/ui";
 import { Combobox } from "@components/ui/combobox";
 
 export const TransactionForm = ({
@@ -33,6 +33,7 @@ export const TransactionForm = ({
       txn_date: today(),
       category: "",
       description: "",
+      tax_included: true,
     },
     validationSchema: transactionSchema,
     onSubmit: async (values, { setStatus }) => {
@@ -62,6 +63,7 @@ export const TransactionForm = ({
       formData.set("txn_date", values.txn_date);
       formData.set("category", values.category);
       formData.set("description", values.description);
+      formData.set("tax_included", values.tax_included ? "1" : "");
       const result = await createTransactionAction({}, formData);
       if (result?.error) setStatus({ error: result.error });
     },
@@ -141,6 +143,24 @@ export const TransactionForm = ({
             aria-label="Description"
           />
         </Field>
+
+        {/* On by default — most Ontario CAD money carries HST. Un-tick for the
+            exempt and zero-rated: bank fees, insurance, groceries. */}
+        <label
+          htmlFor="tax_included"
+          className="flex items-start gap-2.5 text-sm text-muted-foreground"
+        >
+          <Checkbox
+            id="tax_included"
+            name="tax_included"
+            checked={formik.values.tax_included}
+            onChange={formik.handleChange}
+            className="mt-0.5"
+          />
+          <span>
+            Amount includes {BUSINESS.taxLabel} ({BUSINESS.taxRate}%)
+          </span>
+        </label>
 
         <Field label="Attach receipt image (optional)" htmlFor="image">
           <input

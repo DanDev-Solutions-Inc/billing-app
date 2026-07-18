@@ -46,8 +46,32 @@ export const TableRow = ({
   <tr
     data-slot="table-row"
     className={cn(
-      // `relative`: positioning context for <RowLink>'s full-row overlay.
-      "relative border-b border-white/[0.06] transition-colors hover:bg-white/[0.03] data-[state=selected]:bg-brand-accent/10 [&:has(a[class*=after\\:absolute])]:cursor-pointer",
+      /* Positioning context for <RowLink>'s full-row overlay.
+
+         `relative` alone is NOT enough: WebKit ignores `position` on a <tr>
+         (it computes to `static`), so the overlay escaped to the `relative`
+         wrapper in <Table> and blanketed the whole table. In Safari and every
+         iOS browser that meant a click anywhere — including on the sort
+         headers and the select-all box — activated the *last* row's link.
+
+         A no-op `transform` does establish a containing block on a row in
+         every engine. `translate(0)` rather than `translateZ(0)`: both fix it,
+         but the Z variant promotes every row to its own compositing layer for
+         no benefit. Measured in Safari and Chrome; row geometry and the
+         wrapper's scroll width are unchanged.
+
+         Side effect: each row is now a stacking context. RowAction's `z-10`
+         still wins inside it, and native <dialog> still centres in the top
+         layer — both verified.
+
+         The `:has()` rule keys off `data-row-overlay`, which RowLink and
+         CustomerRowLink both set. It used to match `a[class*=after\:absolute]`,
+         which never compiled at all — the escaped colon inside a Tailwind
+         arbitrary variant silently drops the rule, so no row ever showed a
+         pointer cursor. An attribute also covers CustomerRowLink, which is a
+         <button> (it opens a modal, so there's no href) and would have been
+         missed by an `a`-only selector even had it worked. */
+      "relative [transform:translate(0)] border-b border-white/[0.06] transition-colors hover:bg-white/[0.03] data-[state=selected]:bg-brand-accent/10 [&:has([data-row-overlay])]:cursor-pointer",
       className,
     )}
     {...props}

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Trash2, FileText } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
@@ -14,6 +14,7 @@ import {
   Button,
   ButtonLink,
   StatusPill,
+  TaxBreakdown,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { isPdfReceipt } from "@utils/receipt-file";
@@ -23,6 +24,7 @@ import {
   deleteTransactionAction,
 } from "../actions";
 import { TransactionEditForm } from "@components/transactions/edit-form";
+import { ReceiptPreview } from "@components/receipts/receipt-preview";
 
 export const metadata: Metadata = { title: "Transaction" };
 
@@ -128,37 +130,22 @@ const TransactionPage = async ({
             {txn.receipt_id ? (
               <div className="mt-3 flex flex-col gap-3">
                 {/* A PDF receipt can't render in an <img> — that's what broke
-                    the thumbnail. Same guard the receipts pages use. */}
-                <div className="overflow-hidden rounded-xl border border-border bg-surface-muted">
-                  {isPdfReceipt(txn.receipts?.image_url) ? (
-                    <object
-                      data={`/api/receipts/${txn.receipt_id}/file`}
-                      type="application/pdf"
-                      className="h-96 w-full"
-                    >
-                      <a
-                        href={`/api/receipts/${txn.receipt_id}/file`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex h-96 items-center justify-center gap-2 text-sm text-brand-accent underline"
-                      >
-                        <FileText className="size-4" />
-                        Open PDF
-                      </a>
-                    </object>
-                  ) : txn.receipts?.image_url ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={`/api/receipts/${txn.receipt_id}/file`}
-                      alt={txn.receipts?.vendor ?? "Receipt"}
-                      className="max-h-96 w-full object-contain"
-                    />
-                  ) : (
+                    the thumbnail. ReceiptPreview carries the same guard, plus
+                    the click-to-enlarge lightbox. */}
+                {txn.receipts?.image_url ? (
+                  <ReceiptPreview
+                    src={`/api/receipts/${txn.receipt_id}/file`}
+                    alt={txn.receipts?.vendor ?? "Receipt"}
+                    isPdf={isPdfReceipt(txn.receipts?.image_url)}
+                    previewClassName="h-96"
+                  />
+                ) : (
+                  <div className="overflow-hidden rounded-xl border border-border bg-surface-muted">
                     <p className="flex h-24 items-center justify-center text-sm text-muted-foreground">
                       No file attached
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
                 <ButtonLink
                   href={`/receipts/${txn.receipt_id}`}
                   variant="secondary"
@@ -189,6 +176,16 @@ const TransactionPage = async ({
               {txn.direction === "income" ? "+" : "−"}
               {formatMoney(txn.amount)}
             </p>
+            {/* Unsigned: the sign belongs to the hero figure above, and a
+                breakdown of "−$113.00" into "−$100.00 + −$13.00" reads worse
+                than the plain parts it's made of. */}
+            <div className="mt-3">
+              <TaxBreakdown
+                amount={txn.amount}
+                taxIncluded={txn.tax_included}
+                showTotal={false}
+              />
+            </div>
           </Card>
 
           <form action={deleteTransactionAction}>

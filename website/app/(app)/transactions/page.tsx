@@ -53,7 +53,13 @@ const TransactionsPage = async ({
     page?: string;
   }>;
 }) => {
-  await getUserOrRedirect();
+  /* Started, not awaited. The result is unused — this is purely a gate, and the
+     queries below are scoped by RLS rather than by user id — so blocking on it
+     here just serialised an auth round-trip in front of every data fetch. It is
+     resolved in the Promise.all below, so an unauthenticated request still
+     redirects before anything renders. The check itself stays: Server Actions
+     bypass the proxy, and sibling navigation doesn't re-render the layout. */
+  const authGate = getUserOrRedirect();
   const params = await searchParams;
   const period = parsePeriod(params.period);
   const active = TYPES.includes(params.type as (typeof TYPES)[number])
@@ -84,7 +90,8 @@ const TransactionsPage = async ({
   const status =
     active === "review" ? "pending" : active === "reviewed" ? "approved" : undefined;
 
-  const [result, totalCount, pending] = await Promise.all([
+  const [, result, totalCount, pending] = await Promise.all([
+    authGate,
     listTransactions(supabase, { status, from, search: q, sort, dir, page }),
     // The tabs count what matches the *window*, independent of the active tab.
     countTransactions(supabase, { from, search: q }),
@@ -140,10 +147,20 @@ const TransactionsPage = async ({
         title="Transactions"
         subtitle="Money in and out of your business."
         action={
-          <ButtonLink href="/transactions/new" size="sm">
-            <Plus />
-            New transaction
-          </ButtonLink>
+          // Two actions share the row, so they flex here rather than relying on
+          // PageHeader's single-button full-bleed rule.
+          <div className="flex gap-2 [&>a]:flex-1 sm:[&>a]:flex-none">
+            {/* Receipts left the sidebar — they're the paperwork behind these
+                rows, so the way in is from here. */}
+            <ButtonLink href="/receipts" size="sm" variant="secondary">
+              <ReceiptIcon />
+              Receipts
+            </ButtonLink>
+            <ButtonLink href="/transactions/new" size="sm">
+              <Plus />
+              New transaction
+            </ButtonLink>
+          </div>
         }
       />
 
@@ -208,10 +225,15 @@ const TransactionsPage = async ({
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[44px]">
-                  <Checkbox
-                    data-select-all=""
-                    aria-label="Select all on this page"
-                  />
+                  {/* RowAction like the body rows: the transform fix already
+                      keeps the header clear of the row overlay, but this is the
+                      only control in the table that wasn't lifted above it. */}
+                  <RowAction>
+                    <Checkbox
+                      data-select-all=""
+                      aria-label="Select all on this page"
+                    />
+                  </RowAction>
                 </TableHead>
                 <SortableHead
                   label="Date"

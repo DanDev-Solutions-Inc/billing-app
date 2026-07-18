@@ -9,6 +9,7 @@ import {
   Card,
   Button,
   StatusPill,
+  TaxBreakdown,
 } from "@components/ui";
 import { formatMoney } from "@utils/money";
 import { isPdfReceipt } from "@utils/receipt-file";
@@ -16,6 +17,7 @@ import { deleteReceipt } from "../actions";
 import { ReceiptEditForm } from "@components/receipts/edit-form";
 import { RECEIPT_CATEGORIES } from "@utils/constants";
 import { DetailProps } from "@interfaces/components/DetailProps";
+import { ReceiptPreview } from "@components/receipts/receipt-preview";
 
 export const metadata: Metadata = { title: "Receipt" };
 
@@ -66,30 +68,13 @@ const ReceiptPage = async ({
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <Card className="overflow-hidden">
-          {receipt.image_url && isPdfReceipt(receipt.image_url) ? (
-            <object
-              data={`/api/receipts/${receipt.id}/file`}
-              type="application/pdf"
-              className="h-[36rem] w-full bg-surface-muted"
-            >
-              <a
-                href={`/api/receipts/${receipt.id}/file`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex h-96 items-center justify-center text-sm text-brand-accent underline"
-              >
-                Open PDF
-              </a>
-            </object>
-          ) : receipt.image_url ? (
-            <div className="min-h-[24rem] bg-surface-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/api/receipts/${receipt.id}/file`}
-                alt={receipt.vendor ?? "Receipt"}
-                className="mx-auto h-auto w-full object-contain"
-              />
-            </div>
+          {receipt.image_url ? (
+            <ReceiptPreview
+              src={`/api/receipts/${receipt.id}/file`}
+              alt={receipt.vendor ?? "Receipt"}
+              isPdf={isPdfReceipt(receipt.image_url)}
+              previewClassName="h-[36rem]"
+            />
           ) : (
             <div className="flex h-96 items-center justify-center text-sm text-muted-foreground">
               No image attached
@@ -98,11 +83,22 @@ const ReceiptPage = async ({
         </Card>
 
         <Card className="h-fit p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <span className="text-2xl font-semibold tabular-nums text-foreground">
-              {formatMoney(receipt.amount)}
-            </span>
-            <StatusPill status={receipt.source} />
+          <div className="mb-4">
+            <div className="flex items-center justify-between">
+              <span className="text-2xl font-semibold tabular-nums text-foreground">
+                {formatMoney(receipt.amount)}
+              </span>
+              <StatusPill status={receipt.source} />
+            </div>
+            {/* The hero above is the gross; this breaks it down rather than
+                restating the total a second time. */}
+            <div className="mt-3">
+              <TaxBreakdown
+                amount={receipt.amount}
+                taxIncluded={receipt.tax_included}
+                showTotal={false}
+              />
+            </div>
           </div>
 
           {/* Editable in place: the image is right there to read the real values

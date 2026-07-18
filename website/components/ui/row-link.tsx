@@ -18,6 +18,12 @@ import { RowLinkProps } from "@interfaces/components/RowLinkProps";
  */
 export const RowLink = ({ className, children, ...props }: RowLinkProps) => (
   <Link
+    /* Marks this as a row-wide overlay so <TableRow> can show the pointer
+       cursor. A plain attribute, not a class-substring match: the old
+       `[&:has(a[class*=after\:absolute])]` never compiled — the escaped colon
+       inside a Tailwind arbitrary variant silently dropped the rule, so no row
+       has had a pointer cursor. */
+    data-row-overlay=""
     className={cn(
       "font-medium text-foreground outline-none transition-colors after:absolute after:inset-0 after:content-[''] hover:text-brand-accent focus-visible:after:ring-2 focus-visible:after:ring-ring/50",
       className,

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { ChevronDown, Check, Search } from "lucide-react";
 import { cn } from "@lib/utils";
 import { ComboboxProps } from "@interfaces/components/ComboboxProps";
+import { controlHeight } from "@components/ui/input-class";
 
 /**
  * Searchable select. Replaces a native <select> once a list is long enough to
@@ -108,7 +109,7 @@ export const Combobox = ({
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
           className={cn(
-            "w-full rounded-xl border border-glass-border bg-white/[0.04] py-2 pr-9 text-sm text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30",
+            `${controlHeight} w-full rounded-xl border border-glass-border bg-white/[0.04] pr-9 text-sm text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30`,
             open ? "pl-9" : "pl-4",
           )}
         />

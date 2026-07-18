@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@lib/utils";
 import { FilterSelectProps } from "@interfaces/components/FilterSelectProps";
+import { controlHeight } from "@components/ui/input-class";
 
 
 /**
@@ -40,7 +41,7 @@ export const FilterSelect = ({
         aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full min-w-0 appearance-none rounded-xl border border-glass-border bg-white/[0.04] py-2 pl-4 pr-9 text-sm font-medium text-foreground outline-none backdrop-blur-md transition-all hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30 [&>option]:bg-navy-700 [&>option]:text-foreground"
+        className={`${controlHeight} w-full min-w-0 appearance-none rounded-xl border border-glass-border bg-white/[0.04] pl-4 pr-9 text-sm font-medium text-foreground outline-none backdrop-blur-md transition-all hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30 [&>option]:bg-navy-700 [&>option]:text-foreground`}
       >
         {options.map((o) => (
           <option key={o.key} value={o.key}>

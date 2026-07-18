@@ -12,4 +12,5 @@ export const transactionSchema = Yup.object({
   txn_date: Yup.string().required("Date is required"),
   category: Yup.string(),
   description: Yup.string(),
+  tax_included: Yup.boolean(),
 });

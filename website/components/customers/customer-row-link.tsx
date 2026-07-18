@@ -31,6 +31,7 @@ export const CustomerRowLink = ({ customer }: { customer: Customer }) => {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        data-row-overlay=""
         aria-haspopup="dialog"
         aria-label={`Edit ${customer.name}`}
         className="block w-full truncate text-left font-medium text-foreground outline-none transition-colors after:absolute after:inset-0 after:content-[''] hover:text-brand-accent focus-visible:after:ring-2 focus-visible:after:ring-ring/50"

@@ -55,3 +55,5 @@ export { CurrencyNote } from "@components/ui/currency-note";
 export { FilterBar, FilterGroup } from "@components/ui/filter-bar";
 export { RowLink, RowAction } from "@components/ui/row-link";
 export { ConfirmButton } from "@components/ui/confirm-button";
+export { TaxBreakdown } from "@components/ui/tax-breakdown";
+export type { TaxBreakdownProps } from "@interfaces/components/TaxBreakdownProps";

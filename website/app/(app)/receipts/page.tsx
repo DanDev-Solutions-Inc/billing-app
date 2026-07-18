@@ -65,7 +65,10 @@ const ReceiptsPage = async ({
     page?: string;
   }>;
 }) => {
-  await getUserOrRedirect();
+  /* Started, not awaited — see the note in transactions/page.tsx. The result is
+     unused (RLS scopes the queries), so blocking here only serialised an auth
+     round-trip in front of the data. Resolved in the Promise.all below. */
+  const authGate = getUserOrRedirect();
   const params = await searchParams;
   const period = parsePeriod(params.period);
   const source =
@@ -90,7 +93,8 @@ const ReceiptsPage = async ({
   /* Paged in Postgres. This page renders a card with an <img> per receipt, and
      each of those hits an authenticated route that re-checks auth, reads the
      row and fetches the blob — so rendering all 3,598 meant 3,598 of them. */
-  const [result, totalCount, emailCount, uploadCount] = await Promise.all([
+  const [, result, totalCount, emailCount, uploadCount] = await Promise.all([
+    authGate,
     listReceipts(supabase, { source: src, category: cat, search: q, from, page }),
     // The badges count within the *other* filters, so they report what the tab
     // would actually show rather than an all-time total.
@@ -151,6 +155,10 @@ const ReceiptsPage = async ({
       <PageHeader
         title="Receipts"
         subtitle="Track expenses by photo or forwarded email."
+        /* Off the sidebar now — Transactions is the way in, so it's also the
+           way back out. */
+        backHref="/transactions"
+        backLabel="Transactions"
         action={
           // flex-1 so the two split the row on a phone — the header's own
           // w-full only stretches direct children, not these nested in a

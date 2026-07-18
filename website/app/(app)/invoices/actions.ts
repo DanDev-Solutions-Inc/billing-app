@@ -104,6 +104,10 @@ export const setInvoiceStatus = async (formData: FormData) => {
         amount: invoice.total,
         direction: "income",
         category: "Sales",
+        /* The invoice knows exactly what tax it charged, so trust that instead
+           of imputing 13% back out of the payment. USD invoices are 0% (see
+           taxRateFor), as is any invoice issued at a zero rate. */
+        tax_included: Number(invoice.tax) > 0,
         invoice_id: id,
       });
     }

@@ -5,8 +5,9 @@ import { updateTransactionAction } from "@app/(app)/transactions/actions";
 import { transactionSchema } from "@utils/validation/transactionSchema";
 import { TransactionFormValues } from "@interfaces/forms/TransactionFormValues";
 import { TransactionEditFormProps } from "@interfaces/components/TransactionEditFormProps";
-import { Field, inputClass, Button, Select } from "@components/ui";
+import { Field, inputClass, Button, Select, Checkbox } from "@components/ui";
 import { Combobox } from "@components/ui/combobox";
+import { BUSINESS } from "@utils/constants";
 
 /**
  * Edit one transaction. Formik + Yup, like every other form here — the fields
@@ -24,6 +25,7 @@ export const TransactionEditForm = ({
       txn_date: transaction.txn_date,
       category: transaction.category ?? "",
       description: transaction.description ?? "",
+      tax_included: transaction.tax_included ?? true,
     },
     enableReinitialize: true,
     validationSchema: transactionSchema,
@@ -37,6 +39,7 @@ export const TransactionEditForm = ({
       formData.set("txn_date", values.txn_date);
       formData.set("category", values.category);
       formData.set("description", values.description);
+      formData.set("tax_included", values.tax_included ? "1" : "");
       await updateTransactionAction(formData);
     },
   });
@@ -104,6 +107,25 @@ export const TransactionEditForm = ({
           </Select>
         </Field>
       </div>
+
+      {/* On by default — most Ontario CAD money carries HST. Un-tick for the
+          exempt and zero-rated: bank fees, insurance, groceries, USD invoices.
+          This re-splits the same total; it never changes what was paid. */}
+      <label
+        htmlFor="tax_included"
+        className="flex items-start gap-2.5 text-sm text-muted-foreground"
+      >
+        <Checkbox
+          id="tax_included"
+          name="tax_included"
+          checked={formik.values.tax_included}
+          onChange={formik.handleChange}
+          className="mt-0.5"
+        />
+        <span>
+          Amount includes {BUSINESS.taxLabel} ({BUSINESS.taxRate}%)
+        </span>
+      </label>
 
       <Field label="Description" htmlFor="description">
         <Combobox

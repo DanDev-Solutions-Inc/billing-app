@@ -17,6 +17,12 @@ import {
   bulkEditAction,
 } from "@app/(app)/transactions/actions";
 
+/* Bound at module scope so the identities stay stable across renders. Next
+   serialises the bound argument into the form, so this survives no-JS submits
+   the same way a hidden input would. */
+const approveAction = bulkSetStatusAction.bind(null, "approved");
+const reopenAction = bulkSetStatusAction.bind(null, "pending");
+
 /**
  * Actions for the current selection. Rendered inside the same <form> as the
  * row checkboxes, so each submit posts the checked `ids` — no client-side id
@@ -51,21 +57,17 @@ export const BulkBar = ({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="submit"
-          formAction={bulkSetStatusAction}
-          name="status"
-          value="approved"
-          size="sm"
-        >
+        {/* The status is bound into the action rather than set as name/value on
+            the button: React nulls the submitter when a button carries a
+            function formAction, so a name/value here never reaches the server
+            and the action silently no-ops. */}
+        <Button type="submit" formAction={approveAction} size="sm">
           <CheckCheck />
           Mark reviewed
         </Button>
         <Button
           type="submit"
-          formAction={bulkSetStatusAction}
-          name="status"
-          value="pending"
+          formAction={reopenAction}
           variant="secondary"
           size="sm"
         >

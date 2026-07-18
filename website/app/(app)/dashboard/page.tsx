@@ -54,7 +54,10 @@ const DashboardPage = async ({
 }: {
   searchParams: Promise<{ months?: string }>;
 }) => {
-  await getUserOrRedirect();
+  /* Started, not awaited — see the note in transactions/page.tsx. The result is
+     unused (RLS scopes the queries), so blocking here only serialised an auth
+     round-trip in front of the data. Resolved in the Promise.all below. */
+  const authGate = getUserOrRedirect();
   const params = await searchParams;
   const months = parseMonths(params.months);
   /* Whether the range was chosen, vs. fallen back to the default — a phone
@@ -62,7 +65,8 @@ const DashboardPage = async ({
   const hasExplicitRange = Boolean(params.months);
   const supabase = await createClient();
   /* Estimates are no longer surfaced here, so we don't pay to fetch them. */
-  const [invoices, cashFlowMonths, schedules] = await Promise.all([
+  const [, invoices, cashFlowMonths, schedules] = await Promise.all([
+    authGate,
     listInvoices(supabase),
     getMonthlyCashFlow(supabase, months),
     listRecurring(supabase),
