@@ -382,6 +382,36 @@ export type Database = {
         }
         Relationships: []
       }
+      planning_settings: {
+        Row: {
+          employer_cost_percent: number
+          monthly_total: number
+          personal_dividend_rate: number
+          personal_salary_rate: number
+          salary_share_percent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          employer_cost_percent?: number
+          monthly_total?: number
+          personal_dividend_rate?: number
+          personal_salary_rate?: number
+          salary_share_percent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          employer_cost_percent?: number
+          monthly_total?: number
+          personal_dividend_rate?: number
+          personal_salary_rate?: number
+          salary_share_percent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_access: {
         Row: {
           created_at: string

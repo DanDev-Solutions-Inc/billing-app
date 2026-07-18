@@ -11,6 +11,8 @@ import {
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { getFiscalYearSummary } from "@services/supabase/reports";
+import { getPlanningSettings } from "@services/supabase/planning";
+import { CompensationPlanner } from "@components/reports/compensation-planner";
 import {
   PageHeader,
   Card,
@@ -32,7 +34,11 @@ const ReportsPage = async () => {
      the query, so blocking here only serialises an auth round-trip. */
   const authGate = getUserOrRedirect();
   const supabase = await createClient();
-  const [, years] = await Promise.all([authGate, getFiscalYearSummary(supabase)]);
+  const [, years, planning] = await Promise.all([
+    authGate,
+    getFiscalYearSummary(supabase),
+    getPlanningSettings(supabase),
+  ]);
 
   /* The fiscal year we're living in — its figures are a running total, not a
      final position, and saying so is the difference between a report you can
@@ -167,6 +173,40 @@ const ReportsPage = async () => {
                     />
                   </div>
 
+                  {/* Salary-vs-dividend planning, and the only client boundary
+                      on this page. Rendered for the year in progress only: a
+                      closed year can't be re-planned, and offering a slider on
+                      a settled figure invites treating it as adjustable. */}
+                  {inProgress && (
+                    <details className="border-t border-white/[0.06] px-6 py-4">
+                      <summary className="cursor-pointer list-none text-sm font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1.5">
+                          <ChevronDown className="size-4 transition-transform [details[open]_&]:rotate-180" />
+                          Plan salary vs dividends
+                        </span>
+                        <span className="ml-1 text-muted-foreground">
+                          — what a mix does to this year&rsquo;s tax
+                        </span>
+                      </summary>
+
+                      <div className="mt-4">
+                        <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+                          Compensation is projected over a full year, while
+                          income and expenses are actuals so far this fiscal
+                          year — so this tax estimate will rise as more income is
+                          recorded. Nothing here is on the books: payroll and
+                          dividends aren&rsquo;t recorded as transactions.
+                        </p>
+                        <CompensationPlanner
+                          settings={planning}
+                          income={y.income}
+                          expenses={y.expenses}
+                          hstPayable={y.hst_payable}
+                        />
+                      </div>
+                    </details>
+                  )}
+
                   {/* The HST working, shown rather than asserted: a payable
                       figure you can't reconcile is one you won't trust at
                       filing time. */}
@@ -193,6 +233,26 @@ const ReportsPage = async () => {
           net income, and ignores loss carry-forwards, capital cost allowance
           and instalments already paid. Confirm with your accountant before
           filing.
+        </p>
+      )}
+
+      {/* The planner can steer a real decision, so its limits belong on the
+          page rather than in a tooltip. The first point matters most: shifting
+          pay from salary to dividends moves tax between the company and the
+          person — it doesn't delete it. */}
+      {years.length > 0 && (
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          The salary-vs-dividend planner is a projection, not advice. A lower
+          combined figure is tax <em>moved</em>, not tax saved: salary is
+          deductible to the company but taxed as employment income in her hands,
+          while a dividend is paid from profit the company has already been taxed
+          on. Salary paid to a family member is deductible only so far as it is
+          reasonable for work actually performed, and dividends to a family
+          shareholder can be taxed at the top marginal rate under the tax on
+          split income (TOSI) rules unless an exclusion applies — which would
+          undo the dividend&rsquo;s advantage entirely. Her CPP contributions,
+          the RRSP room salary generates, and progressive personal brackets are
+          not modelled. Take a split to your accountant before acting on it.
         </p>
       )}
     </>
