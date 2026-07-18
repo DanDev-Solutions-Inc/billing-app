@@ -113,6 +113,82 @@ export type Database = {
         }
         Relationships: []
       }
+      document_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          blob_pathname: string
+          blob_url: string
+          content_type: string | null
+          created_at: string
+          folder_id: string | null
+          id: string
+          name: string
+          size: number
+          user_id: string
+        }
+        Insert: {
+          blob_pathname: string
+          blob_url: string
+          content_type?: string | null
+          created_at?: string
+          folder_id?: string | null
+          id?: string
+          name: string
+          size?: number
+          user_id: string
+        }
+        Update: {
+          blob_pathname?: string
+          blob_url?: string
+          content_type?: string | null
+          created_at?: string
+          folder_id?: string | null
+          id?: string
+          name?: string
+          size?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estimates: {
         Row: {
           converted_invoice_id: string | null
@@ -562,23 +638,41 @@ export type Database = {
       }
     }
     Functions: {
+      delete_folder_cascade: {
+        Args: { folder: string }
+        Returns: {
+          blob_pathname: string
+        }[]
+      }
       delete_transaction_cascade: { Args: { txn_id: string }; Returns: string }
       fiscal_year_summary: {
         Args: {
-          year_end_month?: number
-          tax_rate?: number
           corp_tax_rate?: number
+          tax_rate?: number
+          year_end_month?: number
         }
         Returns: {
-          fy_start: string
-          fy_end: string
-          income: number
+          corporate_tax: number
           expenses: number
+          fy_end: string
+          fy_start: string
           hst_collected: number
           hst_paid: number
           hst_payable: number
+          income: number
           net_income: number
-          corporate_tax: number
+        }[]
+      }
+      folder_documents: {
+        Args: { root: string }
+        Returns: {
+          blob_pathname: string
+          blob_url: string
+          content_type: string
+          id: string
+          name: string
+          rel_path: string
+          size: number
         }[]
       }
       has_access: { Args: { target_owner: string }; Returns: boolean }

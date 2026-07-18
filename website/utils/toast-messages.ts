@@ -31,4 +31,6 @@ export const TOAST_MESSAGES: Record<string, { message: string; tone: ToastTone }
   "recurring-created": { message: "Schedule created.", tone: "success" },
   "recurring-saved": { message: "Schedule saved.", tone: "success" },
   "recurring-deleted": { message: "Schedule deleted.", tone: "success" },
+  "document-deleted": { message: "Document deleted.", tone: "success" },
+  "folder-deleted": { message: "Folder and its contents deleted.", tone: "success" },
 };

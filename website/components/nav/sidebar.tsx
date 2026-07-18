@@ -10,6 +10,7 @@ import {
   FileSignature,
   ArrowLeftRight,
   ChartColumn,
+  FolderOpen,
   Building2,
   Settings,
   LogOut,
@@ -39,6 +40,7 @@ const NAV = [
   { href: "/customers", label: "Customers", icon: Building2 },
   { href: "/estimates", label: "Estimates", icon: FileSignature },
   { href: "/reports", label: "Reports", icon: ChartColumn },
+  { href: "/documents", label: "Documents", icon: FolderOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
