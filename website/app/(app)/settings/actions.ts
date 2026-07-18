@@ -2,10 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@lib/supabase/server";
-import { getUserOrRedirect } from "@lib/dal";
+import { getUserOrRedirect, isOwner } from "@lib/dal";
 import { importWaveBusiness } from "@services/wave/import-wave-business";
 import { WaveSyncState } from "@interfaces/forms/WaveSyncState";
-import { BUSINESS } from "@utils/constants";
 
 export const syncFromWave = async (
   _prev: WaveSyncState,
@@ -14,7 +13,7 @@ export const syncFromWave = async (
   const user = await getUserOrRedirect();
   // Owner-only: the Wave import writes into the owner's books, so a member with
   // access mustn't trigger it. Server-side because the action is POST-reachable.
-  if (user.email?.toLowerCase() !== BUSINESS.contactEmail.toLowerCase())
+  if (!isOwner(user.email))
     return { error: "Only the account owner can import from Wave." };
 
   const token = process.env.WAVE_FULL_ACCESS_TOKEN;

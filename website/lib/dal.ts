@@ -24,6 +24,12 @@ export const getUserOrRedirect = async (): Promise<User> => {
   return user;
 };
 
+/** The account owner is the business contact address — the only person who can
+ *  manage team access or run the Wave import. Shared so the pages and the
+ *  Server Actions they post to can't drift apart on who counts as owner. */
+export const isOwner = (email?: string | null): boolean =>
+  email?.toLowerCase() === BUSINESS.contactEmail.toLowerCase();
+
 /**
  * App access, not just a session: the owner, or someone who currently holds an
  * access grant. Removing a team member only drops their grant — their auth
@@ -38,7 +44,7 @@ export const getUserOrRedirect = async (): Promise<User> => {
 export const requireAppAccess = async (): Promise<User> => {
   const user = await getUserOrRedirect();
   const email = user.email?.toLowerCase() ?? "";
-  if (email === BUSINESS.contactEmail.toLowerCase()) return user; // owner
+  if (isOwner(email)) return user;
 
   const supabase = await createClient();
   // RLS ("member sees own") lets a member read exactly their own grant row, so

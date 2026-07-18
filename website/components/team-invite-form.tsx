@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormik } from "formik";
-import { inviteMemberAction } from "@app/(app)/team/actions";
+import { inviteMemberAction } from "@app/(app)/settings/team-actions";
 import { inviteSchema } from "@utils/validation/inviteSchema";
 import { InviteFormValues } from "@interfaces/forms/InviteFormValues";
 import { Field, inputClass, Button, Select } from "@components/ui";

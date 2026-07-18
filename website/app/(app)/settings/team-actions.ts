@@ -3,19 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createClient } from "@lib/supabase/server";
-import { getUserOrRedirect } from "@lib/dal";
+import { getUserOrRedirect, isOwner } from "@lib/dal";
 import * as access from "@services/supabase/profile-access";
 import { deleteAccountByEmail } from "@services/supabase/auth-admin";
 import { sendAccessInviteEmail } from "@lib/email";
 import { AccessRole } from "@typings/profile-access/AccessRole";
 import { InviteState } from "@interfaces/forms/InviteState";
-import { BUSINESS } from "@utils/constants";
 
-/** Only the account owner manages team access — members granted access can't
- *  re-share it. The owner is the business contact address. */
-const isOwner = (email?: string | null) =>
-  email?.toLowerCase() === BUSINESS.contactEmail.toLowerCase();
-
+/* Only the account owner manages team access — members granted access can't
+   re-share it. */
 export const inviteMemberAction = async (
   _prev: InviteState,
   formData: FormData,
@@ -46,7 +42,7 @@ export const inviteMemberAction = async (
     signupUrl: `${origin}/signup`,
   });
 
-  revalidatePath("/team");
+  revalidatePath("/settings");
   // The grant is what grants access; a failed email shouldn't read as a failed
   // invite. Report the send outcome instead of hiding it.
   if (sent.error)
@@ -71,5 +67,5 @@ export const removeMemberAction = async (formData: FormData) => {
   await access.removeGrant(supabase, id);
   if (email && !isOwner(email)) await deleteAccountByEmail(email);
 
-  revalidatePath("/team");
+  revalidatePath("/settings");
 };
