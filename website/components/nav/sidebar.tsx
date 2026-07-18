@@ -9,6 +9,7 @@ import {
   Repeat,
   FileSignature,
   ArrowLeftRight,
+  ChartColumn,
   Building2,
   Settings,
   LogOut,
@@ -37,6 +38,7 @@ const NAV = [
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/customers", label: "Customers", icon: Building2 },
   { href: "/estimates", label: "Estimates", icon: FileSignature },
+  { href: "/reports", label: "Reports", icon: ChartColumn },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

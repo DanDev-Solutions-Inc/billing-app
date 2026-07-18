@@ -12,6 +12,12 @@ export const BUSINESS = {
   taxLabel: "HST",
   taxRate: 13, // percent — default applied to new documents
   taxNumber: "733803910 RT0001",
+  // Fiscal year ends August 31 — reports bucket by this, not the calendar.
+  fiscalYearEndMonth: 8,
+  // Ontario CCPC small business rate: 9% federal + 3.2% provincial, on active
+  // business income under the $500k small business limit. The reports page
+  // applies this to net income; it is an estimate, not a filed return.
+  corpTaxRate: 12.2, // percent
   currency: "CAD",
   defaultTerms:
     "Payment by cheque (payable to DanDev Solutions Inc.) or Interac e-Transfer to karpienia@dandev.solutions.",
