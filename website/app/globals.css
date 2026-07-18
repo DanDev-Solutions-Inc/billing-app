@@ -146,6 +146,27 @@ optgroup {
   letter-spacing: inherit;
 }
 
+/* iOS Safari zooms the viewport when a focused control's text is under 16px,
+   and never zooms back out — so on a phone every tap into a field (worst in
+   modals, where the zoom then clips the dialog) left the page scaled up.
+
+   `font-size: inherit` above means these controls take their size from
+   whichever ancestor set one, so a field inside a `text-sm` container landed
+   at 14px and tripped the zoom. Pin 16px on phones; from `sm` up the inherited
+   scale returns, and no browser zooms there.
+
+   Set on the elements rather than in the control classes on purpose: several
+   controls build their own class strings (search, combobox, filter select)
+   and have drifted from the shared ones before — this can't be forgotten by
+   the next one. Unlayered so it beats Tailwind's `@layer utilities`. */
+@media (max-width: 639.98px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 /* Headings get the display face by default, so a heading that forgets the
    `font-heading` utility can't drift back to the body face. */
 h1,
