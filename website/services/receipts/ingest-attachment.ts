@@ -37,18 +37,20 @@ export const ingestAttachment = async (
   });
 
   // Read it so the receipt lands with real values rather than a blank row.
+  // We deliberately don't gate on is_receipt — an estimate, an invoice, or a
+  // receipt the model misjudges still gets parsed and booked, so nothing a user
+  // forwards is silently dropped.
   const analysis = await analyzeReceipt(bytes.toString("base64"), contentType);
-  const usable = analysis?.is_receipt ? analysis : null;
-  const amount = usable?.amount != null ? Math.abs(usable.amount) : 0;
+  const amount = analysis?.amount != null ? Math.abs(analysis.amount) : 0;
 
   const { data: receipt, error } = await admin
     .from("receipts")
     .insert({
       user_id: userId,
-      vendor: usable?.vendor ?? null,
+      vendor: analysis?.vendor ?? null,
       amount,
-      receipt_date: usable?.date ?? undefined,
-      category: usable?.category ?? null,
+      receipt_date: analysis?.date ?? undefined,
+      category: analysis?.category ?? null,
       source: "email",
       notes: subject,
       image_url: blob.url,
@@ -64,17 +66,17 @@ export const ingestAttachment = async (
   // File it in the ledger, pending review. A refund is money coming back, so it
   // books as income; a $0 receipt moved no money and gets no transaction.
   if (amount > 0) {
-    const vendor = usable?.vendor;
+    const vendor = analysis?.vendor;
     await admin.from("transactions").insert({
       user_id: userId,
-      txn_date: usable?.date ?? new Date().toISOString().slice(0, 10),
+      txn_date: analysis?.date ?? new Date().toISOString().slice(0, 10),
       description: vendor
-        ? `${usable?.is_refund ? "Refund" : "Receipt"} — ${vendor}`
+        ? `${analysis?.is_refund ? "Refund" : "Receipt"} — ${vendor}`
         : "Emailed receipt",
       amount,
-      direction: usable?.is_refund ? "income" : "expense",
+      direction: analysis?.is_refund ? "income" : "expense",
       status: "pending",
-      category: usable?.category ?? null,
+      category: analysis?.category ?? null,
       receipt_id: receipt.id,
     });
   }
