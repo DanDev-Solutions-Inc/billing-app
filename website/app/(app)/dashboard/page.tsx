@@ -36,7 +36,7 @@ import {
 } from "@utils/period";
 import { formatMoney, computeTotals } from "@utils/money";
 import { sumInCad, toCad, rateFor } from "@utils/fx";
-import { isOverdue, isOutstanding } from "@utils/invoice";
+import { isOverdue, isOutstanding, asBalanceRow } from "@utils/invoice";
 import { yearlyAmount } from "@utils/cadence";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 
@@ -79,8 +79,10 @@ const DashboardPage = async ({
   const overdueInvoices = outstandingInvoices.filter(isOverdue);
   /* Reported in CAD. A USD invoice converts at the rate stored on it, so the
      figure is stable and adding the two currencies together means something. */
-  const outstanding = sumInCad(outstandingInvoices);
-  const overdue = sumInCad(overdueInvoices);
+  /* Balances, not totals: a $10,000 invoice with $9,000 already in is $1,000
+     still to chase. */
+  const outstanding = sumInCad(outstandingInvoices.map(asBalanceRow));
+  const overdue = sumInCad(overdueInvoices.map(asBalanceRow));
 
   /* Overdue first — those are the ones that need chasing. */
   const outstandingSorted = [...outstandingInvoices].sort(

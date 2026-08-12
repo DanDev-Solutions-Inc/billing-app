@@ -5,11 +5,16 @@ import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { getInvoice } from "@services/supabase/invoice";
 import { listLineItems } from "@services/supabase/line-item";
+import { listInvoicePayments } from "@services/supabase/invoice-payment";
 import { listDocumentEmails } from "@services/supabase/document-email";
 import { DocumentDetail } from "@components/document-detail";
 import { EmailActivity } from "@components/email-activity";
 import { EmailStatusIcon } from "@components/email-status-icon";
+import { PaymentHistory } from "@components/invoices/payment-history";
+import { RecordPaymentButton } from "@components/invoices/record-payment-button";
 import { latestEmailState } from "@utils/email-status";
+import { balanceOf, paidOf, paymentStatus } from "@utils/invoice";
+import { toCurrency } from "@utils/currency";
 import {
   Button,
   ButtonLink,
@@ -58,15 +63,30 @@ const InvoicePage = async ({
 
   const items = await listLineItems(supabase, "invoice", id);
   const emails = await listDocumentEmails(supabase, "invoice", id);
+  const payments = await listInvoicePayments(supabase, id);
+
+  const balance = balanceOf(inv);
+  const currency = toCurrency(inv.currency);
 
   return (
     <DocumentDetail
       emailActivity={<EmailActivity emails={emails} />}
+      payments={
+        <PaymentHistory
+          payments={payments}
+          total={inv.total}
+          paid={paidOf(inv)}
+          balance={balance}
+          currency={currency}
+        />
+      }
       emailStatus={<EmailStatusIcon state={latestEmailState(emails)} />}
       backHref="/invoices"
       heading="Invoice"
       number={inv.invoice_number}
-      status={inv.status}
+      /* Not inv.status: "partial" and "overdue" are what the numbers say, and
+         the enum has neither. */
+      status={paymentStatus(inv)}
       customer={inv.customers}
       issueDate={inv.issue_date}
       secondDateLabel="Due"
@@ -86,12 +106,15 @@ const InvoicePage = async ({
            Previously one nowrap row — "Email to customer" pushed the menu past
            the edge and it was unreachable. */
         <div className="grid w-full grid-cols-[1fr_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-wrap [&>form]:flex-1 [&>form>button]:w-full sm:[&>form]:flex-none sm:[&>form>button]:w-auto">
-          {inv.status !== "paid" && (
-            <StatusButton
+          {/* Was "Mark as paid", which could only mean all of it. The modal
+              defaults to the full balance, so settling an invoice is still one
+              button and one confirm — a deposit is now expressible too. */}
+          {balance > 0 && (
+            <RecordPaymentButton
               id={inv.id}
-              status="paid"
-              label="Mark as paid"
-              variant="primary"
+              balance={balance}
+              currency={currency}
+              className="w-full sm:w-auto"
             />
           )}
           <SendButton
@@ -112,7 +135,12 @@ const InvoicePage = async ({
                 />
               </MenuItem>
             )}
-            {inv.status === "paid" && (
+            {/* Reopening is deleting the payment that closed it — that's in
+                the Payments card, where the amount and date being undone are
+                visible. This is only for an invoice marked paid with nothing
+                recorded against it, which the backfill left none of but a
+                zero-dollar invoice can still be. */}
+            {inv.status === "paid" && payments.length === 0 && (
               <MenuItem>
                 <StatusButton
                   id={inv.id}

@@ -69,6 +69,25 @@ export const TRANSACTION_CATEGORIES = [
   ...RECEIPT_CATEGORIES,
 ] as const;
 
+/* How a payment against an invoice arrived. A fixed list, not free text: the
+   same answer typed four ways ("cheque #204", "Cheque", "chq") can't be counted
+   or filtered on. Mirrors the check constraint on invoice_payments.method.
+
+   Ordered by how often they're used — the first is what the payment modal
+   offers by default. */
+export const PAYMENT_METHODS = [
+  { value: "cheque", label: "Cheque" },
+  { value: "bank", label: "Bank payment" },
+  { value: "e_transfer", label: "E-transfer" },
+  { value: "cash", label: "Cash" },
+  { value: "card", label: "Credit card" },
+  { value: "other", label: "Other" },
+] as const;
+
+/** Display name for a stored method. Null on rows recorded before it was asked. */
+export const paymentMethodLabel = (value: string | null): string =>
+  PAYMENT_METHODS.find((m) => m.value === value)?.label ?? "Payment";
+
 // Wave API endpoints + OAuth scopes for importing invoices/customers.
 export const WAVE = {
   authorizeUrl: "https://api.waveapps.com/oauth2/authorize/",

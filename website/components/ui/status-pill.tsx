@@ -6,6 +6,8 @@ const statusColors: Record<string, string> = {
   draft: "border-white/10 bg-white/[0.06] text-muted-foreground",
   sent: "border-brand-accent/30 bg-brand-accent/10 text-brand-accent",
   paid: "border-brand-green/30 bg-brand-green/10 text-brand-green",
+  /* Amber, like "pending": some money is in, the invoice isn't settled. */
+  partial: "border-amber-400/30 bg-amber-400/10 text-amber-300",
   accepted: "border-brand-green/30 bg-brand-green/10 text-brand-green",
   declined: "border-brand-red/30 bg-brand-red/10 text-brand-red",
   overdue: "border-brand-red/30 bg-brand-red/10 text-brand-red",

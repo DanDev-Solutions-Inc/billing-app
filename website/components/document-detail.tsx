@@ -33,6 +33,7 @@ export const DocumentDetail = ({
   notes,
   actionBar,
   banner,
+  payments,
   emailActivity,
   emailStatus,
   backHref,
@@ -147,6 +148,8 @@ export const DocumentDetail = ({
           </div>
         </div>
       </Card>
+
+      {payments}
 
       {notes && (
         <Card>

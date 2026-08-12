@@ -8,7 +8,7 @@ import {
   CurrencyNote,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
-import { isOverdue } from "@utils/invoice";
+import { isOverdue, balanceOf, paidOf } from "@utils/invoice";
 import { OutstandingCardProps } from "@interfaces/components/OutstandingCardProps";
 
 /**
@@ -91,8 +91,15 @@ export const OutstandingCard = ({
                       : "No due date"}
                   </span>
                 </span>
-                <span className="shrink-0 font-medium tabular-nums">
-                  {formatMoney(inv.total, inv.currency)}
+                {/* What's left on it, which is the total until a payment is
+                    recorded against it. The row sums to the figure above. */}
+                <span className="shrink-0 text-right font-medium tabular-nums">
+                  {formatMoney(balanceOf(inv), inv.currency)}
+                  {paidOf(inv) > 0 && (
+                    <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                      of {formatMoney(inv.total, inv.currency)}
+                    </span>
+                  )}
                 </span>
               </Link>
             </li>

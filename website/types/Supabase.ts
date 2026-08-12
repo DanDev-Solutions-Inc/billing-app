@@ -271,8 +271,50 @@ export type Database = {
           },
         ]
       }
+      invoice_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          method: string | null
+          note: string | null
+          paid_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          method?: string | null
+          note?: string | null
+          paid_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          method?: string | null
+          note?: string | null
+          paid_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
+          amount_paid: number
           created_at: string
           currency: Database["public"]["Enums"]["currency_code"]
           customer_id: string | null
@@ -291,6 +333,7 @@ export type Database = {
           wave_id: string | null
         }
         Insert: {
+          amount_paid?: number
           created_at?: string
           currency?: Database["public"]["Enums"]["currency_code"]
           customer_id?: string | null
@@ -309,6 +352,7 @@ export type Database = {
           wave_id?: string | null
         }
         Update: {
+          amount_paid?: number
           created_at?: string
           currency?: Database["public"]["Enums"]["currency_code"]
           customer_id?: string | null
@@ -601,6 +645,7 @@ export type Database = {
           direction: Database["public"]["Enums"]["txn_direction"]
           id: string
           invoice_id: string | null
+          payment_id: string | null
           receipt_id: string | null
           status: Database["public"]["Enums"]["txn_status"]
           tax_included: boolean
@@ -615,6 +660,7 @@ export type Database = {
           direction: Database["public"]["Enums"]["txn_direction"]
           id?: string
           invoice_id?: string | null
+          payment_id?: string | null
           receipt_id?: string | null
           status?: Database["public"]["Enums"]["txn_status"]
           tax_included?: boolean
@@ -629,6 +675,7 @@ export type Database = {
           direction?: Database["public"]["Enums"]["txn_direction"]
           id?: string
           invoice_id?: string | null
+          payment_id?: string | null
           receipt_id?: string | null
           status?: Database["public"]["Enums"]["txn_status"]
           tax_included?: boolean
@@ -641,6 +688,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_payments"
             referencedColumns: ["id"]
           },
           {

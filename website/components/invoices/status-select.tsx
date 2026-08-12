@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@lib/utils";
 import { setInvoiceStatus } from "@app/(app)/invoices/actions";
+import { localNow, toIsoInstant, localDay } from "@utils/local-time";
 import { InvoiceStatusSelectProps } from "@interfaces/components/InvoiceStatusSelectProps";
 
 /* Mirrors StatusPill's palette so the control reads as the badge it replaces.
@@ -22,8 +23,11 @@ const OPTIONS = ["draft", "sent", "paid"] as const;
 /**
  * Change an invoice's status from the list, without opening it.
  *
- * Marking paid also books the income transaction (server-side, once), so this
- * is a real state change rather than a label — hence the pending state.
+ * Marking paid records a payment for the full balance and books the income
+ * against it (server-side), so this is a real state change rather than a label
+ * — hence the pending state. Anything more specific than "all of it, now" is
+ * the payment modal's job on the invoice itself, which is why the list only
+ * shows this control while nothing has been paid yet.
  */
 export const InvoiceStatusSelect = ({
   id,
@@ -38,6 +42,13 @@ export const InvoiceStatusSelect = ({
     const formData = new FormData();
     formData.set("id", id);
     formData.set("status", next);
+    /* The payment this books is happening now, in the user's timezone — the
+       server runs in UTC and would file a late-evening one on the next day. */
+    if (next === "paid") {
+      const now = localNow();
+      formData.set("paid_at", toIsoInstant(now));
+      formData.set("paid_on", localDay(now));
+    }
     startTransition(async () => {
       await setInvoiceStatus(formData);
       router.refresh();
