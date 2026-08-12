@@ -17,6 +17,8 @@ export interface DocumentDetailProps {
   notes: string | null;
   actionBar?: ReactNode;
   banner?: ReactNode;
+  /** Payment history for this document. Rendered directly under the totals. */
+  payments?: ReactNode;
   /** Delivery history for emailed copies of this document. Rendered below the totals. */
   emailActivity?: ReactNode;
   /** Compact email-state icon shown beside the status pill in the header. */

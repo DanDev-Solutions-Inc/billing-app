@@ -25,9 +25,10 @@ import {
   FilterBar,
   FilterGroup,
   RowLink,
+  StatusPill,
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
-import { isOverdue } from "@utils/invoice";
+import { isOverdue, paidOf, balanceOf, paymentStatus } from "@utils/invoice";
 import { sortRows, paginate, Accessors } from "@utils/table";
 import { tableView } from "@utils/table/table-view";
 import { InvoiceStatusSelect } from "@components/invoices/status-select";
@@ -38,14 +39,20 @@ export const metadata: Metadata = { title: "Invoices" };
 /* Invoices are a working list, not a time report: no date window here — an
    unpaid invoice matters regardless of when it was issued.
 
-   "overdue" is a derived view (sent + past due_date), not a stored status —
-   `invoice_status` is only draft | sent | paid. */
-const STATUSES = ["sent", "paid", "overdue"] as const;
+   "overdue" and "partial" are derived views (sent + past due_date; sent with
+   some money in), not stored statuses — `invoice_status` is only
+   draft | sent | paid. */
+const STATUSES = ["sent", "partial", "paid", "overdue"] as const;
 
 const matchesStatus = (
-  inv: { status: string; due_date: string | null },
+  inv: InvoiceWithCustomer,
   status: string,
-) => (status === "overdue" ? isOverdue(inv) : inv.status === status);
+) =>
+  status === "overdue"
+    ? isOverdue(inv)
+    : status === "partial"
+      ? inv.status === "sent" && paidOf(inv) > 0
+      : inv.status === status;
 
 /* What each sortable column sorts by. Dates sort as ISO strings (lexical ==
    chronological); money sorts numerically, not as text. */
@@ -54,7 +61,7 @@ const ACCESSORS: Accessors<InvoiceWithCustomer> = {
   customer: (i) => i.customers?.name?.toLowerCase() ?? "",
   issue_date: (i) => i.issue_date,
   due_date: (i) => i.due_date,
-  status: (i) => (isOverdue(i) ? "overdue" : i.status),
+  status: (i) => paymentStatus(i),
   total: (i) => Number(i.total),
 };
 const SORT_KEYS = Object.keys(ACCESSORS);
@@ -304,7 +311,9 @@ const InvoicesPage = async ({
                         ? `Overdue ${formatDate(inv.due_date)}`
                         : inv.status === "paid"
                           ? `Paid · ${formatDate(inv.issue_date)}`
-                          : `${inv.status === "sent" ? "Sent" : "Draft"} · due ${formatDate(inv.due_date)}`}
+                          : paidOf(inv) > 0
+                            ? `${formatMoney(balanceOf(inv), inv.currency)} left · due ${formatDate(inv.due_date)}`
+                            : `${inv.status === "sent" ? "Sent" : "Draft"} · due ${formatDate(inv.due_date)}`}
                     </span>
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
@@ -323,15 +332,31 @@ const InvoicesPage = async ({
                   <TableCell className="hidden sm:table-cell">
                     {/* Editable in place: status is the field that actually
                         changes day to day, and opening the invoice to flip it
-                        was the long way round. */}
-                    <InvoiceStatusSelect
-                      id={inv.id}
-                      status={inv.status}
-                      overdue={isOverdue(inv)}
-                    />
+                        was the long way round.
+
+                        Once money has been recorded against the invoice, the
+                        payments decide the status — so it reads as a pill
+                        instead, and is changed by adding or deleting a payment
+                        on the invoice itself. */}
+                    {paidOf(inv) > 0 ? (
+                      <StatusPill status={paymentStatus(inv)} />
+                    ) : (
+                      <InvoiceStatusSelect
+                        id={inv.id}
+                        status={inv.status}
+                        overdue={isOverdue(inv)}
+                      />
+                    )}
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
                     {formatMoney(inv.total, inv.currency)}
+                    {/* Part paid: the total alone would overstate what's still
+                        coming. */}
+                    {inv.status !== "paid" && paidOf(inv) > 0 && (
+                      <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                        {formatMoney(paidOf(inv), inv.currency)} paid
+                      </span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

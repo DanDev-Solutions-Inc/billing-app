@@ -7,6 +7,7 @@ import {
 } from "@services/supabase/invoice";
 import { upsertEstimateByWaveId } from "@services/supabase/estimate";
 import { createLineItems, deleteLineItems } from "@services/supabase/line-item";
+import { createInvoicePayment } from "@services/supabase/invoice-payment";
 import {
   createTransaction,
   hasInvoiceIncome,
@@ -155,16 +156,28 @@ export const importWaveBusiness = async (
       });
     }
 
-    // Paid invoices become an income transaction (once).
+    /* Paid invoices become a payment and the income transaction it books
+       (once). Wave reports a paid invoice, not the payments behind it, so this
+       is one row for the whole total — enough for amount_paid to agree with the
+       status, which is what every balance in the app is now read from. */
     if (status === "paid" && !(await hasInvoiceIncome(sb, invoiceId))) {
+      const paidOn = inv.invoiceDate ?? new Date().toISOString().slice(0, 10);
+      const { payment } = await createInvoicePayment(sb, {
+        user_id: userId,
+        invoice_id: invoiceId,
+        amount: parseWaveMoney(inv.total),
+        paid_at: `${paidOn}T00:00:00Z`,
+        note: "Imported from Wave as paid",
+      });
       await createTransaction(sb, {
         user_id: userId,
-        txn_date: inv.invoiceDate ?? new Date().toISOString().slice(0, 10),
+        txn_date: paidOn,
         description: `Invoice ${inv.invoiceNumber ?? ""} paid`.trim(),
         amount: parseWaveMoney(inv.total),
         direction: "income",
         category: "Sales",
         invoice_id: invoiceId,
+        payment_id: payment?.id ?? null,
       });
     }
   }

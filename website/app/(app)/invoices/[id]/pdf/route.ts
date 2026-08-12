@@ -3,6 +3,7 @@ import { getUser } from "@lib/dal";
 import { renderDocumentPdf } from "@lib/pdf/render";
 import { getInvoice } from "@services/supabase/invoice";
 import { listLineItems } from "@services/supabase/line-item";
+import { balanceOf } from "@utils/invoice";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,9 @@ export const GET = async (
     issueDate: invoice.issue_date,
     secondLabel: "Payment Due",
     secondDate: invoice.due_date,
-    amountDue: invoice.status === "paid" ? 0 : invoice.total,
+    // What's still owed, so a re-sent copy asks for the remainder rather than
+    // the whole amount again.
+    amountDue: balanceOf(invoice),
     customer: invoice.customers,
     items,
     subtotal: invoice.subtotal,
