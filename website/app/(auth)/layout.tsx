@@ -12,7 +12,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
             width={1343}
             height={268}
             priority
-            className="h-9 w-auto invert"
+            className="h-9 w-auto dark:invert"
           />
         </Link>
         <div className="rounded-2xl border border-border bg-surface p-7 shadow-sm">

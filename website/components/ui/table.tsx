@@ -71,7 +71,7 @@ export const TableRow = ({
          pointer cursor. An attribute also covers CustomerRowLink, which is a
          <button> (it opens a modal, so there's no href) and would have been
          missed by an `a`-only selector even had it worked. */
-      "relative [transform:translate(0)] border-b border-white/[0.06] transition-colors hover:bg-white/[0.03] data-[state=selected]:bg-brand-accent/10 [&:has([data-row-overlay])]:cursor-pointer",
+      "relative [transform:translate(0)] border-b border-overlay/[0.06] transition-colors hover:bg-overlay/[0.03] data-[state=selected]:bg-brand-accent/10 [&:has([data-row-overlay])]:cursor-pointer",
       className,
     )}
     {...props}

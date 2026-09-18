@@ -105,7 +105,7 @@ const ReceiptPage = async ({
               off, which is exactly when a scan needs correcting. */}
           <ReceiptEditForm receipt={receipt} categories={categoryOptions} />
 
-          <div className="mt-4 border-t border-white/[0.06] pt-4">
+          <div className="mt-4 border-t border-overlay/[0.06] pt-4">
             <Detail
               label="Added via"
               value={receipt.source === "email" ? "Email" : "Upload"}

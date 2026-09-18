@@ -49,7 +49,7 @@ export const RecurringCard = ({ yearlyRun, upcoming }: RecurringCardProps) => (
           </ButtonLink>
         </div>
       ) : (
-        <ul className="divide-y divide-white/[0.06]">
+        <ul className="divide-y divide-overlay/[0.06]">
           {upcoming.slice(0, 5).map((s) => {
             const overdueRun = daysUntil(s.next_run) < 0;
             return (

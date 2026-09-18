@@ -116,7 +116,7 @@ export const AuthForm = ({ mode }: { mode: "login" | "signup" }) => {
       <button
         type="button"
         onClick={() => signInWithGoogle()}
-        className="flex items-center justify-center gap-2 rounded-xl border border-glass-border bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-foreground backdrop-blur-md transition-colors hover:bg-white/[0.12]"
+        className="flex items-center justify-center gap-2 rounded-xl border border-glass-border bg-overlay/[0.06] px-4 py-2.5 text-sm font-medium text-foreground backdrop-blur-md transition-colors hover:bg-overlay/[0.12]"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
           <path

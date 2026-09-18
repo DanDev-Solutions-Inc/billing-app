@@ -22,7 +22,7 @@ export const FilterTabs = ({
          controls divide their row evenly so the options stay tappable. */
       "flex w-full items-center sm:inline-flex sm:w-auto",
       variant === "segmented"
-        ? "gap-0.5 rounded-xl border border-glass-border bg-white/[0.04] p-1 backdrop-blur-md [&>a]:flex-1 [&>a]:justify-center sm:[&>a]:flex-none"
+        ? "gap-0.5 rounded-xl border border-glass-border bg-overlay/[0.04] p-1 backdrop-blur-md [&>a]:flex-1 [&>a]:justify-center sm:[&>a]:flex-none"
         : /* Chips fill the row on a phone (flex-1) so they read as a control
              rather than a ragged left huddle; natural width from sm up. */
           "gap-1 [&>a]:flex-1 [&>a]:justify-center sm:flex-wrap sm:[&>a]:flex-none sm:[&>a]:justify-start",
@@ -45,7 +45,7 @@ export const FilterTabs = ({
               ? variant === "segmented"
                 ? "vui-grad text-white shadow-[0_2px_12px_-2px_rgba(47,111,196,0.6)]"
                 : "bg-brand-accent/15 text-brand-accent"
-              : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
+              : "text-muted-foreground hover:bg-overlay/[0.06] hover:text-foreground",
           )}
         >
           {t.label}

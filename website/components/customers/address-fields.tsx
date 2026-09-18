@@ -121,13 +121,13 @@ export const AddressFields = ({ values, onChange }: AddressFieldsProps) => {
         </Field>
 
         {open && suggestions.length > 0 && (
-          <ul className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-glass-border bg-navy-700 py-1 shadow-xl">
+          <ul className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-glass-border bg-popover py-1 shadow-xl">
             {suggestions.map((s) => (
               <li key={s.placeId}>
                 <button
                   type="button"
                   onClick={() => pick(s)}
-                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-white/[0.06]"
+                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-overlay/[0.06]"
                 >
                   <MapPin className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
                   <span>{s.description}</span>

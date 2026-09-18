@@ -16,7 +16,7 @@
  * mismatching everywhere else.
  */
 const Bar = ({ className = "" }: { className?: string }) => (
-  <div className={`rounded-lg bg-white/[0.06] ${className}`} />
+  <div className={`rounded-lg bg-overlay/[0.06] ${className}`} />
 );
 
 const Loading = () => (
@@ -33,14 +33,14 @@ const Loading = () => (
     </div>
 
     {/* Card with rows — reads as a table on list pages, as fields on detail */}
-    <div className="overflow-hidden rounded-2xl border border-glass-border bg-white/[0.04]">
-      <div className="border-b border-white/[0.06] p-4">
+    <div className="overflow-hidden rounded-2xl border border-glass-border bg-overlay/[0.04]">
+      <div className="border-b border-overlay/[0.06] p-4">
         <Bar className="h-4 w-32" />
       </div>
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-4 border-b border-white/[0.06] p-4 last:border-b-0"
+          className="flex items-center gap-4 border-b border-overlay/[0.06] p-4 last:border-b-0"
         >
           <Bar className="h-4 w-full max-w-[14rem] flex-1" />
           <Bar className="hidden h-4 w-32 sm:block" />

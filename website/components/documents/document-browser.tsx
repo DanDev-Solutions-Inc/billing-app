@@ -56,7 +56,7 @@ export const DocumentBrowser = ({
       >
         <Link
           href="/documents"
-          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 outline-none transition-colors hover:bg-white/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 outline-none transition-colors hover:bg-overlay/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
         >
           <House className="size-4" />
           Documents
@@ -73,7 +73,7 @@ export const DocumentBrowser = ({
               ) : (
                 <Link
                   href={`/documents/${crumb.id}`}
-                  className="rounded-lg px-2 py-1 outline-none transition-colors hover:bg-white/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="rounded-lg px-2 py-1 outline-none transition-colors hover:bg-overlay/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   {crumb.name}
                 </Link>
@@ -137,7 +137,7 @@ export const DocumentBrowser = ({
                         href={`/api/documents/folders/${f.id}/zip`}
                         title={`Download ${f.name} as a zip`}
                         aria-label={`Download ${f.name} as a zip`}
-                        className="inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-white/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+                        className="inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-overlay/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
                       >
                         <Download className="size-4" />
                       </a>
@@ -185,7 +185,7 @@ export const DocumentBrowser = ({
                           href={`/api/documents/${d.id}/file?download=1`}
                           title={`Download ${d.name}`}
                           aria-label={`Download ${d.name}`}
-                          className="inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-white/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+                          className="inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-overlay/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
                         >
                           <Download className="size-4" />
                         </a>

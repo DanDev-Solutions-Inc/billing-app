@@ -25,7 +25,7 @@ export const MobileNav = ({ email }: SidebarProps) => {
             width={1343}
             height={268}
             priority
-            className="h-7 w-auto invert"
+            className="h-7 w-auto dark:invert"
           />
         </Link>
         <button
@@ -71,7 +71,7 @@ export const MobileNav = ({ email }: SidebarProps) => {
             type="button"
             aria-label="Close menu"
             onClick={() => setOpen(false)}
-            className="absolute right-4 top-5 rounded-xl border border-glass-border bg-white/[0.06] p-2 text-foreground backdrop-blur-md"
+            className="absolute right-4 top-5 rounded-xl border border-glass-border bg-overlay/[0.06] p-2 text-foreground backdrop-blur-md"
           >
             <X className="size-5" />
           </button>

@@ -78,7 +78,7 @@ const ReportsPage = async () => {
                 <details className="group" open={inProgress}>
                   {/* list-none + the webkit rule drop the default triangle;
                       the chevron below replaces it and can be positioned. */}
-                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-x-4 rounded-[--radius] px-6 pb-4 pt-5 outline-none transition-colors hover:bg-white/[0.02] focus-visible:ring-2 focus-visible:ring-ring/60 [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-x-4 rounded-[--radius] px-6 pb-4 pt-5 outline-none transition-colors hover:bg-overlay/[0.02] focus-visible:ring-2 focus-visible:ring-ring/60 [&::-webkit-details-marker]:hidden">
                     <div className="min-w-0">
                       <CardTitle>
                         {label}
@@ -152,7 +152,7 @@ const ReportsPage = async () => {
                   {/* What's owed. Split off behind a rule because these two are
                       liabilities, not performance — the numbers you set money
                       aside for, rather than the ones you celebrate. */}
-                  <div className="mt-5 grid gap-4 border-t border-white/[0.06] px-6 py-4 sm:grid-cols-3">
+                  <div className="mt-5 grid gap-4 border-t border-overlay/[0.06] px-6 py-4 sm:grid-cols-3">
                     <Metric
                       label={refund ? "HST refund" : "HST payable"}
                       value={formatMoney(Math.abs(y.hst_payable))}
@@ -178,7 +178,7 @@ const ReportsPage = async () => {
                       closed year can't be re-planned, and offering a slider on
                       a settled figure invites treating it as adjustable. */}
                   {inProgress && (
-                    <details className="border-t border-white/[0.06] px-6 py-4">
+                    <details className="border-t border-overlay/[0.06] px-6 py-4">
                       <summary className="cursor-pointer list-none text-sm font-medium text-foreground">
                         <span className="inline-flex items-center gap-1.5">
                           <ChevronDown className="size-4 transition-transform [details[open]_&]:rotate-180" />
@@ -210,7 +210,7 @@ const ReportsPage = async () => {
                   {/* The HST working, shown rather than asserted: a payable
                       figure you can't reconcile is one you won't trust at
                       filing time. */}
-                  <div className="border-t border-white/[0.06] px-6 py-3 text-xs text-muted-foreground">
+                  <div className="border-t border-overlay/[0.06] px-6 py-3 text-xs text-muted-foreground">
                     HST collected {formatMoney(y.hst_collected)} − input tax
                     credits {formatMoney(y.hst_paid)} ={" "}
                     <span className="font-medium text-foreground">

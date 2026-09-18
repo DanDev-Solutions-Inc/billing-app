@@ -25,7 +25,7 @@ import { CashFlowChartProps } from "@interfaces/components/CashFlowChartProps";
 const INCOME = "var(--brand-green)";
 const EXPENSE = "var(--brand-red)";
 const AXIS = "var(--muted-foreground)";
-const GRID = "rgba(255,255,255,0.06)";
+const GRID = "color-mix(in srgb, var(--overlay) 6%, transparent)";
 
 /** Axis ticks: $21k. */
 const compact = (v: number) => {
@@ -83,17 +83,17 @@ export const CashFlowChart = ({ data }: CashFlowChartProps) => {
           />
           <Tooltip
             formatter={(value) => formatMoney(Number(value))}
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            cursor={{ fill: "color-mix(in srgb, var(--overlay) 4%, transparent)" }}
             contentStyle={{
               borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "var(--navy-700)",
+              border: "1px solid var(--glass-border)",
+              background: "var(--popover)",
               backdropFilter: "blur(20px)",
-              color: "#ffffff",
+              color: "var(--foreground)",
               fontSize: 13,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+              boxShadow: "0 8px 32px var(--shadow-color)",
             }}
-            labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: 4 }}
+            labelStyle={{ color: "var(--foreground)", fontWeight: 700, marginBottom: 4 }}
           />
           <Legend
             verticalAlign="bottom"
@@ -115,7 +115,7 @@ export const CashFlowChart = ({ data }: CashFlowChartProps) => {
                 dataKey="income"
                 position="top"
                 formatter={barLabel}
-                style={{ fill: "#ffffff", fontSize: 10, fontWeight: 600 }}
+                style={{ fill: "var(--foreground)", fontSize: 10, fontWeight: 600 }}
               />
             )}
           </Bar>
@@ -131,7 +131,7 @@ export const CashFlowChart = ({ data }: CashFlowChartProps) => {
                 dataKey="expense"
                 position="top"
                 formatter={barLabel}
-                style={{ fill: "#ffffff", fontSize: 10, fontWeight: 600 }}
+                style={{ fill: "var(--foreground)", fontSize: 10, fontWeight: 600 }}
               />
             )}
           </Bar>

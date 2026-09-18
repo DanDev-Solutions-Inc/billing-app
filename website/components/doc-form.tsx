@@ -207,7 +207,7 @@ export const DocForm = ({
           </Field>
           {isInvoice ? (
             <Field label="Invoice #">
-              <div className={`${inputClass} border-dashed bg-white/[0.02] text-muted-foreground/70`}>
+              <div className={`${inputClass} border-dashed bg-overlay/[0.02] text-muted-foreground/70`}>
                 Auto-generated (sequential)
               </div>
             </Field>

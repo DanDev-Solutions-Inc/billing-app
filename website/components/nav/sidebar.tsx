@@ -16,6 +16,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { logout } from "@app/(auth)/actions";
 import { cn } from "@lib/utils";
@@ -23,6 +25,7 @@ import {
   useSidebarCollapsed,
   toggleSidebarCollapsed,
 } from "@hooks/use-sidebar-collapsed";
+import { useTheme, toggleTheme } from "@hooks/use-theme";
 import { SidebarProps } from "@interfaces/components/SidebarProps";
 
 /* Icons are lucide across the whole app — these were hand-rolled SVGs, the one
@@ -52,6 +55,9 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const pathname = usePathname();
   const collapsed = useSidebarCollapsed();
+  const theme = useTheme();
+  const themeLabel =
+    theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
 
   // The drawer always shows labels — it isn't width-constrained.
   const mini = collapsible && collapsed;
@@ -84,7 +90,7 @@ export const Sidebar = ({
             width={mini ? 426 : 1343}
             height={mini ? 266 : 268}
             priority
-            className={cn("w-auto invert", mini ? "h-7" : "h-8")}
+            className={cn("w-auto dark:invert", mini ? "h-7" : "h-8")}
           />
         </Link>
       </div>
@@ -113,8 +119,8 @@ export const Sidebar = ({
                 "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring/60",
                 mini && "justify-center px-0",
                 active
-                  ? "vui-glass font-bold text-foreground shadow-[0_4px_16px_-6px_rgba(0,0,0,0.6)]"
-                  : "font-medium text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
+                  ? "vui-glass font-bold text-foreground shadow-[0_4px_16px_-6px_var(--shadow-color)]"
+                  : "font-medium text-muted-foreground hover:bg-overlay/[0.04] hover:text-foreground",
               )}
             >
               <span
@@ -122,7 +128,7 @@ export const Sidebar = ({
                   "inline-flex size-8 shrink-0 items-center justify-center rounded-lg transition-all",
                   active
                     ? "vui-grad text-white shadow-[0_4px_12px_-3px_rgba(47,111,196,0.8)]"
-                    : "bg-white/[0.06] text-muted-foreground group-hover:text-foreground",
+                    : "bg-overlay/[0.06] text-muted-foreground group-hover:text-foreground",
                 )}
               >
                 <Icon className="size-[18px]" />
@@ -142,11 +148,11 @@ export const Sidebar = ({
             aria-label={mini ? "Expand navigation" : "Collapse navigation"}
             title={mini ? "Expand navigation" : "Collapse navigation"}
             className={cn(
-              "mt-1 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-white/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
+              "mt-1 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-overlay/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
               mini && "justify-center px-0",
             )}
           >
-            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-glass-border bg-white/[0.04]">
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-glass-border bg-overlay/[0.04]">
               {mini ? (
                 <ChevronRight className="size-[18px]" />
               ) : (
@@ -172,16 +178,40 @@ export const Sidebar = ({
             {email}
           </p>
         )}
+        {/* Shows where it'll take you: a sun on dark, a moon on light.
+            Icon and label switch on the `dark:` variant rather than on
+            useTheme, so they're right from the first paint — the hook only
+            catches up after hydration. */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={mini ? themeLabel : undefined}
+          className={cn(
+            "group mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-overlay/[0.04] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
+            mini && "justify-center px-0",
+          )}
+        >
+          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-overlay/[0.06]">
+            <Sun className="hidden size-[18px] dark:block" />
+            <Moon className="size-[18px] dark:hidden" />
+          </span>
+          <span className={cn("hidden dark:inline", mini && "sr-only")}>
+            Light mode
+          </span>
+          <span className={cn("dark:hidden", mini && "sr-only")}>
+            Dark mode
+          </span>
+        </button>
         <form action={logout}>
           <button
             type="submit"
             title={mini ? "Sign out" : undefined}
             className={cn(
-              "group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-white/[0.04] hover:text-brand-red focus-visible:ring-2 focus-visible:ring-ring/60",
+              "group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-all hover:bg-overlay/[0.04] hover:text-brand-red focus-visible:ring-2 focus-visible:ring-ring/60",
               mini && "justify-center px-0",
             )}
           >
-            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] transition-colors group-hover:bg-brand-red/15">
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-overlay/[0.06] transition-colors group-hover:bg-brand-red/15">
               <LogOut className="size-[18px]" />
             </span>
             {!mini && "Sign out"}

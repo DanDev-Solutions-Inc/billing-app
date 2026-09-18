@@ -10,7 +10,7 @@ export const Card = ({ className, children }: CardProps) => (
   <div
     data-slot="card"
     className={cn(
-      "vui-glass rounded-[--radius] text-card-foreground shadow-[0_8px_32px_-12px_rgba(0,0,0,0.6)]",
+      "vui-glass rounded-[--radius] text-card-foreground shadow-[0_8px_32px_-12px_var(--shadow-color)]",
       className,
     )}
   >

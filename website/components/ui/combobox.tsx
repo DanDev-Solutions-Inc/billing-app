@@ -109,7 +109,7 @@ export const Combobox = ({
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
           className={cn(
-            `${controlHeight} w-full rounded-xl border border-glass-border bg-white/[0.04] pr-9 text-sm text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30`,
+            `${controlHeight} w-full rounded-xl border border-glass-border bg-overlay/[0.04] pr-9 text-sm text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:bg-overlay/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30`,
             open ? "pl-9" : "pl-4",
           )}
         />
@@ -131,7 +131,7 @@ export const Combobox = ({
         <ul
           id={id ? `${id}-listbox` : undefined}
           role="listbox"
-          className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-glass-border bg-navy-700 py-1 shadow-xl backdrop-blur-md"
+          className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-glass-border bg-popover py-1 shadow-xl backdrop-blur-md"
         >
           {emptyLabel && !query && (
             <li>
@@ -140,7 +140,7 @@ export const Combobox = ({
                 role="option"
                 aria-selected={!value}
                 onClick={() => commit("")}
-                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-muted-foreground hover:bg-white/[0.06]"
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-muted-foreground hover:bg-overlay/[0.06]"
               >
                 {emptyLabel}
                 {!value && <Check className="size-4" />}
@@ -158,7 +158,7 @@ export const Combobox = ({
                 onClick={() => commit(o.value)}
                 className={cn(
                   "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-foreground",
-                  i === active && "bg-white/[0.06]",
+                  i === active && "bg-overlay/[0.06]",
                 )}
               >
                 <span className="min-w-0">

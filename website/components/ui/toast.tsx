@@ -82,7 +82,7 @@ const ToastRow = ({
       className={cn(
         "pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 text-sm shadow-xl backdrop-blur-md",
         "animate-in fade-in slide-in-from-bottom-2 sm:slide-in-from-top-2",
-        "border-glass-border bg-navy-700/95 text-foreground",
+        "border-glass-border bg-popover/95 text-foreground",
       )}
     >
       {ICONS[toast.tone]}
@@ -91,7 +91,7 @@ const ToastRow = ({
         type="button"
         onClick={() => onDismiss(toast.id)}
         aria-label="Dismiss"
-        className="shrink-0 rounded-lg p-1 text-muted-foreground transition hover:bg-white/[0.08] hover:text-foreground"
+        className="shrink-0 rounded-lg p-1 text-muted-foreground transition hover:bg-overlay/[0.08] hover:text-foreground"
       >
         <X className="size-4" />
       </button>

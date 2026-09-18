@@ -59,7 +59,7 @@ export const LineItemsEditor = ({
         return (
           <div
             key={index}
-            className="grid grid-cols-2 gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 sm:grid-cols-[1fr_90px_120px_120px_32px] sm:items-center sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
+            className="grid grid-cols-2 gap-2 rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] p-3 sm:grid-cols-[1fr_90px_120px_120px_32px] sm:items-center sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
           >
             {/* Pick a preset, or switch to free text to write your own with
                 line breaks. The first line renders as the bold title on the
@@ -99,7 +99,7 @@ export const LineItemsEditor = ({
                 aria-label={
                   isFree(index) ? "Use a preset instead" : "Write free text"
                 }
-                className="mt-1 shrink-0 rounded-lg p-1.5 text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="mt-1 shrink-0 rounded-lg p-1.5 text-muted-foreground outline-none transition-colors hover:bg-overlay/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
               >
                 {isFree(index) ? (
                   <List className="size-4" />
@@ -142,7 +142,7 @@ export const LineItemsEditor = ({
             </label>
             {/* Amount + remove share the last mobile row, labelled so the
                 number isn't floating unexplained. */}
-            <div className="col-span-2 flex items-center justify-between border-t border-white/[0.06] pt-2 sm:contents sm:border-0 sm:pt-0">
+            <div className="col-span-2 flex items-center justify-between border-t border-overlay/[0.06] pt-2 sm:contents sm:border-0 sm:pt-0">
               <span className="text-xs text-muted-foreground sm:hidden">
                 Amount
               </span>

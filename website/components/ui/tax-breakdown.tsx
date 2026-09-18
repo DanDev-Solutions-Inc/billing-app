@@ -43,7 +43,7 @@ export const TaxBreakdown = ({
         </p>
       )}
       {showTotal && (
-        <div className="flex items-center justify-between border-t border-white/[0.06] pt-1.5 font-medium text-foreground">
+        <div className="flex items-center justify-between border-t border-overlay/[0.06] pt-1.5 font-medium text-foreground">
           <dt>Total</dt>
           <dd className="tabular-nums">{formatMoney(total)}</dd>
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Inter_Tight } from "next/font/google";
 import { PwaRegister } from "@components/pwa-register";
+import { THEME_STORAGE_KEY } from "@utils/theme";
 import "./globals.css";
 
 // Free fallbacks for the Adobe brand fonts until the Typekit kit loads:
@@ -35,6 +36,13 @@ export const viewport: Viewport = {
   themeColor: "#144783",
 };
 
+/* Runs while the HTML is parsed, before first paint, so a light-mode user
+   never sees a flash of navy. Dark unless they've chosen light — it's the
+   brand's default look. */
+const themeScript = `try{document.documentElement.dataset.theme=localStorage.getItem(${JSON.stringify(
+  THEME_STORAGE_KEY,
+)})==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,8 +56,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
       className={`${interTight.variable} ${inter.variable} h-full antialiased`}
+      /* The theme script may flip data-theme before React hydrates. */
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       {/* Extensions (Grammarly, wallets) inject attributes onto <body> before
           React hydrates — `data-gr-ext-installed`, `data-new-gr-c-s-check-loaded`
           — which React reports as a hydration mismatch. Suppressing it here is

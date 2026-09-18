@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* `dark:` follows the app's theme toggle (data-theme on <html>, set before
+   paint by the script in app/layout.tsx), not the OS media query. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* DanDev Billing — Vision UI dashboard language, DanDev brand palette.
    Deep navy canvas, glassmorphic gradient cards, blue gradient accents.
    The semantic token *names* stay shadcn-compatible so every existing
@@ -63,6 +67,14 @@
     linear-gradient(180deg, #0b1730 0%, #060d1f 100%);
   --glass-border: rgba(255, 255, 255, 0.12);
 
+  /* The tint for faint fills and hairlines (`bg-overlay/[0.06]`): white
+     lifts a panel off navy, and flips to navy on the light theme. */
+  --overlay: #ffffff;
+  /* Drop shadows read as depth on navy at this strength; on white they'd be
+     smudges, so the light theme lowers it. */
+  --shadow-color: rgba(0, 0, 0, 0.6);
+  --shadow-color-strong: rgba(0, 0, 0, 0.8);
+
   /* Brand type (Adobe Fonts / Typekit kit yns3mqx): Neue Haas Grotesk Display
      for headings, Neue Haas Grotesk Text for body. Inter Tight / Inter are the
      free next/font fallbacks used until the Adobe kit loads. Named *-stack
@@ -70,6 +82,55 @@
   --heading-stack: "neue-haas-grotesk-display", var(--font-inter-tight),
     sans-serif;
   --body-stack: "neue-haas-grotesk-text", var(--font-inter), sans-serif;
+}
+
+/* --- Light theme ----------------------------------------------------------
+   Same token names, re-valued for a white canvas. The brand accents are
+   darkened a step: the bright blue/green/red that carry on navy fall below
+   text contrast on white. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --brand-accent: #2563c9;
+  --brand-black: #0b1730;
+  --brand-red: #cf3f38;
+  --brand-green: #108a5b;
+
+  --sidebar: rgba(255, 255, 255, 0.72);
+  --background: #f3f6fb;
+  --surface: #ffffff;
+  --surface-muted: #eaf0f8;
+  --foreground: #0b1730;
+  --muted: #eaf0f8;
+  --border: rgba(11, 23, 48, 0.1);
+
+  --card: #ffffff;
+  --card-foreground: #0b1730;
+  --popover: #ffffff;
+  --popover-foreground: #0b1730;
+  --secondary: #eaf0f8;
+  --secondary-foreground: #0b1730;
+  --accent: rgba(47, 111, 196, 0.1);
+  --accent-foreground: #0b1730;
+  --muted-foreground: #52627d;
+  --input: rgba(11, 23, 48, 0.16);
+
+  --grad-card: linear-gradient(
+    127deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.82) 100%
+  );
+  --grad-page: radial-gradient(
+      1200px 600px at 15% -10%,
+      rgba(47, 111, 196, 0.14) 0%,
+      transparent 60%
+    ),
+    linear-gradient(180deg, #f5f8fc 0%, #e9eef6 100%);
+  --glass-border: rgba(11, 23, 48, 0.1);
+
+  --overlay: #0b1730;
+  --shadow-color: rgba(11, 23, 48, 0.14);
+  --shadow-color-strong: rgba(11, 23, 48, 0.22);
 }
 
 @theme inline {
@@ -106,6 +167,7 @@
   --color-navy-800: var(--navy-800);
   --color-navy-700: var(--navy-700);
   --color-glass-border: var(--glass-border);
+  --color-overlay: var(--overlay);
   /* Vision UI radii: cards 20px, controls step down from there. */
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -118,7 +180,6 @@
 
 html {
   scroll-behavior: smooth;
-  color-scheme: dark;
 }
 
 body {
@@ -226,8 +287,8 @@ button:disabled {
   width: 1rem;
   height: 1rem;
   border-radius: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid color-mix(in srgb, var(--overlay) 20%, transparent);
+  background-color: color-mix(in srgb, var(--overlay) 6%, transparent);
   cursor: pointer;
   transition:
     background-color 0.15s,
@@ -262,10 +323,10 @@ button:disabled {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: oklch(1 0 0 / 15%);
+  background: color-mix(in srgb, var(--overlay) 15%, transparent);
   border-radius: 6px;
   border: 2px solid var(--background);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(1 0 0 / 25%);
+  background: color-mix(in srgb, var(--overlay) 25%, transparent);
 }

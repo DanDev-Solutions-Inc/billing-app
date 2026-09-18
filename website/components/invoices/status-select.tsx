@@ -67,7 +67,7 @@ export const InvoiceStatusSelect = ({
         aria-label="Invoice status"
         className={cn(
           "w-fit cursor-pointer appearance-none rounded-md border py-0.5 pl-2 pr-6 text-xs font-medium capitalize outline-none transition disabled:opacity-60",
-          "[&>option]:bg-navy-700 [&>option]:text-foreground",
+          "[&>option]:bg-popover [&>option]:text-foreground",
           tone,
         )}
       >

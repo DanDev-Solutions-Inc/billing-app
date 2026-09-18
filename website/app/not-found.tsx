@@ -4,7 +4,7 @@ import { Card, ButtonLink } from "@components/ui";
 const NotFound = () => (
   <div className="flex min-h-[60dvh] items-center justify-center px-4">
     <Card className="w-full max-w-md p-7 text-center">
-      <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl border border-glass-border bg-white/[0.06] text-muted-foreground">
+      <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl border border-glass-border bg-overlay/[0.06] text-muted-foreground">
         <FileQuestion className="size-6" />
       </span>
       <h1 className="font-heading text-lg font-bold text-foreground">

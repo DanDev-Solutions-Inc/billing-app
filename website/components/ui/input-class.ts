@@ -8,7 +8,7 @@
    - inner-spin-button: number steppers are tiny light nubs; drop them.
    - option: the popup list would otherwise be white-on-white. */
 export const fieldBase =
-  "w-full min-w-0 rounded-xl border border-glass-border bg-white/[0.04] text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/70 focus-visible:border-brand-accent/60 focus-visible:bg-white/[0.06] focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&>option]:bg-navy-700 [&>option]:text-foreground";
+  "w-full min-w-0 rounded-xl border border-glass-border bg-overlay/[0.04] text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/70 focus-visible:border-brand-accent/60 focus-visible:bg-overlay/[0.06] focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&>option]:bg-popover [&>option]:text-foreground";
 
 /* The one source of truth for how tall a single-line control is.
    Exported because several controls (search, comboboxes, filter selects) build

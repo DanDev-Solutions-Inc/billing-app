@@ -50,8 +50,8 @@ export const Menu = ({
         title={label}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-glass-border bg-white/[0.06] text-muted-foreground outline-none transition-colors hover:bg-white/[0.12] hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50",
-          open && "bg-white/[0.12] text-foreground",
+          "inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-glass-border bg-overlay/[0.06] text-muted-foreground outline-none transition-colors hover:bg-overlay/[0.12] hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50",
+          open && "bg-overlay/[0.12] text-foreground",
         )}
       >
         <MoreHorizontal className="size-4" />
@@ -63,7 +63,7 @@ export const Menu = ({
           // Any click inside is an action — close after it runs.
           onClick={() => setOpen(false)}
           className={cn(
-            "absolute z-50 mt-2 min-w-48 overflow-hidden rounded-xl border border-glass-border bg-navy-700 py-1 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] backdrop-blur-md",
+            "absolute z-50 mt-2 min-w-48 overflow-hidden rounded-xl border border-glass-border bg-popover py-1 shadow-[0_16px_48px_-12px_var(--shadow-color-strong)] backdrop-blur-md",
             align === "end" ? "right-0" : "left-0",
           )}
         >
@@ -85,7 +85,7 @@ export const MenuItem = ({
     className={cn(
       // Style the interactive child generically so links, buttons and
       // form-submit buttons all look identical in the menu.
-      "[&>*]:flex [&>*]:w-full [&>*]:items-center [&>*]:gap-2.5 [&>*]:rounded-none [&>*]:px-3.5 [&>*]:py-2 [&>*]:text-sm [&>*]:font-medium [&>*]:text-muted-foreground [&>*]:transition-colors hover:[&>*]:bg-white/[0.06] hover:[&>*]:text-foreground [&>*]:justify-start [&_svg]:size-4",
+      "[&>*]:flex [&>*]:w-full [&>*]:items-center [&>*]:gap-2.5 [&>*]:rounded-none [&>*]:px-3.5 [&>*]:py-2 [&>*]:text-sm [&>*]:font-medium [&>*]:text-muted-foreground [&>*]:transition-colors hover:[&>*]:bg-overlay/[0.06] hover:[&>*]:text-foreground [&>*]:justify-start [&_svg]:size-4",
       className,
     )}
     {...props}
@@ -96,5 +96,5 @@ export const MenuItem = ({
 
 /** Hairline between groups of menu items. */
 export const MenuSeparator = () => (
-  <div className="my-1 h-px bg-white/[0.08]" />
+  <div className="my-1 h-px bg-overlay/[0.08]" />
 );

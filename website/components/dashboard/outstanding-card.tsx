@@ -61,7 +61,7 @@ export const OutstandingCard = ({
           Nothing outstanding. Nice.
         </p>
       ) : (
-        <ul className="divide-y divide-white/[0.06]">
+        <ul className="divide-y divide-overlay/[0.06]">
           {outstandingSorted.slice(0, 7).map((inv) => (
             <li key={inv.id}>
               <Link

@@ -192,7 +192,7 @@ const DashboardPage = async ({
               them again as separate tiles up top was pure duplication.
               Stacked on mobile: three across truncated the amounts to
               "$138,36…", and a money figure you can't read isn't a metric. */}
-          <div className="grid gap-4 border-t border-white/[0.06] px-6 py-4 sm:grid-cols-3">
+          <div className="grid gap-4 border-t border-overlay/[0.06] px-6 py-4 sm:grid-cols-3">
             <Metric
               label="Income"
               value={formatMoney(totals.income)}

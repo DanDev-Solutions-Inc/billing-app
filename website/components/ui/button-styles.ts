@@ -29,9 +29,9 @@ export const buttonVariants: Record<ButtonVariant, string> = {
     "vui-grad text-white font-semibold ring-1 ring-inset ring-white/20 shadow-[0_6px_20px_-6px_rgba(20,71,131,0.9)] hover:shadow-[0_8px_24px_-6px_rgba(47,111,196,0.9)] hover:brightness-115",
   /* Raised glass — the default for secondary actions on a navy canvas. */
   secondary:
-    "border border-glass-border bg-white/[0.06] text-foreground backdrop-blur-md hover:bg-white/[0.12]",
+    "border border-glass-border bg-overlay/[0.06] text-foreground backdrop-blur-md hover:bg-overlay/[0.12]",
   glass:
-    "vui-glass text-foreground hover:border-brand-accent/40 hover:bg-white/[0.08]",
+    "vui-glass text-foreground hover:border-brand-accent/40 hover:bg-overlay/[0.08]",
   outline:
     "border border-brand-accent/50 bg-transparent text-brand-accent hover:bg-brand-accent/10",
   /* Solid brand red — irreversible actions state their intent up front. */
@@ -40,5 +40,5 @@ export const buttonVariants: Record<ButtonVariant, string> = {
   /* Quiet red — same meaning where a solid fill would shout (table rows). */
   dangerGhost:
     "text-brand-red hover:bg-brand-red/10 focus-visible:ring-destructive/40",
-  ghost: "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
+  ghost: "text-muted-foreground hover:bg-overlay/[0.06] hover:text-foreground",
 };

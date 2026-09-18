@@ -19,7 +19,7 @@ export const ClearFilters = ({
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-xl border border-glass-border bg-white/[0.04] px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-white/[0.08] hover:text-foreground",
+        "inline-flex items-center gap-1.5 rounded-xl border border-glass-border bg-overlay/[0.04] px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-overlay/[0.08] hover:text-foreground",
         className,
       )}
     >

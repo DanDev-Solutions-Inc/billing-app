@@ -140,7 +140,7 @@ export const CompensationPlanner = ({
       {/* Headline — the combined number, because that is the decision */}
       <div
         className={
-          "rounded-xl border border-glass-border bg-white/[0.03] p-4 " +
+          "rounded-xl border border-glass-border bg-overlay/[0.03] p-4 " +
           (dirty ? "italic" : "")
         }
       >
@@ -207,7 +207,7 @@ export const CompensationPlanner = ({
       )}
 
       {/* Where the money lands */}
-      <div className="grid gap-3 border-t border-white/[0.06] pt-4 text-sm sm:grid-cols-3">
+      <div className="grid gap-3 border-t border-overlay/[0.06] pt-4 text-sm sm:grid-cols-3">
         <Line label="Net income after salary" value={formatMoney(s.netIncome)} />
         <Line label="Profit left after corporate tax" value={formatMoney(s.afterTaxProfit)} />
         <Line
@@ -217,7 +217,7 @@ export const CompensationPlanner = ({
       </div>
 
       {/* Assumptions, tucked away but adjustable */}
-      <details className="rounded-xl border border-glass-border bg-white/[0.02] px-4 py-3">
+      <details className="rounded-xl border border-glass-border bg-overlay/[0.02] px-4 py-3">
         <summary className="cursor-pointer text-sm font-medium text-foreground">
           Assumptions
         </summary>
@@ -289,7 +289,7 @@ const Warning = ({ children }: { children: React.ReactNode }) => (
 );
 
 const Note = ({ children }: { children: React.ReactNode }) => (
-  <p className="flex items-start gap-2 rounded-xl border border-glass-border bg-white/[0.03] px-4 py-3 text-sm text-muted-foreground">
+  <p className="flex items-start gap-2 rounded-xl border border-glass-border bg-overlay/[0.03] px-4 py-3 text-sm text-muted-foreground">
     <Info className="mt-0.5 size-4 shrink-0" />
     <span>{children}</span>
   </p>

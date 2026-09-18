@@ -67,7 +67,7 @@ export const Modal = ({
         // layer. Opened from inside a `whitespace-nowrap` table cell (the edit
         // buttons are), the title and subtitle inherited nowrap and ran off a
         // phone instead of wrapping. Reset it at the modal boundary.
-        "vui-glass m-auto whitespace-normal rounded-[--radius] p-0 text-foreground shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8)] backdrop:bg-navy-900/70 backdrop:backdrop-blur-sm",
+        "vui-glass m-auto whitespace-normal rounded-[--radius] p-0 text-foreground shadow-[0_24px_64px_-12px_var(--shadow-color-strong)] backdrop:bg-navy-900/70 backdrop:backdrop-blur-sm",
         // A <dialog> is width:fit-content by default, so without an explicit
         // width it grows to its widest line and runs off a phone.
         // `w-[calc(100%-2rem)]` + max-w keeps a margin at every size; the
@@ -89,7 +89,7 @@ export const Modal = ({
         {/* Header sticks so the title and close stay reachable while the body
             scrolls. A ModalResult carries its own headline, so an empty title
             drops the heading and floats just the close button. */}
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 bg-navy-700/95 px-6 pb-4 pt-5 backdrop-blur-md">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 bg-popover/95 px-6 pb-4 pt-5 backdrop-blur-md">
           <div className="min-w-0">
             {title && (
               <h2 className="font-heading text-base font-bold tracking-tight text-foreground">
@@ -106,7 +106,7 @@ export const Modal = ({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mr-1 ml-auto shrink-0 rounded-full p-1.5 text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="-mr-1 ml-auto shrink-0 rounded-full p-1.5 text-muted-foreground outline-none transition-colors hover:bg-overlay/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
           >
             <X className="size-4" />
           </button>

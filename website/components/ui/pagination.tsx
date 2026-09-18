@@ -39,7 +39,7 @@ export const Pagination = ({
       className={cn(
         "flex flex-wrap items-center gap-3",
         variant === "footer"
-          ? "justify-between border-t border-white/[0.06] px-3 py-3 sm:px-6"
+          ? "justify-between border-t border-overlay/[0.06] px-3 py-3 sm:px-6"
           : "justify-between",
         className,
       )}
@@ -65,7 +65,7 @@ export const Pagination = ({
             <Link
               href={hrefFor(page - 1)}
               aria-label="Previous page"
-              className={cn(linkBase, "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground")}
+              className={cn(linkBase, "text-muted-foreground hover:bg-overlay/[0.06] hover:text-foreground")}
             >
               <ChevronLeft className="size-4" />
             </Link>
@@ -96,7 +96,7 @@ export const Pagination = ({
                   "tabular-nums",
                   p === page
                     ? "vui-grad text-white shadow-[0_2px_12px_-2px_rgba(47,111,196,0.6)]"
-                    : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
+                    : "text-muted-foreground hover:bg-overlay/[0.06] hover:text-foreground",
                 )}
               >
                 {p}
@@ -108,7 +108,7 @@ export const Pagination = ({
             <Link
               href={hrefFor(page + 1)}
               aria-label="Next page"
-              className={cn(linkBase, "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground")}
+              className={cn(linkBase, "text-muted-foreground hover:bg-overlay/[0.06] hover:text-foreground")}
             >
               <ChevronRight className="size-4" />
             </Link>

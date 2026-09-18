@@ -64,14 +64,14 @@ export const SearchInput = ({
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className={`${controlHeight} w-full rounded-xl border border-glass-border bg-white/[0.04] pl-9 pr-9 text-sm text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:bg-white/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30 [&::-webkit-search-cancel-button]:hidden`}
+        className={`${controlHeight} w-full rounded-xl border border-glass-border bg-overlay/[0.04] pl-9 pr-9 text-sm text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:bg-overlay/[0.08] focus-visible:border-brand-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/30 [&::-webkit-search-cancel-button]:hidden`}
       />
       {value && (
         <button
           type="button"
           onClick={() => setValue("")}
           aria-label="Clear search"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-muted-foreground transition hover:bg-white/[0.08] hover:text-foreground"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-muted-foreground transition hover:bg-overlay/[0.08] hover:text-foreground"
         >
           <X className="size-4" />
         </button>
