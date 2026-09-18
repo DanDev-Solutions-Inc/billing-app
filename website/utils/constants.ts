@@ -9,6 +9,10 @@ export const BUSINESS = {
   // Where clients should write with questions. Documents are sent from a
   // no-reply address, so this is the only route back to a monitored mailbox.
   contactEmail: "karpienia@dandev.solutions",
+  // Where the business keeps its clock. Timestamps are formatted in this zone,
+  // not the renderer's: pages render on Vercel in UTC, which put an 8:33 a.m.
+  // send at "12:33 p.m.".
+  timeZone: "America/Toronto",
   taxLabel: "HST",
   taxRate: 13, // percent — default applied to new documents
   taxNumber: "733803910 RT0001",

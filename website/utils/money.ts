@@ -27,15 +27,24 @@ export const formatMoney = (
   return code === "USD" ? `${formatted} USD` : formatted;
 };
 
-/** Format an ISO date (yyyy-mm-dd) as a readable date, e.g. "Jul 16, 2026". */
+/**
+ * Format an ISO date (yyyy-mm-dd) as a readable date, e.g. "Jul 16, 2026".
+ *
+ * Also takes a full timestamp (a created_at), which is an instant and so needs
+ * the business's zone to land on the right day. A bare date must NOT get one:
+ * it's parsed as local midnight, and re-reading that in another zone would
+ * move it a day.
+ */
 export const formatDate = (value: string | null | undefined): string => {
   if (!value) return "—";
-  const d = new Date(value + (value.length === 10 ? "T00:00:00" : ""));
+  const isDateOnly = value.length === 10;
+  const d = new Date(value + (isDateOnly ? "T00:00:00" : ""));
   if (Number.isNaN(d.getTime())) return value;
   return d.toLocaleDateString("en-CA", {
     year: "numeric",
     month: "short",
     day: "numeric",
+    ...(isDateOnly ? {} : { timeZone: BUSINESS.timeZone }),
   });
 };
 
@@ -52,6 +61,7 @@ export const formatDateTime = (value: string | null | undefined): string => {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: BUSINESS.timeZone,
   });
 };
 
