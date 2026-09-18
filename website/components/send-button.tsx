@@ -14,6 +14,8 @@ import {
 } from "@components/ui";
 import { SendButtonProps } from "@interfaces/components/SendButtonProps";
 
+const SLOW_SEND_MS = 15_000;
+
 /**
  * Sends the document by email from a modal: pick the address, watch it go, see
  * it land. It used to fire on click and report inline, which gave no chance to
@@ -35,6 +37,20 @@ export const SendButton = ({
   useEffect(() => {
     if (state.ok) router.refresh();
   }, [state.ok, router]);
+
+  /* A send normally resolves in a second or two. If it hangs, the email has
+     usually already gone — on Sep 18 the server finished in ~1s but the modal
+     sat on "Sending…" — so say that rather than invite a second send. Keyed
+     off `pending` flipping; the flag resets whenever a send settles. */
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (!pending) return;
+    const timer = setTimeout(() => setSlow(true), SLOW_SEND_MS);
+    return () => {
+      clearTimeout(timer);
+      setSlow(false);
+    };
+  }, [pending]);
 
   const hasEmail = emails.length > 0;
 
@@ -98,14 +114,22 @@ export const SendButton = ({
 
             {state.error && <Alert tone="error">{state.error}</Alert>}
 
+            {pending && slow && (
+              <Alert tone="info">
+                This is taking longer than usual. The email has most likely
+                already gone — close this, reload the page and check the Email
+                section before sending again.
+              </Alert>
+            )}
+
             <ModalFooter>
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => setOpen(false)}
-                disabled={pending}
+                disabled={pending && !slow}
               >
-                Cancel
+                {pending && slow ? "Close" : "Cancel"}
               </Button>
               <Button type="submit" disabled={pending || !hasEmail}>
                 {pending ? (
