@@ -99,7 +99,7 @@ export const generateDueInvoices = async (
           if (emailed) {
             /* Via the service, so marking sent behaves the same as it does
                anywhere else rather than being a bare column write. */
-            await updateInvoiceStatus(admin, invoiceId, "sent");
+            await markSent(admin, invoiceId, invoiceNumber);
             sent += 1;
           }
         }
@@ -114,6 +114,29 @@ export const generateDueInvoices = async (
   }
 
   return { generated, sent };
+};
+
+/**
+ * Flip a just-emailed invoice to sent, retrying through a transient failure.
+ *
+ * The email has already left, so a failure here doesn't undo anything — it
+ * just leaves an invoice the customer has in hand reading "Draft". On Sep 14
+ * that's what happened to #562: Supabase was returning Gateway Timeouts that
+ * morning, and this update's error was ignored, so nothing even logged it.
+ * updateInvoiceStatus returns null on any error.
+ */
+const markSent = async (
+  admin: SupabaseClient,
+  invoiceId: string,
+  invoiceNumber: string,
+): Promise<void> => {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    if (await updateInvoiceStatus(admin, invoiceId, "sent")) return;
+    if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 2000));
+  }
+  console.error(
+    `recurring: invoice ${invoiceNumber} (${invoiceId}) was emailed but could not be marked sent`,
+  );
 };
 
 /**
