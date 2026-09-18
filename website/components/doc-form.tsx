@@ -57,7 +57,11 @@ export const DocForm = ({
       issue_date: initialIssueDate,
       second_date:
         defaults?.secondDate ??
-        (isInvoice ? addDays(initialIssueDate, DEFAULT_INVOICE_TERM) : ""),
+        (defaults?.termDays !== undefined
+          ? addDays(initialIssueDate, defaults.termDays)
+          : isInvoice
+            ? addDays(initialIssueDate, DEFAULT_INVOICE_TERM)
+            : ""),
       notes: defaults?.notes ?? "",
       tax_rate: defaults?.taxRate ?? taxRateFor(defaults?.currency ?? "CAD"),
       items:

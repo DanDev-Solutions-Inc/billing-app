@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Trash2, Pencil, FileDown } from "lucide-react";
+import { Trash2, Pencil, FileDown, Copy } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
@@ -154,6 +154,12 @@ const InvoicePage = async ({
               <ButtonLink href={`/invoices/${inv.id}/edit`} variant="ghost">
                 <Pencil />
                 Edit
+              </ButtonLink>
+            </MenuItem>
+            <MenuItem>
+              <ButtonLink href={`/invoices/new?from=${inv.id}`} variant="ghost">
+                <Copy />
+                Duplicate
               </ButtonLink>
             </MenuItem>
             <MenuItem>
