@@ -324,6 +324,7 @@ export type Database = {
           invoice_number: string | null
           issue_date: string
           notes: string | null
+          recurring_invoice_id: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal: number
           tax: number
@@ -343,6 +344,7 @@ export type Database = {
           invoice_number?: string | null
           issue_date?: string
           notes?: string | null
+          recurring_invoice_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           tax?: number
@@ -362,6 +364,7 @@ export type Database = {
           invoice_number?: string | null
           issue_date?: string
           notes?: string | null
+          recurring_invoice_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           tax?: number

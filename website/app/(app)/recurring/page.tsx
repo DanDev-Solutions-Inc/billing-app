@@ -1,8 +1,9 @@
 import { Metadata } from "next";
-import { FileText, Pause, Play } from "lucide-react";
+import { FileText, Infinity as InfinityIcon, Pause, Play } from "lucide-react";
 import { createClient } from "@lib/supabase/server";
 import { getUserOrRedirect } from "@lib/dal";
 import { listRecurring } from "@services/supabase/recurring-invoice";
+import { listScheduleInvoices } from "@services/supabase/invoice";
 import {
   PageHeader,
   Card,
@@ -17,7 +18,7 @@ import {
   TableHead,
   TableCell, ConfirmButton, RowLink } from "@components/ui";
 import { formatMoney, formatDate, computeTotals } from "@utils/money";
-import { cadenceLabel } from "@utils/cadence";
+import { cadenceLabel, scheduleTerm } from "@utils/cadence";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { toggleRecurring, deleteRecurringAction } from "./actions";
 
@@ -29,9 +30,10 @@ const RecurringPage = async () => {
      round-trip in front of the data. Resolved alongside it below. */
   const authGate = getUserOrRedirect();
   const supabase = await createClient();
-  const [, schedules] = await Promise.all([
+  const [, schedules, raised] = await Promise.all([
     authGate,
     listRecurring(supabase),
+    listScheduleInvoices(supabase),
   ]);
 
   return (
@@ -60,6 +62,12 @@ const RecurringPage = async () => {
                 <TableHead className="hidden lg:table-cell">Cadence</TableHead>
                 <TableHead className="hidden sm:table-cell">Next invoice</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="hidden text-right md:table-cell">
+                  Invoices
+                </TableHead>
+                <TableHead className="hidden text-right md:table-cell">
+                  Grand total
+                </TableHead>
                 <TableHead className="hidden sm:table-cell">Status</TableHead>
                 <TableHead />
               </TableRow>
@@ -69,6 +77,11 @@ const RecurringPage = async () => {
                 const items =
                   (s.line_items as unknown as LineItemFormValues[]) ?? [];
                 const { total } = computeTotals(items, Number(s.tax_rate));
+                const term = scheduleTerm(
+                  s,
+                  total,
+                  raised.filter((inv) => inv.recurring_invoice_id === s.id),
+                );
                 return (
                   <TableRow key={s.id}>
                     <TableCell className="w-full max-w-0">
@@ -112,6 +125,23 @@ const RecurringPage = async () => {
                     </TableCell>
                     <TableCell className="text-right font-medium tabular-nums">
                       {formatMoney(total, s.currency)}
+                    </TableCell>
+                    <TableCell className="hidden text-right tabular-nums text-muted-foreground md:table-cell">
+                      {term?.count ?? (
+                        <InfinityIcon
+                          className="ml-auto size-4"
+                          aria-label="No end date"
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden text-right tabular-nums md:table-cell">
+                      {term ? (
+                        <span className="font-medium">
+                          {formatMoney(term.total, s.currency)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Ongoing</span>
+                      )}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <StatusPill status={s.active ? "sent" : "draft"} />

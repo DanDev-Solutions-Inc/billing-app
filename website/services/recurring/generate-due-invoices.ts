@@ -64,6 +64,7 @@ export const generateDueInvoices = async (
       const { id: invoiceId } = await createInvoice(admin, {
         user_id: schedule.user_id,
         customer_id: schedule.customer_id,
+        recurring_invoice_id: schedule.id,
         invoice_number: invoiceNumber,
         notes: schedule.notes,
         issue_date: today,

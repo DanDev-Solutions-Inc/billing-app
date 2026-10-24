@@ -6,6 +6,8 @@ import { LineItemsEditor } from "@components/invoices/line-items-editor";
 import { Card, Field, inputClass, Button, Select } from "@components/ui";
 import { Combobox } from "@components/ui/combobox";
 import { recurringSchema } from "@utils/validation/recurringSchema";
+import { scheduledRunDates } from "@utils/cadence";
+import { computeTotals, formatDate, formatMoney } from "@utils/money";
 import { LineItemFormValues } from "@interfaces/forms/LineItemFormValues";
 import { RecurringFormValues } from "@interfaces/forms/RecurringFormValues";
 import { RecurringInvoiceFormProps } from "@interfaces/components/RecurringInvoiceFormProps";
@@ -100,6 +102,19 @@ export const RecurringInvoiceForm = ({
     );
     formik.setFieldValue("items", items);
   };
+
+  /* What the whole schedule bills, so a fixed-value contract can be checked
+     against its total before saving. Only meaningful with an end date. */
+  const runDates = scheduledRunDates(
+    formik.values.next_run,
+    formik.values.frequency,
+    formik.values.interval,
+    formik.values.end_date,
+  );
+  const perInvoice = computeTotals(
+    formik.values.items,
+    chargesTax(formik.values.currency) ? formik.values.tax_rate : 0,
+  );
 
   const itemsError =
     typeof formik.errors.items === "string" ? formik.errors.items : undefined;
@@ -224,6 +239,24 @@ export const RecurringInvoiceForm = ({
             />
           </Field>
         </div>
+        {runDates && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            {runDates.length === 0 ? (
+              "The end date is before the first invoice — nothing will be billed."
+            ) : (
+              <>
+                {runDates.length} invoice{runDates.length === 1 ? "" : "s"},{" "}
+                {formatDate(runDates[0])} – {formatDate(runDates[runDates.length - 1])}:{" "}
+                <span className="font-semibold text-foreground">
+                  {formatMoney(perInvoice.subtotal * runDates.length, formik.values.currency)}
+                </span>{" "}
+                before tax
+                {perInvoice.tax > 0 &&
+                  ` (${formatMoney(perInvoice.total * runDates.length, formik.values.currency)} with tax)`}
+              </>
+            )}
+          </p>
+        )}
         <label className="mt-4 flex items-center gap-2 text-sm text-foreground">
           <input
             type="checkbox"

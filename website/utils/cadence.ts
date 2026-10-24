@@ -73,3 +73,56 @@ export const yearlyAmount = (schedule: {
 }): number =>
   (schedule.total * YEARLY_FACTOR[schedule.frequency]) /
   Math.max(1, schedule.interval);
+
+/**
+ * Every date a schedule will bill on, from its first run through `endDate`
+ * inclusive — the cron keeps a schedule active while its next run is on or
+ * before the end date. Chained through computeNextRun so it lands on the same
+ * days the cron will. Null when there's no end date (open-ended), and capped so
+ * a daily schedule ending decades out can't hang the form.
+ */
+export const scheduledRunDates = (
+  firstRun: string,
+  frequency: RecurringFrequency,
+  interval: number,
+  endDate: string | null | undefined,
+  cap = 1000,
+): string[] | null => {
+  if (!firstRun || !endDate) return null;
+  const dates: string[] = [];
+  for (let d = firstRun; d <= endDate && dates.length < cap; ) {
+    dates.push(d);
+    d = computeNextRun(d, frequency, interval);
+  }
+  return dates;
+};
+
+/**
+ * A fixed-term schedule's whole run: the invoices it has already raised (at
+ * their stored totals, which may predate a price change) plus every run left
+ * from next_run to the end date. Null for open-ended schedules.
+ */
+export const scheduleTerm = (
+  schedule: {
+    next_run: string;
+    frequency: RecurringFrequency;
+    interval: number;
+    end_date: string | null;
+  },
+  perInvoiceTotal: number,
+  raised: { total: number | string }[],
+): { count: number; total: number } | null => {
+  const remaining = scheduledRunDates(
+    schedule.next_run,
+    schedule.frequency,
+    schedule.interval,
+    schedule.end_date,
+  );
+  if (!remaining) return null;
+  return {
+    count: raised.length + remaining.length,
+    total:
+      raised.reduce((sum, inv) => sum + Number(inv.total), 0) +
+      perInvoiceTotal * remaining.length,
+  };
+};

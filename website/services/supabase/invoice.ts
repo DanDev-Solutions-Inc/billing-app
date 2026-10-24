@@ -125,3 +125,23 @@ export const upsertInvoiceByWaveId = async (
     .single();
   return { id: data?.id, error: error?.message };
 };
+
+/**
+ * Invoices raised by recurring schedules — one schedule's, or every
+ * schedule's when `recurringId` is omitted (the list page sums them per row).
+ * Oldest first, so a schedule's history reads in billing order.
+ */
+export const listScheduleInvoices = async (
+  sb: SupabaseClient,
+  recurringId?: string,
+): Promise<Invoice[]> => {
+  let query = sb
+    .from("invoices")
+    .select("*")
+    .not("recurring_invoice_id", "is", null);
+  if (recurringId) query = query.eq("recurring_invoice_id", recurringId);
+  const { data } = await query
+    .order("issue_date", { ascending: true })
+    .order("invoice_number", { ascending: true });
+  return data ?? [];
+};
