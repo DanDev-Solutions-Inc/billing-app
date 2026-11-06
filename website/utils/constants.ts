@@ -6,8 +6,8 @@ export const BUSINESS = {
   phoneLabel: "Mobile",
   phone: "416 399 8601",
   website: "www.dandev.solutions",
-  // Where clients should write with questions. Documents are sent from a
-  // no-reply address, so this is the only route back to a monitored mailbox.
+  // The monitored mailbox. Documents are sent from a no-reply address, so
+  // replies are directed here, and clients are told to write here.
   contactEmail: "karpienia@dandev.solutions",
   // Where the business keeps its clock. Timestamps are formatted in this zone,
   // not the renderer's: pages render on Vercel in UTC, which put an 8:33 a.m.

@@ -60,9 +60,8 @@ export const sendDocumentEmail = async (input: SendDocEmailInput) => {
   const { data, error } = await resend.emails.send({
     from: `${BUSINESS.name} <${from}>`,
     to: input.to,
-    // No replyTo: `from` is a no-reply address on the inbound domain, so a
-    // reply would land on the receipts webhook rather than a mailbox. The
-    // template points clients at BUSINESS.contactEmail instead.
+    // `from` is a no-reply address, so replies need sending to a real mailbox.
+    replyTo: BUSINESS.contactEmail,
     subject,
     html: body.html,
     text: body.text, // plain-text alternative (multipart) — key spam-filter signal
@@ -74,6 +73,51 @@ export const sendDocumentEmail = async (input: SendDocEmailInput) => {
   // `data.email_id`, so it's the only way to tie an open or a bounce to the
   // document that was sent — see recordDocumentEmail().
   return { ok: true as const, emailId: data?.id ?? null };
+};
+
+const escapeHtml = (value: string) =>
+  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * Pass an email received at the no-reply address on to the monitored mailbox.
+ *
+ * Documents sent before replyTo existed still reply to no-reply. This isn't
+ * Resend's forward(): that hides who wrote it and can't set replyTo, so hitting
+ * Reply would go back to no-reply. The idempotency key stops a webhook retry
+ * from delivering it twice.
+ */
+export const forwardInboundEmail = async (emailId: string) => {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.INVOICE_FROM_EMAIL;
+  if (!apiKey || !from) return { error: "Email is not configured." };
+
+  const resend = new Resend(apiKey);
+  const { data: email, error: readError } =
+    await resend.emails.receiving.get(emailId);
+  if (!email) return { error: readError?.message ?? "Email not found." };
+
+  const { data: files, error: filesError } =
+    await resend.emails.receiving.attachments.list({ emailId });
+  if (!files) return { error: filesError?.message ?? "Attachments not found." };
+
+  const { error } = await resend.emails.send(
+    {
+      from: `${BUSINESS.name} <${from}>`,
+      to: BUSINESS.contactEmail,
+      replyTo: email.reply_to?.length ? email.reply_to : email.from,
+      subject: email.subject || "Reply to no-reply address",
+      text: `From: ${email.from}\n\n${email.text ?? ""}`,
+      ...(email.html && {
+        html: `<p>From: ${escapeHtml(email.from)}</p><hr />${email.html}`,
+      }),
+      attachments: files.data.map((file) => ({
+        filename: file.filename,
+        path: file.download_url,
+      })),
+    },
+    { idempotencyKey: `forward-inbound/${emailId}` },
+  );
+  return error ? { error: error.message } : { ok: true as const };
 };
 
 export interface SendInviteEmailInput {
@@ -279,9 +323,6 @@ const documentEmail = (
                 <a href="https://${url}" style="color:${ACCENT};text-decoration:none;">${url}</a><br />
                 Questions? <a href="mailto:${BUSINESS.contactEmail}" style="color:${ACCENT};text-decoration:none;">${BUSINESS.contactEmail}</a>
               </div>
-              <div style="color:${MUTED};font-size:11px;line-height:1.5;margin-top:12px;">
-                Sent from an unmonitored address — replies to this message aren't received.
-              </div>
             </td>
           </tr>
         </table>
@@ -315,8 +356,6 @@ const documentEmail = (
     `${BUSINESS.phoneLabel}: ${BUSINESS.phone}`,
     `https://${url}`,
     `Questions? ${BUSINESS.contactEmail}`,
-    ``,
-    `Sent from an unmonitored address — replies to this message aren't received.`,
   ].join("\n");
 
   return { html, text };
