@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { createAdminClient } from "@lib/supabase/admin";
 import { isAnalyzable } from "@lib/ai/analyze-receipt";
+import { forwardInboundEmail } from "@lib/email";
 import { ingestAttachment } from "@services/receipts/ingest-attachment";
 import {
   getProfileByInboundToken,
@@ -57,13 +58,25 @@ export const POST = async (request: Request) => {
   //   3. the sender's own address, as a last resort
   const recipients = collectRecipients(data);
 
+  const emailId = typeof data.email_id === "string" ? data.email_id : null;
+
   // Sending and receiving share one domain, so a client replying to a no-reply
   // invoice arrives here too. Only mail actually addressed to the receipts
   // mailbox may be filed — without this, a reply carrying any attachment (a
   // remittance advice, or the quoted copy of our own logo) would fall through
   // to RECEIPTS_OWNER_USER_ID below and book a bogus transaction.
-  if (!recipients.some(isReceiptsAddress))
-    return NextResponse.json({ ok: true, skipped: "not addressed to receipts" });
+  if (!recipients.some(isReceiptsAddress)) {
+    if (!emailId || !isClientReply(recipients, data))
+      return NextResponse.json({ ok: true, skipped: "not addressed to receipts" });
+
+    const result = await forwardInboundEmail(emailId);
+    if ("error" in result) {
+      // A non-2xx makes Resend retry, so a reply isn't lost to a blip.
+      console.error(`inbound/receipts: forward failed for ${emailId}`, result.error);
+      return NextResponse.json({ error: "Forward failed" }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true, forwarded: true });
+  }
 
   const token = extractToken(recipients);
   const owner = process.env.RECEIPTS_OWNER_USER_ID;
@@ -75,7 +88,6 @@ export const POST = async (request: Request) => {
 
   // Resend webhooks carry attachment METADATA only — no content, no url. The
   // bytes come from the Receiving API as time-limited pre-signed download URLs.
-  const emailId = typeof data.email_id === "string" ? data.email_id : null;
   const attachments = await fetchAttachments(emailId, data);
   if (attachments.length === 0)
     return NextResponse.json({ ok: true, skipped: "no receipt attachments" });
@@ -147,6 +159,22 @@ const collectRecipients = (data: Record<string, unknown>): string[] => {
 // than to the start of the string.
 const isReceiptsAddress = (recipient: string): boolean =>
   /(^|[<\s,;])receipts(\+[a-z0-9]+)?@/i.test(recipient);
+
+// Mail to the no-reply address that a person sent. Bounces and our own domain
+// are excluded: a forward that bounced back here would otherwise forward again,
+// forever.
+const isClientReply = (
+  recipients: string[],
+  data: Record<string, unknown>,
+): boolean => {
+  const noReply = process.env.INVOICE_FROM_EMAIL?.toLowerCase();
+  const sender = extractSenderEmail(data)?.toLowerCase();
+  if (!noReply || !sender) return false;
+  if (!recipients.some((r) => r.toLowerCase().includes(noReply))) return false;
+  if (/^(mailer-daemon|postmaster)@/.test(sender)) return false;
+  const ownDomain = process.env.INBOUND_DOMAIN?.toLowerCase();
+  return !ownDomain || !sender.endsWith(`@${ownDomain}`);
+};
 
 const extractToken = (recipients: string[]): string | null => {
   for (const r of recipients) {
