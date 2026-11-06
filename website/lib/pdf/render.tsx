@@ -6,6 +6,7 @@ import { InvoiceDocument, type PdfDocData } from "@lib/pdf/invoice-document";
 import { formatMoney, formatDate } from "@utils/money";
 import { taxRowLabel } from "@utils/constants";
 import { chargesTax } from "@utils/currency";
+import { customerAddressLines } from "@utils/customer-address";
 import { CurrencyCode } from "@typings/CurrencyCode";
 import { Customer } from "@typings/customer/Customer";
 import { LineItem } from "@typings/line-item/LineItem";
@@ -61,10 +62,7 @@ export const renderDocumentPdf = async (
     customer: input.customer
       ? {
           name: input.customer.name,
-          lines: (input.customer.address ?? "")
-            .split("\n")
-            .map((l) => l.trim())
-            .filter(Boolean),
+          lines: customerAddressLines(input.customer),
           phone: input.customer.phone,
           email: input.customer.email,
         }
