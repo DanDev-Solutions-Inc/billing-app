@@ -4,11 +4,12 @@ import path from "node:path";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoiceDocument, type PdfDocData } from "@lib/pdf/invoice-document";
 import { formatMoney, formatDate } from "@utils/money";
-import { taxRowLabel } from "@utils/constants";
+import { paymentMethodLabel, taxRowLabel } from "@utils/constants";
 import { chargesTax } from "@utils/currency";
 import { customerAddressLines } from "@utils/customer-address";
 import { CurrencyCode } from "@typings/CurrencyCode";
 import { Customer } from "@typings/customer/Customer";
+import { InvoicePayment } from "@typings/invoice-payment/InvoicePayment";
 import { LineItem } from "@typings/line-item/LineItem";
 
 let logoCache: Buffer | null = null;
@@ -38,6 +39,8 @@ export interface RenderInput {
   subtotal: number;
   tax: number;
   total: number;
+  /** Payments received so far, oldest first. */
+  payments?: Pick<InvoicePayment, "amount" | "method" | "paid_at">[];
   notes: string | null;
 }
 
@@ -77,6 +80,10 @@ export const renderDocumentPdf = async (
     taxLabel: taxable ? taxRowLabel(taxRate) : null,
     tax: taxable ? formatMoney(input.tax, currency) : null,
     total: formatMoney(input.total, currency),
+    payments: (input.payments ?? []).map((p) => ({
+      label: `${paymentMethodLabel(p.method)} on ${formatDate(p.paid_at)}`,
+      amount: `-${formatMoney(p.amount, currency)}`,
+    })),
     notes: input.notes,
     logo: loadLogo(),
   };
