@@ -298,6 +298,7 @@ export const sendInvoice = async (
     return { error: "This customer has no email address. Add one first." };
 
   const items = await lineItems.listLineItems(supabase, "invoice", id);
+  const received = await payments.listInvoicePayments(supabase, id);
   const pdf = await renderDocumentPdf({
     kind: "INVOICE",
     currency: invoice.currency,
@@ -313,6 +314,7 @@ export const sendInvoice = async (
     subtotal: invoice.subtotal,
     tax: invoice.tax,
     total: invoice.total,
+    payments: received,
     notes: invoice.notes,
   });
 

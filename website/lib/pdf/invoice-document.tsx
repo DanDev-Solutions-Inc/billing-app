@@ -55,6 +55,8 @@ export interface PdfDocData {
   taxLabel: string | null;
   tax: string | null;
   total: string;
+  /* Money already received. Empty on anything without payments. */
+  payments: { label: string; amount: string }[];
   notes?: string | null;
   logo?: Buffer | string; // png buffer or data uri
 }
@@ -298,6 +300,12 @@ export const InvoiceDocument = ({ data }: { data: PdfDocData }) => {
             <Text style={s.totalLabelStrong}>Total:</Text>
             <Text style={s.totalValue}>{data.total}</Text>
           </View>
+          {data.payments.map((p, i) => (
+            <View key={i} style={s.totalLine}>
+              <Text style={s.totalLabel}>{p.label}:</Text>
+              <Text style={s.totalValue}>{p.amount}</Text>
+            </View>
+          ))}
           <View style={s.totalLine}>
             <Text style={s.totalLabelStrong}>{data.amountDueLabel}:</Text>
             <Text style={[s.totalValue, { fontFamily: "Helvetica-Bold" }]}>

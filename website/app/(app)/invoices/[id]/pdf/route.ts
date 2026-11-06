@@ -2,6 +2,7 @@ import { createClient } from "@lib/supabase/server";
 import { getUser } from "@lib/dal";
 import { renderDocumentPdf } from "@lib/pdf/render";
 import { getInvoice } from "@services/supabase/invoice";
+import { listInvoicePayments } from "@services/supabase/invoice-payment";
 import { listLineItems } from "@services/supabase/line-item";
 import { balanceOf } from "@utils/invoice";
 
@@ -20,6 +21,7 @@ export const GET = async (
   if (!invoice) return new Response("Not found", { status: 404 });
 
   const items = await listLineItems(supabase, "invoice", id);
+  const payments = await listInvoicePayments(supabase, id);
   const pdf = await renderDocumentPdf({
     kind: "INVOICE",
     currency: invoice.currency,
@@ -35,6 +37,7 @@ export const GET = async (
     subtotal: invoice.subtotal,
     tax: invoice.tax,
     total: invoice.total,
+    payments,
     notes: invoice.notes,
   });
 
