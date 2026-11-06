@@ -14,6 +14,7 @@ import {
 } from "@components/ui";
 import { formatMoney, formatDate } from "@utils/money";
 import { splitLineItem } from "@utils/line-item-presets";
+import { customerAddressLines } from "@utils/customer-address";
 import { DocumentDetailProps } from "@interfaces/components/DocumentDetailProps";
 import { MetaProps } from "@interfaces/components/MetaProps";
 import { TotalRowProps } from "@interfaces/components/TotalRowProps";
@@ -70,9 +71,9 @@ export const DocumentDetail = ({
                 <p className="font-medium text-foreground">{customer.name}</p>
                 {customer.email && <p>{customer.email}</p>}
                 {customer.phone && <p>{customer.phone}</p>}
-                {customer.address && (
-                  <p className="whitespace-pre-line">{customer.address}</p>
-                )}
+                {customerAddressLines(customer).map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
               </>
             ) : (
               <p>—</p>

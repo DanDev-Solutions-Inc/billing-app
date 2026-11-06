@@ -24,7 +24,10 @@ export const customerAddressLines = (c: AddressParts): string[] => {
   ].filter((l): l is string => Boolean(l?.trim()));
 
   if (structured.length > 0) return structured;
-  return (c.address ?? "").split("\n").filter((l) => l.trim());
+  return (c.address ?? "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
 };
 
 /** Single-line form, for table cells. */
